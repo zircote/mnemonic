@@ -15,12 +15,7 @@ from pathlib import Path
 def get_org() -> str:
     """Get organization from git remote."""
     try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             url = result.stdout.strip()
             if ":" in url and "@" in url:
@@ -43,7 +38,7 @@ def count_memories() -> dict:
     paths = [
         home / ".claude" / "mnemonic" / org,
         home / ".claude" / "mnemonic" / "default",
-        Path.cwd() / ".claude" / "mnemonic"
+        Path.cwd() / ".claude" / "mnemonic",
     ]
 
     for base_path in paths:
@@ -52,7 +47,17 @@ def count_memories() -> dict:
         for memory_file in base_path.rglob("*.memory.md"):
             parts = memory_file.parts
             for part in parts:
-                if part in ["decisions", "learnings", "patterns", "blockers", "context", "apis", "security", "testing", "episodic"]:
+                if part in [
+                    "decisions",
+                    "learnings",
+                    "patterns",
+                    "blockers",
+                    "context",
+                    "apis",
+                    "security",
+                    "testing",
+                    "episodic",
+                ]:
                     counts[part] = counts.get(part, 0) + 1
                     break
 
@@ -84,10 +89,7 @@ REMINDER: Per CLAUDE.md, you MUST capture:
 Write to ~/.claude/mnemonic/default/{namespace}/user/
 </mnemonic>"""
 
-    print(json.dumps({
-        "continue": True,
-        "systemMessage": reminder
-    }))
+    print(json.dumps({"continue": True, "systemMessage": reminder}))
 
 
 if __name__ == "__main__":

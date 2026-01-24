@@ -53,10 +53,7 @@ def main():
 
     if reminders:
         message = "<mnemonic-tool-analysis>\n" + "\n".join(reminders) + "\n</mnemonic-tool-analysis>"
-        print(json.dumps({
-            "continue": True,
-            "systemMessage": message
-        }))
+        print(json.dumps({"continue": True, "systemMessage": message}))
     else:
         print(json.dumps({"continue": True}))
 

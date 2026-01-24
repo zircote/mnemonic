@@ -10,7 +10,6 @@ import json
 import os
 import re
 
-
 # Keywords that suggest capture opportunity
 CAPTURE_TRIGGERS = {
     "decisions": [
@@ -107,10 +106,7 @@ def main():
 
     if reminders:
         message = "<mnemonic-prompt-analysis>\n" + "\n".join(reminders) + "\n</mnemonic-prompt-analysis>"
-        print(json.dumps({
-            "continue": True,
-            "systemMessage": message
-        }))
+        print(json.dumps({"continue": True, "systemMessage": message}))
     else:
         print(json.dumps({"continue": True}))
 

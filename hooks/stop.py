@@ -24,24 +24,15 @@ def commit_changes() -> tuple[bool, int]:
     try:
         # Check for changes
         result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            cwd=str(mnemonic_path),
-            timeout=5
+            ["git", "status", "--porcelain"], capture_output=True, text=True, cwd=str(mnemonic_path), timeout=5
         )
         if result.returncode != 0 or not result.stdout.strip():
             return True, 0
 
-        changes = len([l for l in result.stdout.strip().split("\n") if l])
+        changes = len([line for line in result.stdout.strip().split("\n") if line])
 
         # Stage all changes
-        subprocess.run(
-            ["git", "add", "-A"],
-            cwd=str(mnemonic_path),
-            timeout=5,
-            capture_output=True
-        )
+        subprocess.run(["git", "add", "-A"], cwd=str(mnemonic_path), timeout=5, capture_output=True)
 
         # Commit
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
@@ -49,7 +40,7 @@ def commit_changes() -> tuple[bool, int]:
             ["git", "commit", "-m", f"Memory updates ({timestamp})"],
             cwd=str(mnemonic_path),
             timeout=5,
-            capture_output=True
+            capture_output=True,
         )
 
         return result.returncode == 0, changes
@@ -65,10 +56,7 @@ def main():
             message = f"<mnemonic-session-end>Committed {count} memory changes to git.</mnemonic-session-end>"
         else:
             message = f"<mnemonic-session-end>Warning: {count} uncommitted memory changes.</mnemonic-session-end>"
-        print(json.dumps({
-            "continue": True,
-            "systemMessage": message
-        }))
+        print(json.dumps({"continue": True, "systemMessage": message}))
     else:
         print(json.dumps({"continue": True}))
 
