@@ -233,6 +233,33 @@ Mnemonic works with multiple AI coding assistants beyond Claude Code:
 
 See [docs/integrations/](docs/integrations/) for setup guides and templates.
 
+## Documentation
+
+### For Enterprises
+
+Enterprise-focused documentation for organizations evaluating or deploying mnemonic:
+
+| Guide | Audience | Focus |
+|-------|----------|-------|
+| [Enterprise Overview](docs/enterprise/README.md) | All | Summary and navigation |
+| [Compliance & Governance](docs/enterprise/compliance-governance.md) | Architects | Audit trails, data sovereignty, compliance |
+| [Productivity & ROI](docs/enterprise/productivity-roi.md) | Managers | Team benefits, cost analysis |
+| [Developer Experience](docs/enterprise/developer-experience.md) | Developers | Privacy, customization, power features |
+| [Research Validation](docs/enterprise/research-validation.md) | Technical | Academic backing, benchmarks |
+| [Deployment Guide](docs/enterprise/deployment-guide.md) | DevOps | Installation, backup, team sharing |
+
+### For Memory Bank Users
+
+Migrating from a Memory Bank setup? See our community resources:
+
+| Guide | Description |
+|-------|-------------|
+| [Quick Start](docs/community/quickstart-memory-bank.md) | 5-minute setup for Memory Bank users |
+| [Migration Guide](docs/community/migration-from-memory-bank.md) | Complete migration walkthrough |
+| [Comparison](docs/community/mnemonic-vs-memory-bank.md) | Side-by-side feature comparison |
+| [Adoption Stories](docs/community/adoption-stories.md) | Community experiences |
+| [Contributing](docs/community/CONTRIBUTING-COMMUNITY.md) | Share your experience |
+
 ## Proactive Behavior
 
 After running `/mnemonic:setup`, Claude will:
@@ -311,6 +338,8 @@ mnemonic/
 │   ├── validation.md       # Memory validation guide
 │   ├── agent-coordination.md  # Multi-agent patterns
 │   ├── adrs/               # Architecture decision records
+│   ├── enterprise/         # Enterprise adoption guides
+│   ├── community/          # Memory Bank migration resources
 │   └── integrations/       # Multi-tool integration guides
 │       └── *.md
 ├── hooks/

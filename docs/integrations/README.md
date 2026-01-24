@@ -104,6 +104,14 @@ All memories are stored at `~/.claude/mnemonic/` with this structure:
 | `CONVENTIONS.md` | Aider | Project root |
 | `AGENTS.md` | Multiple tools | Project root or `~/.codex/` |
 
+## Migrating from Memory Bank
+
+Already using a Memory Bank pattern in Cursor, Windsurf, or another tool?
+
+- [Quick Start for Memory Bank Users](../community/quickstart-memory-bank.md) - 5-minute setup
+- [Full Migration Guide](../community/migration-from-memory-bank.md) - Complete walkthrough
+- [Comparison](../community/mnemonic-vs-memory-bank.md) - Side-by-side differences
+
 ## Contributing
 
 To add support for a new tool:

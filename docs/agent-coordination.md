@@ -231,6 +231,6 @@ done
 
 ## Related Documentation
 
-- [Blackboard Skill](../skills/mnemonic-blackboard/SKILL.md) - Base blackboard patterns
-- [Agent Coordination Skill](../skills/mnemonic-agent-coordination/SKILL.md) - Full coordination patterns
+- [Blackboard Skill](../skills/mnemonic-blackboard/SKILL.md) - Base blackboard patterns (at project root)
+- [Agent Coordination Skill](../skills/mnemonic-agent-coordination/SKILL.md) - Full coordination patterns (at project root)
 - [ADR-003](adrs/adr-003-agent-coordination-blackboard.md) - Architectural decision
