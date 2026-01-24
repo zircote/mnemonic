@@ -23,7 +23,7 @@ audience:
 related: []
 ---
 
-# ADR-0001: Filesystem-based Storage
+# ADR-001: Filesystem-based Storage
 
 ## Status
 
@@ -219,7 +219,7 @@ Mitigations for negative consequences:
 
 ## Related Decisions
 
-- [ADR-0002: MIF Level 3 Format](adr-0002-mif-level-3-format.md) - Defines the file format used
+- [ADR-002: MIF Level 3 Format](adr-002-mif-level-3-format.md) - Defines the file format used
 
 ## Links
 
@@ -230,7 +230,7 @@ Mitigations for negative consequences:
 
 - **Date:** 2026-01-24
 - **Source:** Initial architecture design
-- **Related ADRs:** ADR-0002
+- **Related ADRs:** ADR-002
 
 ## Audit
 

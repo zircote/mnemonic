@@ -22,10 +22,10 @@ audience:
   - developers
   - architects
 related:
-  - adr-0001-filesystem-based-storage.md
+  - adr-001-filesystem-based-storage.md
 ---
 
-# ADR-0002: MIF Level 3 Format
+# ADR-002: MIF Level 3 Format
 
 ## Status
 
@@ -218,7 +218,7 @@ Mitigations for negative consequences:
 
 ## Related Decisions
 
-- [ADR-0001: Filesystem-based Storage](adr-0001-filesystem-based-storage.md) - Storage mechanism for MIF files
+- [ADR-001: Filesystem-based Storage](adr-001-filesystem-based-storage.md) - Storage mechanism for MIF files
 
 ## Links
 
@@ -230,7 +230,7 @@ Mitigations for negative consequences:
 
 - **Date:** 2026-01-24
 - **Source:** MIF specification adoption decision
-- **Related ADRs:** ADR-0001
+- **Related ADRs:** ADR-001
 
 ## Audit
 
