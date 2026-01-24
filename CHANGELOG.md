@@ -107,6 +107,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[Reports]**: Add AI memory filesystem research
 - **[validation.md]**: Validation tool usage and CI integration
 - **[agent-coordination.md]**: Multi-agent coordination patterns and examples
+- **[Enterprise Package]**: Comprehensive documentation for enterprise adoption
+  - `docs/enterprise/README.md` - Overview and audience-specific navigation
+  - `docs/enterprise/compliance-governance.md` - Audit trails, data sovereignty, SOC2/ISO/GDPR
+  - `docs/enterprise/productivity-roi.md` - Team benefits, cost analysis, multi-tool flexibility
+  - `docs/enterprise/developer-experience.md` - Privacy-first design, power user features
+  - `docs/enterprise/research-validation.md` - Letta benchmark (74%), academic foundations
+  - `docs/enterprise/deployment-guide.md` - Installation, backup, team sharing patterns
+- **[Community Package]**: Resources for Memory Bank users and community
+  - `docs/community/README.md` - Community hub and navigation
+  - `docs/community/quickstart-memory-bank.md` - 5-minute setup for Memory Bank users
+  - `docs/community/migration-from-memory-bank.md` - Complete migration walkthrough
+  - `docs/community/mnemonic-vs-memory-bank.md` - Side-by-side feature comparison
+  - `docs/community/adoption-stories.md` - Community experiences template
+  - `docs/community/CONTRIBUTING-COMMUNITY.md` - How to contribute stories
+- **[Integration Guides]**: Enhanced Cursor, Windsurf, GitHub Copilot guides
+  - Common workflows and daily development patterns
+  - Advanced configuration patterns
+  - Memory Bank migration sections
+  - Troubleshooting guides
 
 ### Planned
 
