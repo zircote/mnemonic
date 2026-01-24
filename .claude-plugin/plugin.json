@@ -1,0 +1,36 @@
+{
+  "name": "mnemonic",
+  "version": "1.0.0",
+  "description": "Pure filesystem-based memory system for Claude Code - no external dependencies",
+  "author": {
+    "name": "zircote",
+    "email": "zircote@gmail.com",
+    "url": "https://github.com/zircote"
+  },
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "mnemonic",
+    "knowledge-management",
+    "persistent-memory"
+  ],
+  "commands": [
+    "./commands/capture.md",
+    "./commands/gc.md",
+    "./commands/init.md",
+    "./commands/recall.md",
+    "./commands/search.md",
+    "./commands/setup.md",
+    "./commands/status.md"
+  ],
+  "skills": [
+    "./skills/mnemonic-blackboard/SKILL.md",
+    "./skills/mnemonic-core/SKILL.md",
+    "./skills/mnemonic-format/SKILL.md",
+    "./skills/mnemonic-organization/SKILL.md",
+    "./skills/mnemonic-search/SKILL.md",
+    "./skills/mnemonic-setup/SKILL.md"
+  ],
+  "agents": ["./agents/memory-curator.md"],
+  "hooks": ["./hooks/hooks.json"]
+}
