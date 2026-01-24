@@ -45,6 +45,11 @@ project: mnemonic
 |-----|-------|--------|----------|
 | [ADR-001](adr-001-filesystem-based-storage.md) | Filesystem-based Storage | Accepted | architecture |
 | [ADR-002](adr-002-mif-level-3-format.md) | MIF Level 3 Format | Accepted | architecture |
+| [ADR-003](adr-003-agent-coordination-blackboard.md) | Agent Coordination via Blackboard Extension | Accepted | architecture |
+| [ADR-004](adr-004-mif-schema-validation.md) | MIF Schema as Single Source of Truth for Validation | Accepted | architecture |
+| [ADR-005](adr-005-memory-compression-gc.md) | Memory Compression via GC Extension | Accepted | architecture |
+| [ADR-006](adr-006-validation-as-memory.md) | Validation Results as Episodic Memories | Accepted | architecture |
+| [ADR-007](adr-007-enhanced-search-agents.md) | Enhanced Search with Agent-Driven Iteration | Accepted | architecture |
 
 ## Status Legend
 
