@@ -4,10 +4,22 @@
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
 [![MIF Level 3](https://img.shields.io/badge/MIF-Level%203-green)](https://github.com/zircote/MIF)
 
+**Supported Coding Assistants:**
+
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Native-blueviolet?logo=anthropic)](docs/integrations/README.md)
+[![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-Supported-black?logo=github)](docs/integrations/github-copilot.md)
+[![Cursor](https://img.shields.io/badge/Cursor-Supported-blue?logo=cursor)](docs/integrations/cursor.md)
+[![Windsurf](https://img.shields.io/badge/Windsurf-Supported-teal?logo=codeium)](docs/integrations/windsurf.md)
+[![Aider](https://img.shields.io/badge/Aider-Supported-green)](docs/integrations/aider.md)
+[![Continue](https://img.shields.io/badge/Continue-Supported-orange)](docs/integrations/continue.md)
+[![Codex CLI](https://img.shields.io/badge/Codex%20CLI-Supported-red?logo=openai)](docs/integrations/codex-cli.md)
+[![Gemini CLI](https://img.shields.io/badge/Gemini%20CLI-Supported-blue?logo=google)](docs/integrations/gemini-cli.md)
+[![OpenCode](https://img.shields.io/badge/OpenCode-Supported-purple)](docs/integrations/opencode.md)
+
 A pure filesystem-based memory system for Claude Code. No external dependencies - all operations use standard Unix tools and Claude's native capabilities.
 
 <p align="center">
-  <img src=".github/readme-infographic.svg" alt="Mnemonic Architecture" width="800">
+  <img src=".github/readme-infographic-g.jpeg" alt="Mnemonic Architecture" width="800">
 </p>
 
 > **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification for standardized AI memory storage and interchange. MIF defines a portable, human-readable format for persistent AI memories across different systems and agents.
@@ -173,6 +185,23 @@ Skills are fully self-contained and work without hooks or libraries:
 - **mnemonic-organization**: Namespaces and maintenance
 - **mnemonic-blackboard**: Cross-session coordination
 
+## Integrations
+
+Mnemonic works with multiple AI coding assistants beyond Claude Code:
+
+| Tool | Integration | Guide |
+|------|-------------|-------|
+| GitHub Copilot | `.github/copilot-instructions.md` | [Guide](docs/integrations/github-copilot.md) |
+| Cursor | `.cursor/rules/mnemonic.mdc` | [Guide](docs/integrations/cursor.md) |
+| Aider | `CONVENTIONS.md` | [Guide](docs/integrations/aider.md) |
+| Continue Dev | `config.yaml` rules | [Guide](docs/integrations/continue.md) |
+| Codex CLI | `AGENTS.md` + Skills | [Guide](docs/integrations/codex-cli.md) |
+| Gemini CLI | MCP Server | [Guide](docs/integrations/gemini-cli.md) |
+| Windsurf | Memories/Rules | [Guide](docs/integrations/windsurf.md) |
+| OpenCode | Skills | [Guide](docs/integrations/opencode.md) |
+
+See [docs/integrations/](docs/integrations/) for setup guides and templates.
+
 ## Proactive Behavior
 
 After running `/mnemonic:setup`, Claude will:
@@ -239,19 +268,26 @@ git show HEAD~3:path/to/memory.memory.md
 # Project structure
 mnemonic/
 ├── .claude-plugin/
-│   └── plugin.json       # Plugin manifest
+│   └── plugin.json         # Plugin manifest
 ├── agents/
-│   └── memory-curator.md # Maintenance agent
+│   └── memory-curator.md   # Maintenance agent
 ├── commands/
-│   └── *.md              # Slash commands
+│   └── *.md                # Slash commands
 ├── docs/
-│   ├── architecture.md   # System architecture
-│   └── contributing.md   # Contribution guide
+│   ├── architecture.md     # System architecture
+│   ├── contributing.md     # Contribution guide
+│   └── integrations/       # Multi-tool integration guides
+│       └── *.md
 ├── hooks/
-│   ├── hooks.json        # Hook configuration
-│   └── *.py              # Hook implementations
+│   ├── hooks.json          # Hook configuration
+│   └── *.py                # Hook implementations
 ├── skills/
-│   └── */SKILL.md        # Self-contained skills
+│   └── */SKILL.md          # Self-contained skills
+├── templates/              # Integration templates
+│   ├── AGENTS.md           # Universal agent instructions
+│   ├── CONVENTIONS.md      # Aider conventions
+│   ├── copilot-instructions.md
+│   └── cursor-rule.mdc
 ├── CHANGELOG.md
 └── README.md
 ```
