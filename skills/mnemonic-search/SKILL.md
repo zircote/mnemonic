@@ -115,6 +115,28 @@ rg "confidence: 0\.9" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 rg "confidence: 0\.[0-7]" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 ```
 
+### Search by Citations
+
+```bash
+# Find all memories with citations
+rg -l "^citations:" ~/.claude/mnemonic/ --glob "*.memory.md"
+
+# Find memories by citation type
+rg "type: paper" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "type: documentation" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "type: github" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+
+# Find memories citing specific domain
+rg "url: https://arxiv.org" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "url: https://docs.python.org" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+
+# Find memories by citation author
+rg "author: \"Smith" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+
+# Find high-relevance citations
+rg "relevance: 0\.9" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+```
+
 ---
 
 ## Full-Text Search
@@ -369,4 +391,7 @@ rg "\[\[" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 | Titles only | `rg "^title:" ~/.claude/mnemonic/` |
 | High confidence | `rg "confidence: 0\.9" ~/.claude/mnemonic/ -l` |
 | With code refs | `rg "^code_refs:" ~/.claude/mnemonic/ -l` |
+| With citations | `rg "^citations:" ~/.claude/mnemonic/ -l` |
+| Citation type | `rg "type: paper" ~/.claude/mnemonic/ -l` |
+| Citation domain | `rg "url: https://arxiv.org" ~/.claude/mnemonic/ -l` |
 | Project only | `rg "pattern" ./.claude/mnemonic/` |

@@ -82,6 +82,17 @@ code_refs:
     symbol: authenticateUser
     type: function                     # function | class | method | variable | type
 
+# === CITATIONS ===
+citations:
+  - type: documentation                # paper | documentation | blog | github | stackoverflow | article
+    title: "Source Title"
+    url: https://example.com/source
+    author: "Author Name"              # optional
+    date: 2026-01-23                   # publication date, optional
+    accessed: 2026-01-23T10:30:00Z     # when accessed, optional
+    relevance: 0.90                    # how relevant to memory 0.0-1.0, optional
+    note: "Brief description"          # optional context
+
 # === CONFLICT TRACKING ===
 conflicts:
   - memory_id: xyz789
@@ -166,6 +177,19 @@ Why this decision/pattern/learning matters.
 | `line` | integer | Line number |
 | `symbol` | string | Symbol name |
 | `type` | enum | `function`, `class`, `method`, `variable`, `type`, `module` |
+
+### Citation Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | enum | `paper`, `documentation`, `blog`, `github`, `stackoverflow`, `article` (required) |
+| `title` | string | Human-readable title of source (required) |
+| `url` | string | Full URL to source material (required) |
+| `author` | string | Author name (optional) |
+| `date` | date | Publication date YYYY-MM-DD (optional) |
+| `accessed` | ISO 8601 | When source was accessed (optional) |
+| `relevance` | float | How relevant to memory 0.0-1.0 (optional) |
+| `note` | string | Brief description of what this citation provides (optional) |
 
 ---
 
@@ -403,6 +427,18 @@ npm run db:rollback
 3. `tags` should be lowercase with hyphens
 4. `code_refs.file` paths should be relative
 
+### Citation Checks
+
+**Required if citations array exists:**
+1. `citations[].type` must be one of: `paper`, `documentation`, `blog`, `github`, `stackoverflow`, `article`
+2. `citations[].title` must be non-empty string
+3. `citations[].url` must be valid URL format (https:// or http://)
+
+**Optional field validations:**
+4. `citations[].relevance` if present, should be between 0.0 and 1.0
+5. `citations[].date` if present, should be valid YYYY-MM-DD format
+6. `citations[].accessed` if present, should be valid ISO 8601 timestamp
+
 ### File Naming
 
 ```bash
@@ -488,4 +524,44 @@ temporal:
 
 ## Prevention
 {How to prevent recurrence}
+```
+
+### Research Memory with Citations
+
+```yaml
+---
+id: {uuid}
+type: semantic
+namespace: learnings/project
+created: {timestamp}
+title: "Learning: {topic}"
+tags:
+  - research
+citations:
+  - type: paper
+    title: "Research Paper Title"
+    url: https://arxiv.org/abs/...
+    author: "Smith et al."
+    date: 2025-11-15
+    accessed: {timestamp}
+    relevance: 0.95
+    note: "Key finding about X"
+  - type: documentation
+    title: "Official Documentation"
+    url: https://docs.example.com/...
+    accessed: {timestamp}
+    relevance: 0.85
+---
+
+# Learning: {Topic}
+
+## Summary
+{What you learned}
+
+## Key Points
+- {Point 1 from citation 1}
+- {Point 2 from citation 2}
+
+## Application
+{How this applies to our project}
 ```

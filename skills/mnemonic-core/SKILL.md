@@ -142,11 +142,17 @@ echo "Generated UUID: $UUID"
 
 ### Step 3: Classify Cognitive Type
 
-| Type | When to Use | Indicators |
-|------|-------------|------------|
-| `semantic` | Facts, concepts, specifications | "X is Y", definitions, docs |
-| `episodic` | Events, experiences, incidents | "When we...", timestamps, narratives |
-| `procedural` | Processes, workflows, how-tos | "To do X, first...", steps, sequences |
+| Type | When to Use | Indicators | Include Citations When |
+|------|-------------|------------|------------------------|
+| `semantic` | Facts, concepts, specifications | "X is Y", definitions, docs | Learning from external sources |
+| `episodic` | Events, experiences, incidents | "When we...", timestamps, narratives | Incident reports, external references |
+| `procedural` | Processes, workflows, how-tos | "To do X, first...", steps, sequences | Following methodology from sources |
+
+**When to include citations:**
+- Learning something from an article, paper, or documentation
+- Making decisions based on external research
+- Referencing Stack Overflow or GitHub issues for solutions
+- Capturing knowledge from blog posts or tutorials
 
 ### Step 4: Create Memory File
 
@@ -384,6 +390,14 @@ code_refs:
     line: 42
     symbol: authenticateUser
     type: function
+
+# Citations (external references)
+citations:
+  - type: documentation
+    title: "Source Title"
+    url: https://example.com/source
+    accessed: 2026-01-23T10:30:00Z
+    relevance: 0.90
 
 # Conflict tracking
 conflicts:

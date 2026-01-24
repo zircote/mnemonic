@@ -1,6 +1,6 @@
 ---
 description: Capture a new memory
-argument-hint: "<namespace> <title> [--type semantic|episodic|procedural] [--tags tag1,tag2] [--scope user|project]"
+argument-hint: "<namespace> <title> [--type semantic|episodic|procedural] [--tags tag1,tag2] [--scope user|project] [--citations JSON]"
 allowed-tools:
   - Bash
   - Write
@@ -19,6 +19,7 @@ Capture a new memory to the mnemonic filesystem.
 - `--tags` - Comma-separated list of tags
 - `--scope` - user (cross-project) or project (default, current codebase)
 - `--confidence` - Confidence score 0.0-1.0 (default: 0.95)
+- `--citations` - JSON array of citation objects (see mnemonic-format skill for schema)
 
 ## Procedure
 
@@ -86,6 +87,35 @@ else
 fi
 ```
 
+### Step 5b: Format Citations (Optional)
+
+If `--citations` is provided as a JSON array, convert to YAML:
+
+```bash
+# CITATIONS is optional JSON array: '[{"type":"paper","title":"...","url":"..."}]'
+if [ -n "$CITATIONS" ]; then
+    # Parse JSON and format as YAML (Claude will handle this conversion)
+    CITATIONS_YAML="citations:"
+    # Each citation becomes:
+    #   - type: paper
+    #     title: "..."
+    #     url: https://...
+    #     accessed: 2026-01-24T10:00:00Z
+else
+    CITATIONS_YAML=""
+fi
+```
+
+**Citation fields:**
+- `type` (required): paper, documentation, blog, github, stackoverflow, article
+- `title` (required): Human-readable title
+- `url` (required): Full URL
+- `author` (optional): Author name
+- `date` (optional): Publication date
+- `accessed` (optional): When accessed
+- `relevance` (optional): 0.0-1.0
+- `note` (optional): Brief description
+
 ### Step 6: Prompt for Content
 
 Ask the user to provide the memory content. This should include:
@@ -113,6 +143,7 @@ provenance:
   source_type: conversation
   agent: claude-opus-4
   confidence: {CONFIDENCE}
+{CITATIONS_YAML}
 ---
 
 # {TITLE}
@@ -151,6 +182,12 @@ echo "  Type: $TYPE"
 
 ```
 /mnemonic:capture decisions "Use PostgreSQL for data storage" --type semantic --tags database,architecture --scope project
+```
+
+### Example with Citations
+
+```
+/mnemonic:capture learnings "PostgreSQL JSON Performance" --type semantic --tags database,performance --citations '[{"type":"paper","title":"PostgreSQL vs MySQL Performance","url":"https://arxiv.org/abs/2024.12345","author":"Smith et al.","relevance":0.95}]'
 ```
 
 ## Output
