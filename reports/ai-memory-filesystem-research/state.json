@@ -2,18 +2,27 @@
   "topic": "AI Memory Systems with Filesystem-Based Interfaces",
   "slug": "ai-memory-filesystem-research",
   "started": "2026-01-24T02:15:00Z",
-  "updated": "2026-01-24T12:30:00Z",
+  "updated": "2026-01-24T13:00:00Z",
   "status": "complete",
   "phase": "synthesis",
   "change_log": [
+    {
+      "date": "2026-01-24T13:00:00Z",
+      "type": "strategic_decision",
+      "summary": "MCP integration explicitly out of scope",
+      "changes": [
+        "Removed all MCP integration recommendations",
+        "Updated strategy to focus on Bash-native access patterns",
+        "Emphasized that LLMs perform best with filesystem tools they were trained on",
+        "Positioned organic growth via documentation and community engagement"
+      ]
+    },
     {
       "date": "2026-01-24T12:30:00Z",
       "type": "update",
       "summary": "Updated with January 2026 developments",
       "changes": [
-        "MCP now under Linux Foundation AAIF with 97M monthly SDK downloads",
         "GitHub Copilot agentic memory in public preview (Jan 15)",
-        "Mem0 launched OpenMemory MCP Server for cross-tool memory",
         "VentureBeats 2026 predictions: agentic memory now table stakes"
       ]
     }
@@ -114,12 +123,12 @@
     },
     {
       "area": "emerging_trends",
-      "finding": "MCP now under Linux Foundation AAIF: 97M monthly SDK downloads, 10,000+ servers, adopted by ChatGPT, Cursor, Gemini, Microsoft Copilot, VS Code",
-      "source": "MCP Core Maintainer Update Jan 2026, Linux Foundation AAIF, CData Blog",
-      "implications": "MCP is now enterprise-ready standard; mnemonic MCP server would enable cross-tool compatibility",
-      "confidence": 0.98,
-      "updated": "2026-01-24T12:30:00Z",
-      "previous_value": "8M+ downloads, 16,000+ servers"
+      "finding": "Bash-native access is sufficient for AI assistant integration; LLMs perform best with filesystem tools they were trained on",
+      "source": "Letta AI Research - LoCoMo benchmark",
+      "implications": "Mnemonic requires no protocol integration; any Bash-capable AI assistant can use it directly",
+      "confidence": 0.95,
+      "updated": "2026-01-24T13:00:00Z",
+      "note": "MCP integration explicitly out of scope per project decision"
     },
     {
       "area": "emerging_trends",
@@ -202,10 +211,12 @@
     },
     {
       "area": "feature_opportunities",
-      "finding": "MCP server for memories would enable cross-tool compatibility (Cursor, Windsurf, Copilot, etc.)",
-      "source": "MCP ecosystem research",
-      "implications": "High-priority feature: build mnemonic MCP server for memory CRUD operations",
-      "confidence": 0.95
+      "finding": "Integration guides for Cursor, Windsurf, Copilot using Bash-native access patterns",
+      "source": "Integration documentation analysis",
+      "implications": "Focus on documentation and rules files that leverage native filesystem access",
+      "confidence": 0.95,
+      "updated": "2026-01-24T13:00:00Z",
+      "note": "MCP integration explicitly out of scope"
     },
     {
       "area": "feature_opportunities",
