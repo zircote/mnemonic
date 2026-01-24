@@ -2,45 +2,25 @@
 """
 Mnemonic UserPromptSubmit Hook
 
-Analyzes user prompts for:
-1. Topics that might have relevant memories - injects context
-2. Keywords indicating decisions/learnings being discussed - flags for capture
-
-Receives prompt via CLAUDE_USER_PROMPT environment variable.
+Reinforces CLAUDE.md by detecting capture opportunities and reminding Claude.
+Does NOT capture itself - Claude does per CLAUDE.md instructions.
 """
 
 import json
 import os
 import re
-import subprocess
-import uuid
-from datetime import datetime, timezone
-from pathlib import Path
 
-
-# Keywords that suggest memory recall opportunity
-RECALL_KEYWORDS = [
-    r"\bwhat did we\b",
-    r"\bremember\b",
-    r"\bpreviously\b",
-    r"\blast time\b",
-    r"\bbefore\b",
-    r"\bearlier\b",
-    r"\bdecided\b",
-    r"\bagreed\b",
-    r"\bpattern\b",
-    r"\bconvention\b",
-]
 
 # Keywords that suggest capture opportunity
-CAPTURE_KEYWORDS = {
+CAPTURE_TRIGGERS = {
     "decisions": [
         r"\blet'?s use\b",
-        r"\bwe('ll| will) use\b",
+        r"\bwe('ll| will| should) use\b",
         r"\bdecided to\b",
         r"\bgoing with\b",
         r"\bchose\b",
         r"\bpicked\b",
+        r"\bwe('ll| will) go with\b",
     ],
     "learnings": [
         r"\blearned that\b",
@@ -49,6 +29,18 @@ CAPTURE_KEYWORDS = {
         r"\bTIL\b",
         r"\bdiscovered\b",
         r"\brealized\b",
+        r"\bfound out\b",
+        r"\bthe fix was\b",
+        r"\bthe solution\b",
+    ],
+    "patterns": [
+        r"\balways\b.*\bwhen\b",
+        r"\bnever\b.*\bwhen\b",
+        r"\bconvention\b",
+        r"\bstandard\b",
+        r"\bbest practice\b",
+        r"\bwe do it this way\b",
+        r"\bthe pattern is\b",
     ],
     "blockers": [
         r"\bblocked by\b",
@@ -57,158 +49,41 @@ CAPTURE_KEYWORDS = {
         r"\bissue with\b",
         r"\bproblem\b",
         r"\bbug\b",
-    ],
-    "patterns": [
-        r"\balways\b.*\bwhen\b",
-        r"\bnever\b.*\bwhen\b",
-        r"\bconvention\b",
-        r"\bstandard\b",
-        r"\bbest practice\b",
+        r"\berror\b",
     ],
 }
 
-
-def get_org() -> str:
-    """Get organization from git remote."""
-    try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            url = result.stdout.strip()
-            if ":" in url and "@" in url:
-                org = url.split(":")[-1].split("/")[0]
-            else:
-                parts = url.rstrip(".git").split("/")
-                org = parts[-2] if len(parts) >= 2 else "default"
-            return org.replace(".git", "")
-    except Exception:
-        pass
-    return "default"
+# Keywords that suggest recall needed
+RECALL_TRIGGERS = [
+    r"\bwhat did we\b",
+    r"\bremember\b",
+    r"\bpreviously\b",
+    r"\blast time\b",
+    r"\bbefore\b",
+    r"\bearlier\b",
+    r"\bwhat was\b",
+    r"\bhow did we\b",
+]
 
 
-def search_memories(query: str, org: str, limit: int = 5) -> list:
-    """Search memories for relevant context."""
-    memories = []
-    home = Path.home()
-    cwd = Path.cwd()
+def detect_triggers(prompt: str) -> dict:
+    """Detect capture and recall triggers in prompt."""
+    result = {"capture": [], "recall": False}
 
-    search_paths = [
-        home / ".claude" / "mnemonic" / org,
-        cwd / ".claude" / "mnemonic"
-    ]
-
-    # Extract key terms from query
-    terms = re.findall(r'\b\w{4,}\b', query.lower())
-    if not terms:
-        return []
-
-    for search_path in search_paths:
-        if not search_path.exists():
-            continue
-
-        for memory_file in search_path.rglob("*.memory.md"):
-            try:
-                content = memory_file.read_text().lower()
-
-                # Check if any terms match
-                matches = sum(1 for term in terms if term in content)
-                if matches > 0:
-                    # Extract title
-                    title = ""
-                    namespace = ""
-
-                    for line in memory_file.read_text().split("\n"):
-                        if line.startswith("title:"):
-                            title = line.replace("title:", "").strip().strip('"')
-                        elif line.startswith("namespace:"):
-                            namespace = line.replace("namespace:", "").strip()
-
-                    if title:
-                        memories.append({
-                            "title": title,
-                            "namespace": namespace,
-                            "file": str(memory_file),
-                            "relevance": matches
-                        })
-            except Exception:
-                continue
-
-    # Sort by relevance
-    memories.sort(key=lambda x: x["relevance"], reverse=True)
-    return memories[:limit]
-
-
-def detect_capture_intent(prompt: str) -> list:
-    """Detect if prompt indicates content worth capturing."""
-    intents = []
-
-    for namespace, patterns in CAPTURE_KEYWORDS.items():
+    # Check capture triggers
+    for namespace, patterns in CAPTURE_TRIGGERS.items():
         for pattern in patterns:
             if re.search(pattern, prompt, re.IGNORECASE):
-                intents.append(namespace)
+                result["capture"].append(namespace)
                 break
 
-    return list(set(intents))
-
-
-def create_memory(
-    title: str,
-    content: str,
-    namespace: str,
-    mem_type: str,
-    tags: list
-) -> str:
-    """Create a memory file and return its path."""
-    memory_id = str(uuid.uuid4())
-    slug = re.sub(r'[^a-z0-9-]', '', title.lower().replace(' ', '-'))[:50]
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    # Determine path
-    memory_dir = Path.cwd() / ".claude" / "mnemonic" / namespace / "project"
-    memory_dir.mkdir(parents=True, exist_ok=True)
-
-    memory_path = memory_dir / f"{memory_id}-{slug}.memory.md"
-
-    # Build frontmatter
-    tags_yaml = "\n".join(f"  - {tag}" for tag in tags)
-
-    memory_content = f"""---
-id: {memory_id}
-type: {mem_type}
-namespace: {namespace}/project
-created: {timestamp}
-modified: {timestamp}
-title: "{title}"
-tags:
-{tags_yaml}
-temporal:
-  valid_from: {timestamp}
-  recorded_at: {timestamp}
-provenance:
-  source_type: conversation
-  agent: claude-opus-4
-  confidence: 0.9
----
-
-# {title}
-
-{content}
-"""
-
-    memory_path.write_text(memory_content)
-    return str(memory_path)
-
-
-def detect_recall_intent(prompt: str) -> bool:
-    """Detect if prompt is asking about previous context."""
-    for pattern in RECALL_KEYWORDS:
+    # Check recall triggers
+    for pattern in RECALL_TRIGGERS:
         if re.search(pattern, prompt, re.IGNORECASE):
-            return True
-    return False
+            result["recall"] = True
+            break
+
+    return result
 
 
 def main():
@@ -217,54 +92,27 @@ def main():
         print(json.dumps({"continue": True}))
         return
 
-    org = get_org()
-    context_parts = []
+    triggers = detect_triggers(prompt)
+    reminders = []
 
-    # Check for recall intent
-    if detect_recall_intent(prompt):
-        memories = search_memories(prompt, org)
-        if memories:
-            context_parts.append("**Relevant Memories Found:**")
-            for mem in memories:
-                context_parts.append(f"- {mem['title']} ({mem['namespace']})")
-            context_parts.append("")
+    if triggers["recall"]:
+        reminders.append("RECALL: User is asking about prior context. Search memories first:")
+        reminders.append("  rg -i '<topic>' ~/.claude/mnemonic/ --glob '*.memory.md'")
 
-    # Check for capture intent and auto-capture
-    capture_intents = detect_capture_intent(prompt)
-    for namespace in capture_intents:
-        # Extract a title from the prompt (first sentence or first 60 chars)
-        title_match = re.match(r'^[^.!?\n]+', prompt.strip())
-        title = title_match.group(0)[:60] if title_match else prompt[:60]
+    if triggers["capture"]:
+        namespaces = ", ".join(triggers["capture"])
+        reminders.append(f"CAPTURE: Detected {namespaces} content. Per CLAUDE.md, write memory to:")
+        for ns in triggers["capture"]:
+            reminders.append(f"  ~/.claude/mnemonic/default/{ns}/user/")
 
-        # Determine memory type based on namespace
-        mem_type_map = {
-            "decisions": "semantic",
-            "learnings": "semantic",
-            "patterns": "procedural",
-            "blockers": "episodic",
-        }
-        mem_type = mem_type_map.get(namespace, "semantic")
-
-        # Create the memory
-        create_memory(
-            title=title,
-            content=prompt,
-            namespace=namespace,
-            mem_type=mem_type,
-            tags=[namespace, "auto-captured", "from-prompt"]
-        )
-        context_parts.append(f"**Auto-Captured ({namespace}):** {title[:40]}...")
-
-    # Build result
-    if context_parts:
-        result = {
+    if reminders:
+        message = "<mnemonic-prompt-analysis>\n" + "\n".join(reminders) + "\n</mnemonic-prompt-analysis>"
+        print(json.dumps({
             "continue": True,
-            "systemMessage": "\n".join(context_parts)
-        }
+            "systemMessage": message
+        }))
     else:
-        result = {"continue": True}
-
-    print(json.dumps(result))
+        print(json.dumps({"continue": True}))
 
 
 if __name__ == "__main__":
