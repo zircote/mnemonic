@@ -1,4 +1,4 @@
-.PHONY: all build test lint format format-check clean setup audit docs validate
+.PHONY: all build test lint format format-check clean setup audit docs validate validate-memories validate-memories-ci
 
 # Default target
 all: lint test
@@ -79,18 +79,35 @@ docs:
 	@echo "Files:"
 	@find docs -name "*.md" -type f
 
+# Validate memory files against MIF schema
+validate-memories:
+	@echo "Validating memory files..."
+	@./tools/mnemonic-validate --format markdown
+
+# Validate memory files (CI mode - JSON output)
+validate-memories-ci:
+	@./tools/mnemonic-validate --format json
+
+# Validate only git-changed memory files
+validate-memories-changed:
+	@echo "Validating changed memory files..."
+	@./tools/mnemonic-validate --changed --format markdown
+
 # Help
 help:
 	@echo "Available targets:"
-	@echo "  all          - Run lint and test (default)"
-	@echo "  build        - Build the project (no-op for plugins)"
-	@echo "  test         - Run tests"
-	@echo "  lint         - Lint code and validate plugin"
-	@echo "  validate     - Validate plugin structure"
-	@echo "  format       - Format Python code"
-	@echo "  format-check - Check code formatting"
-	@echo "  clean        - Remove generated files"
-	@echo "  setup        - Set up development environment"
-	@echo "  audit        - Run security audit"
-	@echo "  docs         - List documentation files"
-	@echo "  help         - Show this help"
+	@echo "  all                    - Run lint and test (default)"
+	@echo "  build                  - Build the project (no-op for plugins)"
+	@echo "  test                   - Run tests"
+	@echo "  lint                   - Lint code and validate plugin"
+	@echo "  validate               - Validate plugin structure"
+	@echo "  validate-memories      - Validate memory files against MIF schema"
+	@echo "  validate-memories-ci   - Validate memories (JSON output for CI)"
+	@echo "  validate-memories-changed - Validate only git-modified memories"
+	@echo "  format                 - Format Python code"
+	@echo "  format-check           - Check code formatting"
+	@echo "  clean                  - Remove generated files"
+	@echo "  setup                  - Set up development environment"
+	@echo "  audit                  - Run security audit"
+	@echo "  docs                   - List documentation files"
+	@echo "  help                   - Show this help"
