@@ -143,6 +143,40 @@ Brief description of what this entry is about.
 ---
 ```
 
+### Agent Entry Template
+
+For multi-agent coordination, use this extended format:
+
+```markdown
+---
+**Session:** {session_id}
+**Time:** {timestamp}
+**Agent:** {agent_id}
+**Status:** active | idle | handoff
+**Capabilities:** [list, of, capabilities]
+
+## Entry Content
+
+Description of agent activity, status update, or handoff context...
+
+### Context (for handoffs)
+- Key context point 1
+- Key context point 2
+
+### State (optional JSON)
+```json
+{
+  "workflow_id": "...",
+  "iteration": 1,
+  "findings": []
+}
+```
+
+---
+```
+
+See `mnemonic-agent-coordination` skill for full agent coordination patterns.
+
 ### Write Functions
 
 ```bash

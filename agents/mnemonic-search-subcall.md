@@ -231,6 +231,40 @@ For query "What do we know about authentication?" on iteration 1:
 }
 ```
 
+## Progress Reporting
+
+Optionally report progress to blackboard for monitoring:
+
+```bash
+# Report progress to session-notes.md (if workflow_id provided)
+if [ -n "$WORKFLOW_ID" ]; then
+    BB_DIR="$HOME/.claude/mnemonic/.blackboard"
+    mkdir -p "$BB_DIR"
+
+    cat >> "${BB_DIR}/session-notes.md" << EOF
+
+---
+**Session:** ${CLAUDE_SESSION_ID:-unknown}
+**Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+**Agent:** search-subcall-${ITERATION}
+**Status:** active
+
+## Progress Report
+
+### Workflow
+$WORKFLOW_ID
+
+### Progress
+- Iteration: $ITERATION
+- Pattern: $SEARCH_PATTERN
+- Namespace: ${NAMESPACE_FILTER:-all}
+- Files matched: $FILES_MATCHED
+
+---
+EOF
+fi
+```
+
 ## Constraints
 
 - Process maximum 10 files per iteration
@@ -239,3 +273,4 @@ For query "What do we know about authentication?" on iteration 1:
 - Do not spawn additional subagents
 - Return valid JSON
 - Focus only on the specific query provided
+- Progress reporting is optional (only if workflow_id provided)

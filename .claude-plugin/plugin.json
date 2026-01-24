@@ -25,6 +25,7 @@
     "./commands/status.md"
   ],
   "skills": [
+    "./skills/mnemonic-agent-coordination/SKILL.md",
     "./skills/mnemonic-blackboard/SKILL.md",
     "./skills/mnemonic-core/SKILL.md",
     "./skills/mnemonic-format/SKILL.md",
@@ -35,7 +36,8 @@
   ],
   "agents": [
     "./agents/memory-curator.md",
-    "./agents/mnemonic-search-subcall.md"
+    "./agents/mnemonic-search-subcall.md",
+    "./agents/compression-worker.md"
   ],
   "hooks": ["./hooks/hooks.json"]
 }

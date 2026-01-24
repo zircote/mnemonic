@@ -45,6 +45,64 @@ Use enhanced search instead of basic `/mnemonic:search` when:
 
 ## Workflow
 
+### Step 0: Initialize Workflow (Optional)
+
+For trackable workflows, register in blackboard:
+
+```bash
+WORKFLOW_ID="search-$(date +%s)"
+SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+BB_DIR="$HOME/.claude/mnemonic/.blackboard"
+mkdir -p "$BB_DIR"
+
+# Register orchestrator
+cat >> "${BB_DIR}/session-notes.md" << EOF
+
+---
+**Session:** $SESSION_ID
+**Time:** $TIMESTAMP
+**Agent:** search-enhanced
+**Status:** active
+**Capabilities:** [query-parsing, iteration-orchestration, synthesis]
+
+## Agent Registration
+
+Enhanced search workflow started: $WORKFLOW_ID
+
+### Query
+$QUERY
+
+---
+EOF
+
+# Initialize shared state
+cat >> "${BB_DIR}/shared-context.md" << EOF
+
+---
+**Session:** $SESSION_ID
+**Time:** $TIMESTAMP
+**Agent:** search-enhanced
+**Status:** active
+
+## Shared State: $WORKFLOW_ID
+
+### Current State
+\`\`\`json
+{
+  "phase": "initialization",
+  "query": "$QUERY",
+  "scope": "$SCOPE",
+  "max_iterations": $MAX_ITERATIONS,
+  "iteration": 0,
+  "total_findings": 0
+}
+\`\`\`
+
+---
+EOF
+```
+
 ### Step 1: Parse User Query
 
 Extract from user request:
@@ -305,8 +363,63 @@ and middleware patterns. Key decision: Use JWT with RS256 signing.
 
 ---
 
+### Step 9: Complete Workflow (Optional)
+
+For trackable workflows, update blackboard on completion:
+
+```bash
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Update shared state
+cat >> "${BB_DIR}/shared-context.md" << EOF
+
+---
+**Session:** $SESSION_ID
+**Time:** $TIMESTAMP
+**Agent:** search-enhanced
+**Status:** idle
+
+## Shared State: $WORKFLOW_ID
+
+### Final State
+\`\`\`json
+{
+  "phase": "complete",
+  "iterations": $ITERATIONS_RUN,
+  "total_findings": $TOTAL_FINDINGS,
+  "memories_synthesized": $MEMORIES_READ
+}
+\`\`\`
+
+---
+EOF
+
+# Update agent status
+cat >> "${BB_DIR}/session-notes.md" << EOF
+
+---
+**Session:** $SESSION_ID
+**Time:** $TIMESTAMP
+**Agent:** search-enhanced
+**Status:** idle
+
+## Workflow Complete
+
+### Summary
+- Workflow: $WORKFLOW_ID
+- Iterations: $ITERATIONS_RUN
+- Findings: $TOTAL_FINDINGS
+- Memories synthesized: $MEMORIES_READ
+
+---
+EOF
+```
+
+---
+
 ## Related
 
 - `/mnemonic:search` - Basic single-shot search (faster, simpler)
 - `mnemonic-search-subcall` agent - Executes individual search rounds
 - `mnemonic-search` skill - Advanced search patterns reference
+- `mnemonic-agent-coordination` skill - Agent coordination patterns

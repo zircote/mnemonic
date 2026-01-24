@@ -180,9 +180,38 @@ done
 
 ## Workflow
 
+### Agent Registration
+
+On startup, register presence in blackboard:
+
+```bash
+SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+BB_DIR="$HOME/.claude/mnemonic/.blackboard"
+mkdir -p "$BB_DIR"
+
+cat >> "${BB_DIR}/session-notes.md" << EOF
+
+---
+**Session:** $SESSION_ID
+**Time:** $TIMESTAMP
+**Agent:** memory-curator
+**Status:** active
+**Capabilities:** [conflict-detection, deduplication, decay-management, relationship-integrity, cleanup]
+
+## Agent Registration
+
+Memory curator agent started for scheduled maintenance.
+
+---
+EOF
+```
+
 ### Scheduled Maintenance
 
 ```
+0. Register agent in blackboard (see above)
+
 1. Run conflict detection
    - Report potential conflicts
    - Suggest resolutions
@@ -212,6 +241,36 @@ done
    - Duplicates merged
    - Memories archived
    - Relationships fixed
+
+8. Update agent status to idle
+```
+
+### Agent Completion
+
+On completion, update status in blackboard:
+
+```bash
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+cat >> "${BB_DIR}/session-notes.md" << EOF
+
+---
+**Session:** $SESSION_ID
+**Time:** $TIMESTAMP
+**Agent:** memory-curator
+**Status:** idle
+
+## Maintenance Complete
+
+### Summary
+- Conflicts detected: $CONFLICTS_DETECTED
+- Conflicts resolved: $CONFLICTS_RESOLVED
+- Duplicates merged: $DUPLICATES_MERGED
+- Decay updates: $DECAY_UPDATES
+- Memories archived: $MEMORIES_ARCHIVED
+
+---
+EOF
 ```
 
 ### Interactive Conflict Resolution
