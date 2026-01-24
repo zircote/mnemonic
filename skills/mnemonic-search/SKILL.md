@@ -395,3 +395,105 @@ rg "\[\[" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 | Citation type | `rg "type: paper" ~/.claude/mnemonic/ -l` |
 | Citation domain | `rg "url: https://arxiv.org" ~/.claude/mnemonic/ -l` |
 | Project only | `rg "pattern" ./.claude/mnemonic/` |
+
+---
+
+## Structured Queries with mnemonic-query
+
+For complex frontmatter queries, use `mnemonic-query` which leverages `yq` for proper YAML parsing.
+
+### Basic Structured Queries
+
+```bash
+# Find all semantic memories
+mnemonic-query --type semantic
+
+# Find by tag
+mnemonic-query --tag architecture
+
+# Find by namespace pattern
+mnemonic-query --namespace "decisions/*"
+
+# Combine filters (AND logic)
+mnemonic-query --type semantic --tag architecture
+```
+
+### Comparison Operators
+
+```bash
+# Greater than
+mnemonic-query --confidence ">0.8"
+
+# Greater or equal
+mnemonic-query --confidence ">=0.9"
+
+# Less than
+mnemonic-query --confidence "<0.5"
+
+# Less or equal
+mnemonic-query --confidence "<=0.7"
+
+# Not equal
+mnemonic-query --type "!=episodic"
+```
+
+### Range Queries
+
+```bash
+# Confidence range (inclusive)
+mnemonic-query --confidence "0.7..0.9"
+
+# Date range
+mnemonic-query --created "2026-01-01..2026-01-31"
+
+# Modified date range
+mnemonic-query --modified "2026-01-15..2026-01-31"
+```
+
+### Output Formats
+
+```bash
+# File paths (default)
+mnemonic-query --type semantic
+
+# Titles only
+mnemonic-query --type semantic --format titles
+
+# JSON with full metadata
+mnemonic-query --type semantic --format json
+
+# Count only
+mnemonic-query --type semantic --format count
+```
+
+### Combining with Content Search
+
+The real power comes from combining structured queries with rg:
+
+```bash
+# Find security decisions mentioning passwords
+mnemonic-query --namespace "decisions/*" --tag security | xargs rg "password"
+
+# Find high-confidence memories about authentication
+mnemonic-query --confidence ">0.8" | xargs rg -i "auth"
+
+# Search recent memories for specific content
+mnemonic-query --created ">2026-01-01" | xargs rg "api"
+
+# Find memories by type and search content
+mnemonic-query --type procedural | xargs rg "step"
+```
+
+### Structured Query Cheat Sheet
+
+| Goal | Command |
+|------|---------|
+| By type | `mnemonic-query --type semantic` |
+| By tag | `mnemonic-query --tag architecture` |
+| By namespace | `mnemonic-query --namespace "decisions/*"` |
+| High confidence | `mnemonic-query --confidence ">0.8"` |
+| Confidence range | `mnemonic-query --confidence "0.7..0.9"` |
+| Recent memories | `mnemonic-query --created ">2026-01-01"` |
+| Not episodic | `mnemonic-query --type "!=episodic"` |
+| Combined filters | `mnemonic-query --type semantic --tag security` |
+| Pipe to rg | `mnemonic-query --tag api \| xargs rg "endpoint"` |

@@ -1,6 +1,6 @@
 {
   "name": "mnemonic",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Pure filesystem-based memory system for Claude Code - no external dependencies",
   "author": {
     "name": "zircote",
@@ -38,6 +38,5 @@
     "./agents/memory-curator.md",
     "./agents/mnemonic-search-subcall.md",
     "./agents/compression-worker.md"
-  ],
-  "hooks": ["./hooks/hooks.json"]
+  ]
 }

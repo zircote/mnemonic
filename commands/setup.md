@@ -18,7 +18,7 @@ Configure Claude to proactively use mnemonic memory without user intervention.
 3. Creates mnemonic directory structure (user-level and project-level)
 4. Initializes git repository for versioning
 5. Appends proactive behavior instructions to `~/.claude/CLAUDE.md`
-6. Appends project-specific instructions to `./.claude/CLAUDE.md`
+6. Appends project-specific instructions to `./CLAUDE.md`
 7. Creates initial project context memory
 
 ## Arguments
@@ -95,7 +95,7 @@ See the mnemonic-setup skill for the complete content block.
 
 ### Step 5: Update Project CLAUDE.md
 
-Append project-specific configuration to `./.claude/CLAUDE.md` including:
+Append project-specific configuration to `./CLAUDE.md` including:
 
 - Project name and org
 - Project-specific recall instructions
@@ -152,7 +152,7 @@ After running, verify:
 
 ```bash
 grep -q "Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User config"
-grep -q "Mnemonic - Project Memory" ./.claude/CLAUDE.md && echo "✓ Project config"
+grep -q "Mnemonic - Project Memory" ./CLAUDE.md && echo "✓ Project config"
 test -d ~/.claude/mnemonic/.git && echo "✓ Git initialized"
 ls ./.claude/mnemonic/context/project/*.memory.md && echo "✓ Initial memory"
 ```

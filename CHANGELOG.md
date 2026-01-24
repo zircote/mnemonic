@@ -14,6 +14,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export/import functionality
 - Web UI for memory browsing
 
+## [1.1.1] - 2026-01-24
+
+### Added
+
+- **[Query Command]**: New `/mnemonic:query` command for confidence-rated memory retrieval
+  - `tools/mnemonic-query` Python CLI with structured output
+  - Confidence scoring based on age, strength, and access patterns
+  - JSON output format for programmatic use
+  - Test fixtures for confidence scoring validation
+- **[Test Framework]**: Extended test definitions in `.claude/tests/tests.yaml`
+  - Additional test cases for query command
+  - Improved test coverage
+- **[Research Reports]**: Comprehensive market research report
+  - Full report in Markdown and HTML formats
+  - Executive summary
+  - Mermaid visualizations for competitive positioning, SWOT, risk matrix
+
+### Changed
+
+- **[Search Skill]**: Enhanced `mnemonic-search` with confidence-aware patterns
+- **[README]**: Updated feature documentation
+- **[Makefile]**: Added query-related targets
+
+### Fixed
+
+- **[Reports]**: Corrected inaccurate feature status in research report
+  - Marked decay/archival as implemented (gc command)
+  - Marked citation validation as implemented (mnemonic-validate)
+  - Fixed Mermaid SWOT quadrant syntax (`<-->` → `-->`)
+- **[Plugin]**: Removed duplicate hooks reference from manifest
+
 ## [1.1.0] - 2026-01-24
 
 ### Added

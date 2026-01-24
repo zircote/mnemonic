@@ -1,4 +1,4 @@
-.PHONY: all build test lint format format-check clean setup audit docs validate validate-memories validate-memories-ci
+.PHONY: all build test lint format format-check clean setup check-deps audit docs validate validate-memories validate-memories-ci
 
 # Default target
 all: lint test
@@ -61,8 +61,19 @@ clean:
 setup:
 	@echo "Setting up development environment..."
 	@python3 -m pip install --upgrade pip
-	@python3 -m pip install ruff pytest 2>/dev/null || echo "Some tools may not have installed"
+	@python3 -m pip install ruff pytest pyyaml 2>/dev/null || echo "Some tools may not have installed"
+	@echo "Checking yq installation..."
+	@command -v yq >/dev/null 2>&1 || (echo "WARNING: yq not installed. Install: brew install yq (macOS) or apt install yq (Linux)" && echo "yq is required for mnemonic-query structured queries")
+	@command -v yq >/dev/null 2>&1 && echo "  yq is installed"
 	@echo "Setup complete"
+
+# Check dependencies
+check-deps:
+	@echo "Checking required dependencies..."
+	@command -v rg >/dev/null 2>&1 && echo "  ripgrep: installed" || echo "  ripgrep: NOT FOUND (install: brew install ripgrep)"
+	@command -v yq >/dev/null 2>&1 && echo "  yq: installed" || echo "  yq: NOT FOUND (install: brew install yq)"
+	@command -v git >/dev/null 2>&1 && echo "  git: installed" || echo "  git: NOT FOUND"
+	@command -v python3 >/dev/null 2>&1 && echo "  python3: installed" || echo "  python3: NOT FOUND"
 
 # Security audit
 audit:
@@ -108,6 +119,7 @@ help:
 	@echo "  format-check           - Check code formatting"
 	@echo "  clean                  - Remove generated files"
 	@echo "  setup                  - Set up development environment"
+	@echo "  check-deps             - Check required dependencies (yq, rg, git)"
 	@echo "  audit                  - Run security audit"
 	@echo "  docs                   - List documentation files"
 	@echo "  help                   - Show this help"

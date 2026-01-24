@@ -121,6 +121,115 @@ tests:
       - not_contains: "error"
     tags: [commands, gc]
 
+  - id: cmd_query_basic
+    description: Basic structured query command
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --format count
+      This should return a count of all memories (0 or more).
+    expect:
+      - not_contains: "Error"
+      - not_contains: "yq is required"
+      - regex: "\\d+"
+    tags: [smoke, commands, query]
+
+  - id: cmd_query_type_filter
+    description: Query with type filter
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --type semantic --format count
+      Count all semantic type memories.
+    expect:
+      - not_contains: "Error"
+      - regex: "\\d+"
+    tags: [commands, query]
+
+  - id: cmd_query_confidence_filter
+    description: Query with confidence operator
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --confidence ">0.8" --format count
+      Filter memories with confidence greater than 0.8.
+    expect:
+      - not_contains: "Error"
+      - regex: "\\d+"
+    tags: [commands, query]
+
+  - id: cmd_query_tag_filter
+    description: Query with tag filter
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --tag sdlc --format count
+      Count memories tagged with 'sdlc'.
+    expect:
+      - not_contains: "Error"
+      - regex: "\\d+"
+    tags: [commands, query]
+
+  - id: cmd_query_namespace_wildcard
+    description: Query with namespace wildcard
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --namespace "testing/*" --format count
+      Filter by testing namespace pattern.
+    expect:
+      - not_contains: "Error"
+      - regex: "\\d+"
+    tags: [commands, query]
+
+  - id: cmd_query_confidence_range
+    description: Query with confidence range
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --confidence "0.9..1.0" --format count
+      Filter memories in confidence range 0.9 to 1.0.
+    expect:
+      - not_contains: "Error"
+      - regex: "\\d+"
+    tags: [commands, query]
+
+  - id: cmd_query_combined_filters
+    description: Query with multiple filters (AND logic)
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --type semantic --tag sdlc --format count
+      Filter by both semantic type AND sdlc tag.
+    expect:
+      - not_contains: "Error"
+      - regex: "\\d+"
+    tags: [commands, query]
+
+  - id: cmd_query_json_output
+    description: Query with JSON output format
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --type semantic --format json --limit 2
+      Get JSON output limited to 2 results.
+    expect:
+      - not_contains: "Error"
+      - contains: "path"
+    tags: [commands, query]
+
+  - id: cmd_query_verbose
+    description: Query with verbose mode
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --format count -v 2>&1
+      Verbose mode should show "Searching in:" on stderr.
+    expect:
+      - contains: "Searching in:"
+    tags: [commands, query]
+
+  - id: cmd_query_help
+    description: Query tool help output
+    category: commands
+    action: |
+      Run: ./tools/mnemonic-query --help
+      Help should mention "frontmatter queries".
+    expect:
+      - contains: "frontmatter queries"
+    tags: [commands, query]
+
   # ==========================================================================
   # Skill Tests - Semantic skill triggers
   # ==========================================================================
@@ -245,6 +354,27 @@ tests:
   # ==========================================================================
   # Integration Tests - End-to-end workflows
   # ==========================================================================
+
+  - id: integration_query_pipe_to_rg
+    description: Query memories and pipe to ripgrep for content search
+    category: integration
+    action: |
+      Run: ./tools/mnemonic-query --type semantic | xargs rg -l "memory"
+      to combine structured query with content search.
+    expect:
+      - not_contains: "error"
+    tags: [integration, query]
+
+  - id: integration_query_not_equal
+    description: Query with inequality operator
+    category: integration
+    action: |
+      Run ./tools/mnemonic-query --type "!=episodic" --format count
+      to test the != operator filtering.
+    expect:
+      - not_contains: "error"
+      - regex: "\\d+"
+    tags: [integration, query]
 
   - id: integration_crud_create
     description: Create a test memory for CRUD chain

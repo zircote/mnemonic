@@ -1,0 +1,517 @@
+#!/usr/bin/env python3
+"""
+mnemonic-query: Structured frontmatter queries for mnemonic memories using yq.
+
+This tool enables structured queries on YAML frontmatter fields with full
+operator support, including comparisons, ranges, and inequality.
+
+Usage:
+    mnemonic-query [options] [path]
+
+Options:
+    --type TYPE           Filter by memory type (semantic, episodic, procedural)
+    --namespace NS        Filter by namespace pattern (supports wildcards)
+    --tag TAG             Filter by tag (can be specified multiple times)
+    --confidence VALUE    Filter by confidence (supports operators: >, >=, <, <=, ..)
+    --created VALUE       Filter by created date (supports operators and ranges)
+    --modified VALUE      Filter by modified date (supports operators and ranges)
+    --title PATTERN       Filter by title pattern (regex)
+    --scope SCOPE         Limit to user, project, or all (default: all)
+    --format FORMAT       Output format: paths, titles, json, count (default: paths)
+    --limit N             Limit output to N results
+    -v, --verbose         Verbose output
+    -h, --help            Show this help
+
+Operators:
+    =                     Exact match (implicit, e.g., --confidence 0.9)
+    !=                    Not equal (e.g., --type "!=episodic")
+    >                     Greater than (e.g., --confidence ">0.8")
+    >=                    Greater or equal (e.g., --confidence ">=0.9")
+    <                     Less than (e.g., --confidence "<0.5")
+    <=                    Less or equal (e.g., --confidence "<=0.7")
+    ..                    Range inclusive (e.g., --confidence "0.7..0.9")
+
+Examples:
+    mnemonic-query --type semantic
+    mnemonic-query --tag architecture --confidence ">0.8"
+    mnemonic-query --confidence "0.5..0.9"
+    mnemonic-query --namespace "decisions/*" --tag security
+    mnemonic-query --type semantic | xargs rg "password"
+"""
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional
+
+
+@dataclass
+class QueryFilter:
+    """A single query filter with operator."""
+
+    field: str
+    operator: str  # =, !=, >, >=, <, <=, range
+    value: str
+    value_end: Optional[str] = None  # For range operator
+
+
+@dataclass
+class QueryResult:
+    """Result of querying a memory file."""
+
+    path: str
+    title: str
+    memory_type: str
+    namespace: str
+    confidence: Optional[float] = None
+    created: Optional[str] = None
+    tags: list[str] = field(default_factory=list)
+
+
+def check_yq() -> bool:
+    """Check if yq is available."""
+    if not shutil.which("yq"):
+        print(
+            "Error: yq is required for structured queries.\n"
+            "Install: brew install yq  (macOS)\n"
+            "         apt install yq   (Ubuntu/Debian)\n"
+            "         pip install yq   (Python)",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def parse_operator(value: str) -> tuple[str, str, Optional[str]]:
+    """Parse operator from value string.
+
+    Returns: (operator, value, value_end)
+    """
+    if value.startswith("!="):
+        return "!=", value[2:], None
+    if value.startswith(">="):
+        return ">=", value[2:], None
+    if value.startswith("<="):
+        return "<=", value[2:], None
+    if value.startswith(">"):
+        return ">", value[1:], None
+    if value.startswith("<"):
+        return "<", value[1:], None
+    if ".." in value:
+        parts = value.split("..", 1)
+        return "range", parts[0], parts[1]
+    return "=", value, None
+
+
+def get_frontmatter_value(file_path: Path, field: str) -> Optional[str]:
+    """Extract a frontmatter field value using yq."""
+    try:
+        # Extract frontmatter between --- markers
+        content = file_path.read_text()
+        if not content.startswith("---"):
+            return None
+
+        # Find end of frontmatter (skip first ---)
+        lines = content.split("\n")
+        frontmatter_lines = []
+        in_frontmatter = False
+        for line in lines:
+            if line.strip() == "---":
+                if not in_frontmatter:
+                    in_frontmatter = True
+                    continue
+                else:
+                    break
+            if in_frontmatter:
+                frontmatter_lines.append(line)
+
+        if not frontmatter_lines:
+            return None
+
+        frontmatter = "\n".join(frontmatter_lines)
+
+        # Use yq to extract field
+        result = subprocess.run(
+            ["yq", f".{field}"],
+            input=frontmatter,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode == 0:
+            value = result.stdout.strip()
+            if value and value != "null":
+                return value
+        return None
+    except Exception:
+        return None
+
+
+def get_frontmatter_tags(file_path: Path) -> list[str]:
+    """Extract tags array from frontmatter using yq."""
+    try:
+        content = file_path.read_text()
+        if not content.startswith("---"):
+            return []
+
+        # Find end of frontmatter (skip first ---)
+        lines = content.split("\n")
+        frontmatter_lines = []
+        in_frontmatter = False
+        for line in lines:
+            if line.strip() == "---":
+                if not in_frontmatter:
+                    in_frontmatter = True
+                    continue
+                else:
+                    break
+            if in_frontmatter:
+                frontmatter_lines.append(line)
+
+        if not frontmatter_lines:
+            return []
+
+        frontmatter = "\n".join(frontmatter_lines)
+
+        result = subprocess.run(
+            ["yq", ".tags[]"],
+            input=frontmatter,
+            capture_output=True,
+            text=True,
+        )
+
+        if result.returncode == 0:
+            return [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
+        return []
+    except Exception:
+        return []
+
+
+def match_filter(file_path: Path, qf: QueryFilter) -> bool:
+    """Check if a file matches a filter."""
+    if qf.field == "tag":
+        # Special handling for tags (array field)
+        tags = get_frontmatter_tags(file_path)
+        if qf.operator == "=":
+            return qf.value in tags
+        elif qf.operator == "!=":
+            return qf.value not in tags
+        return False
+
+    value = get_frontmatter_value(file_path, qf.field)
+    if value is None:
+        return False
+
+    # Handle different operators
+    if qf.operator == "=":
+        # Exact match or pattern match for namespace
+        if qf.field == "namespace" and "*" in qf.value:
+            pattern = qf.value.replace("*", ".*")
+            return bool(re.match(pattern, value))
+        if qf.field == "title":
+            # Regex pattern match for title
+            return bool(re.search(qf.value, value, re.IGNORECASE))
+        return value.lower() == qf.value.lower()
+
+    elif qf.operator == "!=":
+        return value.lower() != qf.value.lower()
+
+    elif qf.operator in (">", ">=", "<", "<="):
+        # Numeric comparison for confidence
+        try:
+            num_value = float(value)
+            num_filter = float(qf.value)
+            if qf.operator == ">":
+                return num_value > num_filter
+            elif qf.operator == ">=":
+                return num_value >= num_filter
+            elif qf.operator == "<":
+                return num_value < num_filter
+            elif qf.operator == "<=":
+                return num_value <= num_filter
+        except ValueError:
+            # String comparison for dates
+            if qf.operator == ">":
+                return value > qf.value
+            elif qf.operator == ">=":
+                return value >= qf.value
+            elif qf.operator == "<":
+                return value < qf.value
+            elif qf.operator == "<=":
+                return value <= qf.value
+        return False
+
+    elif qf.operator == "range":
+        # Range comparison
+        try:
+            num_value = float(value)
+            num_start = float(qf.value)
+            num_end = float(qf.value_end)
+            return num_start <= num_value <= num_end
+        except (ValueError, TypeError):
+            # String comparison for dates
+            return qf.value <= value <= qf.value_end
+
+    return False
+
+
+def find_memory_files(paths: list[Path]) -> list[Path]:
+    """Find all memory files in given paths."""
+    files = []
+    for path in paths:
+        if path.is_file() and path.suffix == ".md" and ".memory." in path.name:
+            files.append(path)
+        elif path.is_dir():
+            files.extend(path.rglob("*.memory.md"))
+    return sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def get_git_org() -> str:
+    """Get organization from git remote."""
+    try:
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            url = result.stdout.strip()
+            # Extract org from URL patterns
+            match = re.search(r"[:/]([^/]+)/[^/]+\.git$", url)
+            if match:
+                return match.group(1)
+            match = re.search(r"[:/]([^/]+)/[^/]+$", url)
+            if match:
+                return match.group(1)
+    except Exception:
+        pass
+    return "default"
+
+
+def get_search_paths(scope: str) -> list[Path]:
+    """Get search paths based on scope."""
+    paths = []
+    org = get_git_org()
+
+    if scope in ("user", "all"):
+        user_path = Path.home() / ".claude" / "mnemonic" / org
+        if user_path.exists():
+            paths.append(user_path)
+
+    if scope in ("project", "all"):
+        project_path = Path.cwd() / ".claude" / "mnemonic"
+        if project_path.exists():
+            paths.append(project_path)
+
+    return paths
+
+
+def format_output(
+    results: list[QueryResult], output_format: str, limit: Optional[int] = None
+) -> str:
+    """Format query results."""
+    if limit:
+        results = results[:limit]
+
+    if output_format == "paths":
+        return "\n".join(r.path for r in results)
+
+    elif output_format == "titles":
+        lines = []
+        for r in results:
+            lines.append(f"{r.title}")
+        return "\n".join(lines)
+
+    elif output_format == "json":
+        data = []
+        for r in results:
+            data.append(
+                {
+                    "path": r.path,
+                    "title": r.title,
+                    "type": r.memory_type,
+                    "namespace": r.namespace,
+                    "confidence": r.confidence,
+                    "created": r.created,
+                    "tags": r.tags,
+                }
+            )
+        return json.dumps(data, indent=2)
+
+    elif output_format == "count":
+        return str(len(results))
+
+    return "\n".join(r.path for r in results)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Structured frontmatter queries for mnemonic memories"
+    )
+    parser.add_argument(
+        "path",
+        nargs="*",
+        default=[],
+        help="Paths to search (default: ~/.claude/mnemonic and ./.claude/mnemonic)",
+    )
+    parser.add_argument(
+        "--type",
+        dest="memory_type",
+        help="Filter by memory type (semantic, episodic, procedural)",
+    )
+    parser.add_argument(
+        "--namespace",
+        help="Filter by namespace pattern (supports wildcards)",
+    )
+    parser.add_argument(
+        "--tag",
+        action="append",
+        default=[],
+        help="Filter by tag (can be specified multiple times)",
+    )
+    parser.add_argument(
+        "--confidence",
+        help="Filter by confidence (supports operators: >, >=, <, <=, ..)",
+    )
+    parser.add_argument(
+        "--created",
+        help="Filter by created date (supports operators and ranges)",
+    )
+    parser.add_argument(
+        "--modified",
+        help="Filter by modified date (supports operators and ranges)",
+    )
+    parser.add_argument(
+        "--title",
+        help="Filter by title pattern (regex)",
+    )
+    parser.add_argument(
+        "--scope",
+        choices=["user", "project", "all"],
+        default="all",
+        help="Limit to user, project, or all (default: all)",
+    )
+    parser.add_argument(
+        "--format",
+        dest="output_format",
+        choices=["paths", "titles", "json", "count"],
+        default="paths",
+        help="Output format (default: paths)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Limit output to N results",
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
+    args = parser.parse_args()
+
+    # Check for yq
+    if not check_yq():
+        sys.exit(1)
+
+    # Build filters
+    filters = []
+
+    if args.memory_type:
+        op, val, val_end = parse_operator(args.memory_type)
+        filters.append(QueryFilter("type", op, val, val_end))
+
+    if args.namespace:
+        op, val, val_end = parse_operator(args.namespace)
+        filters.append(QueryFilter("namespace", op, val, val_end))
+
+    for tag in args.tag:
+        op, val, val_end = parse_operator(tag)
+        filters.append(QueryFilter("tag", op, val, val_end))
+
+    if args.confidence:
+        op, val, val_end = parse_operator(args.confidence)
+        filters.append(QueryFilter("provenance.confidence", op, val, val_end))
+
+    if args.created:
+        op, val, val_end = parse_operator(args.created)
+        filters.append(QueryFilter("created", op, val, val_end))
+
+    if args.modified:
+        op, val, val_end = parse_operator(args.modified)
+        filters.append(QueryFilter("modified", op, val, val_end))
+
+    if args.title:
+        filters.append(QueryFilter("title", "=", args.title))
+
+    # Determine search paths
+    if args.path:
+        search_paths = [Path(p) for p in args.path]
+    else:
+        search_paths = get_search_paths(args.scope)
+
+    if not search_paths:
+        print("No mnemonic directories found", file=sys.stderr)
+        sys.exit(1)
+
+    if args.verbose:
+        print(f"Searching in: {[str(p) for p in search_paths]}", file=sys.stderr)
+        print(f"Filters: {len(filters)}", file=sys.stderr)
+
+    # Find and filter files
+    files = find_memory_files(search_paths)
+
+    if args.verbose:
+        print(f"Found {len(files)} memory files", file=sys.stderr)
+
+    results = []
+    for file_path in files:
+        # Apply all filters (AND logic)
+        matches = True
+        for f in filters:
+            if not match_filter(file_path, f):
+                matches = False
+                break
+
+        if matches:
+            # Extract result metadata
+            title = get_frontmatter_value(file_path, "title") or ""
+            title = title.strip('"')
+            memory_type = get_frontmatter_value(file_path, "type") or ""
+            namespace = get_frontmatter_value(file_path, "namespace") or ""
+            confidence_str = get_frontmatter_value(file_path, "provenance.confidence")
+            confidence = float(confidence_str) if confidence_str else None
+            created = get_frontmatter_value(file_path, "created")
+            tags = get_frontmatter_tags(file_path)
+
+            results.append(
+                QueryResult(
+                    path=str(file_path),
+                    title=title,
+                    memory_type=memory_type,
+                    namespace=namespace,
+                    confidence=confidence,
+                    created=created,
+                    tags=tags,
+                )
+            )
+
+    if args.verbose:
+        print(f"Matched {len(results)} memories", file=sys.stderr)
+
+    # Output results
+    output = format_output(results, args.output_format, args.limit)
+    if output:
+        print(output)
+    elif args.output_format == "count":
+        print("0")
+
+    # Always exit 0 for successful queries (no results is still success)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

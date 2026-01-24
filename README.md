@@ -192,6 +192,7 @@ We decided to use PostgreSQL for our data storage needs.
 | `/mnemonic:recall` | Search and recall memories |
 | `/mnemonic:search` | Full-text search |
 | `/mnemonic:search-enhanced` | Agent-driven iterative search with synthesis |
+| `/mnemonic:query` | Structured frontmatter queries using yq |
 | `/mnemonic:status` | Show system status |
 | `/mnemonic:gc` | Garbage collect expired memories |
 
@@ -365,8 +366,23 @@ mnemonic/
 
 - Claude Code CLI
 - Git
-- ripgrep (recommended)
-- Python 3.8+ (for hooks)
+- ripgrep (recommended for search)
+- yq (required for structured queries)
+- Python 3.8+ (for hooks and tools)
+
+### Installing Dependencies
+
+```bash
+# macOS
+brew install ripgrep yq
+
+# Ubuntu/Debian
+apt install ripgrep
+snap install yq
+
+# Check installation
+make check-deps
+```
 
 ## Related Projects
 

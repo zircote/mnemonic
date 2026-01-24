@@ -159,7 +159,7 @@ else
     echo "  ✗ User CLAUDE.md: mnemonic section missing"
 fi
 
-if grep -q "Mnemonic - Project Memory" "./.claude/CLAUDE.md" 2>/dev/null; then
+if grep -q "Mnemonic - Project Memory" "./CLAUDE.md" 2>/dev/null; then
     echo "  ✓ Project CLAUDE.md configured"
 else
     echo "  ✗ Project CLAUDE.md: mnemonic section missing"

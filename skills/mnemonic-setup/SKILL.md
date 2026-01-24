@@ -39,7 +39,7 @@ Before setup, gather context:
 test -f ~/.claude/CLAUDE.md && echo "User CLAUDE.md exists" || echo "User CLAUDE.md missing"
 
 # Check if project-level CLAUDE.md exists
-test -f ./.claude/CLAUDE.md && echo "Project CLAUDE.md exists" || echo "Project CLAUDE.md missing"
+test -f ./CLAUDE.md && echo "Project CLAUDE.md exists" || echo "Project CLAUDE.md missing"
 
 # Detect org from git remote
 git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|' | sed 's|\.git$||'
@@ -201,7 +201,7 @@ provenance:
 
 ### Step 5: Update Project-Level CLAUDE.md
 
-**Content to append to `./.claude/CLAUDE.md`:**
+**Content to append to `./CLAUDE.md`:**
 
 ```markdown
 # Mnemonic - Project Memory
@@ -312,7 +312,7 @@ After setup, verify with these checks:
 grep -q "Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User CLAUDE.md configured"
 
 # 2. Check project-level config
-grep -q "Mnemonic - Project Memory" ./.claude/CLAUDE.md && echo "✓ Project CLAUDE.md configured"
+grep -q "Mnemonic - Project Memory" ./CLAUDE.md && echo "✓ Project CLAUDE.md configured"
 
 # 3. Check directory structure
 test -d ~/.claude/mnemonic && echo "✓ User mnemonic directory exists"
