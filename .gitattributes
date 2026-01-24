@@ -1,0 +1,29 @@
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.jpeg binary
+*.jpg binary
+*.png binary
+*.gif binary
+*.svg binary
+*.ico binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+
+# Python
+*.py text diff=python
+
+# Config files
+*.json text
+*.yaml text
+*.yml text
+*.toml text
