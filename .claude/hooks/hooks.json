@@ -1,0 +1,17 @@
+{
+  "description": "Hook-driven test framework hooks. Intercepts user prompts to enable automated test execution.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/test-wrapper.sh user-prompt-submit",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

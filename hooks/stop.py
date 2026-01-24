@@ -13,6 +13,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+def is_test_mode() -> bool:
+    """Check if we're in test mode (running automated tests)."""
+    try:
+        state_file = Path.cwd() / ".claude" / "test-state.json"
+        if state_file.exists():
+            with open(state_file) as f:
+                state = json.load(f)
+                return state.get("mode") == "running"
+    except Exception:
+        pass
+    return False
+
+
 def commit_changes() -> tuple[bool, int]:
     """Commit any uncommitted memory changes. Returns (success, count)."""
     home = Path.home()
@@ -49,13 +62,18 @@ def commit_changes() -> tuple[bool, int]:
 
 
 def main():
+    # Skip verbose output during test mode to avoid interrupting test flow
+    if is_test_mode():
+        print(json.dumps({"continue": True}))
+        return
+
     success, count = commit_changes()
 
     if count > 0:
         if success:
-            message = f"<mnemonic-session-end>Committed {count} memory changes to git.</mnemonic-session-end>"
+            message = f"Committed {count} memory changes to git."
         else:
-            message = f"<mnemonic-session-end>Warning: {count} uncommitted memory changes.</mnemonic-session-end>"
+            message = f"Warning: {count} uncommitted memory changes."
         print(json.dumps({"continue": True, "systemMessage": message}))
     else:
         print(json.dumps({"continue": True}))
