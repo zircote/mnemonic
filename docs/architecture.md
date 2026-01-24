@@ -11,6 +11,18 @@ Mnemonic is a pure filesystem-based memory system for Claude Code. It provides p
 3. **MIF Level 3 Compliance**: Standardized Memory Interchange Format for interoperability
 4. **Filesystem as Database**: Markdown files are the source of truth
 
+### Academic Foundations
+
+These principles are grounded in both empirical research and theoretical foundations:
+
+- **Research Validation**: [Letta's LoCoMo benchmark](https://www.letta.com/blog/benchmarking-ai-agent-memory) demonstrates that filesystem-based memory approaches achieve 74.0% accuracy compared to Mem0's graph-based approach at 68.5%. The key insight: LLMs are pretrained on filesystem operations, making simple tools more reliable than specialized abstractions.
+
+- **Unix Philosophy**: The paper ["From Everything is a File to Files Are All You Need"](https://arxiv.org/abs/2601.11672) (arXiv:2601.11672) explicitly validates applying Unix's uniform file abstraction to agentic AI design. Agents interacting with REST APIs, SQL databases, vector stores, and file systems benefit from file-like abstractions where complexity is encapsulated.
+
+- **Cognitive Memory Types**: The semantic, episodic, and procedural memory classification derives from cognitive science and is being directly adopted by AI agent frameworks. See ["Human-inspired Perspectives: A Survey on AI Long-term Memory"](https://arxiv.org/abs/2411.00489) for theoretical grounding.
+
+- **Bi-Temporal Modeling**: The valid_time vs recorded_at distinction follows the [SQL:2011 standard for temporal databases](https://en.wikipedia.org/wiki/Temporal_database#SQL:2011) and [Martin Fowler's bitemporal patterns](https://martinfowler.com/articles/bitemporal-history.html).
+
 ## System Components
 
 ```
@@ -53,6 +65,7 @@ Simple slash commands for direct user interaction:
 | `/mnemonic:capture` | Create a new memory |
 | `/mnemonic:recall` | Retrieve memories |
 | `/mnemonic:search` | Full-text search |
+| `/mnemonic:search-enhanced` | Agent-driven iterative search with synthesis |
 | `/mnemonic:status` | System status |
 | `/mnemonic:gc` | Garbage collection |
 | `/mnemonic:init` | Initialize directories |
@@ -64,6 +77,7 @@ Self-contained instruction sets that work without external dependencies:
 - **mnemonic-core**: Complete memory operations
 - **mnemonic-setup**: CLAUDE.md configuration
 - **mnemonic-search**: Advanced search patterns
+- **mnemonic-search-enhanced**: Agent-driven iterative search with synthesis
 - **mnemonic-format**: MIF Level 3 templates
 - **mnemonic-organization**: Namespace management
 - **mnemonic-blackboard**: Cross-session coordination
@@ -92,6 +106,7 @@ Stop ──────────────► Commit pending changes
 Autonomous background operations:
 
 - **memory-curator**: Conflict detection, deduplication, decay management
+- **mnemonic-search-subcall**: Efficient search agent for iterative query refinement (Haiku model)
 
 ## Memory Model
 
@@ -117,6 +132,11 @@ provenance:
   source_type: conversation|user_explicit|inferred
   agent: model-identifier
   confidence: 0.0-1.0
+citations:                        # Optional external references
+  - type: documentation|paper|blog|github|stackoverflow|article
+    title: "Source Title"
+    url: https://example.com
+    relevance: 0.0-1.0
 ---
 
 # Markdown Content

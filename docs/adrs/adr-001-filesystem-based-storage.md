@@ -226,6 +226,14 @@ Mitigations for negative consequences:
 - [ripgrep](https://github.com/BurntSushi/ripgrep) - Fast grep alternative
 - [YAML](https://yaml.org/) - Frontmatter format
 
+### Research Validation
+
+This decision is supported by independent research:
+
+- **Letta LoCoMo Benchmark** ([blog post](https://www.letta.com/blog/benchmarking-ai-agent-memory)): Filesystem-based memory achieves 74.0% accuracy vs 68.5% for graph-based approaches. LLMs are pretrained on filesystem operations, making simple tools more reliable.
+
+- **Unix Philosophy for AI** ([arXiv:2601.11672](https://arxiv.org/abs/2601.11672)): "From Everything is a File to Files Are All You Need" validates applying uniform file abstractions to agentic AI design.
+
 ## More Information
 
 - **Date:** 2026-01-24

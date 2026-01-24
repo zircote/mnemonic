@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
 [![MIF Level 3](https://img.shields.io/badge/MIF-Level%203-green)](https://github.com/zircote/MIF)
+[![Filesystem Approach](https://img.shields.io/badge/Filesystem-Research%20Validated-brightgreen)](https://www.letta.com/blog/benchmarking-ai-agent-memory)
 
 **Supported Coding Assistants:**
 
@@ -33,6 +34,19 @@ A pure filesystem-based memory system for Claude Code. No external dependencies 
 - **Bi-Temporal Tracking**: Valid time vs. recorded time
 - **Git Versioned**: All changes tracked with git
 - **Cross-Session Coordination**: Blackboard for session handoffs
+
+## Why Filesystem?
+
+Research validates the filesystem approach for AI memory. In [Letta's LoCoMo benchmark](https://www.letta.com/blog/benchmarking-ai-agent-memory), filesystem-based memory achieved **74.0% accuracy** compared to Mem0's graph-based approach at **68.5%**. This counterintuitive result has a simple explanation: LLMs are extensively pretrained on filesystem operations, making simple tools more reliable than specialized knowledge graphs or vector databases.
+
+This approach is grounded in Unix philosophy, as articulated in ["From Everything is a File to Files Are All You Need"](https://arxiv.org/abs/2601.11672). Just as Unix collapsed diverse device interfaces into uniform file operations, AI agents benefit from the same abstraction—complexity is encapsulated, not eliminated.
+
+**Key advantages of the filesystem approach:**
+- LLMs already understand `grep`, `find`, and file operations from training data
+- Human-readable format enables direct inspection and editing
+- Git integration provides full version history with meaningful diffs
+- No external services, databases, or cloud dependencies
+- Works offline and respects data sovereignty
 
 ## Installation
 
@@ -103,6 +117,7 @@ Mnemonic implements the [Memory Interchange Format (MIF)](https://github.com/zir
 - **Version Control**: Git-friendly format with clear diffs
 - **Temporal Awareness**: Bi-temporal tracking (valid time vs recorded time)
 - **Decay Modeling**: Configurable relevance decay over time
+- **Citations**: Optional external references (papers, docs, blogs)
 
 Each memory is a `.memory.md` file:
 
@@ -128,6 +143,11 @@ provenance:
   source_type: conversation
   agent: claude-opus-4
   confidence: 0.95
+citations:
+  - type: documentation
+    title: "PostgreSQL Documentation"
+    url: https://www.postgresql.org/docs/
+    relevance: 0.90
 ---
 
 # Use PostgreSQL for Storage
@@ -171,6 +191,7 @@ We decided to use PostgreSQL for our data storage needs.
 | `/mnemonic:capture` | Capture a new memory |
 | `/mnemonic:recall` | Search and recall memories |
 | `/mnemonic:search` | Full-text search |
+| `/mnemonic:search-enhanced` | Agent-driven iterative search with synthesis |
 | `/mnemonic:status` | Show system status |
 | `/mnemonic:gc` | Garbage collect expired memories |
 
@@ -181,9 +202,17 @@ Skills are fully self-contained and work without hooks or libraries:
 - **mnemonic-setup**: Configure CLAUDE.md for proactive behavior
 - **mnemonic-core**: Complete memory operations
 - **mnemonic-search**: Advanced search patterns
+- **mnemonic-search-enhanced**: Agent-driven iterative search with synthesis
 - **mnemonic-format**: MIF Level 3 templates
 - **mnemonic-organization**: Namespaces and maintenance
 - **mnemonic-blackboard**: Cross-session coordination
+
+## Agents
+
+Autonomous agents for specialized tasks:
+
+- **memory-curator**: Conflict detection, deduplication, decay management
+- **mnemonic-search-subcall**: Efficient search agent for iterative query refinement
 
 ## Integrations
 

@@ -49,6 +49,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **[Citations]**: Optional citations array in MIF format for external references
+  - Supports types: paper, documentation, blog, github, stackoverflow, article
+  - Fields: title, url, author, date, accessed, relevance, note
+  - Validation rules for citation fields
+  - Search patterns for finding memories by citation
+- **[Enhanced Search]**: Agent-driven iterative search with synthesis
+  - `/mnemonic:search-enhanced` command for comprehensive memory analysis
+  - `mnemonic-search-enhanced` skill for orchestrating multi-round search
+  - `mnemonic-search-subcall` agent (Haiku) for targeted search operations
+  - Iterative query refinement (up to 3 rounds)
+  - Synthesized answers instead of raw file matches
+- **[GitHub Integration]**: GitHub Copilot agent configuration
+- **[Plugin Config]**: ADR and sigint plugin configurations
+
+### Changed
+
+- **[Hooks]**: Format Python files with ruff
+- **[ADRs]**: Rename ADRs to 3-digit numbering scheme
+
+### Documentation
+
+- **[Reports]**: Add AI memory filesystem research
+
 ### Planned
 
 - Memory linking and relationships
