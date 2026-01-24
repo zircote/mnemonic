@@ -13,6 +13,8 @@ import json
 import os
 import re
 import subprocess
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -153,6 +155,54 @@ def detect_capture_intent(prompt: str) -> list:
     return list(set(intents))
 
 
+def create_memory(
+    title: str,
+    content: str,
+    namespace: str,
+    mem_type: str,
+    tags: list
+) -> str:
+    """Create a memory file and return its path."""
+    memory_id = str(uuid.uuid4())
+    slug = re.sub(r'[^a-z0-9-]', '', title.lower().replace(' ', '-'))[:50]
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Determine path
+    memory_dir = Path.cwd() / ".claude" / "mnemonic" / namespace / "project"
+    memory_dir.mkdir(parents=True, exist_ok=True)
+
+    memory_path = memory_dir / f"{memory_id}-{slug}.memory.md"
+
+    # Build frontmatter
+    tags_yaml = "\n".join(f"  - {tag}" for tag in tags)
+
+    memory_content = f"""---
+id: {memory_id}
+type: {mem_type}
+namespace: {namespace}/project
+created: {timestamp}
+modified: {timestamp}
+title: "{title}"
+tags:
+{tags_yaml}
+temporal:
+  valid_from: {timestamp}
+  recorded_at: {timestamp}
+provenance:
+  source_type: conversation
+  agent: claude-opus-4
+  confidence: 0.9
+---
+
+# {title}
+
+{content}
+"""
+
+    memory_path.write_text(memory_content)
+    return str(memory_path)
+
+
 def detect_recall_intent(prompt: str) -> bool:
     """Detect if prompt is asking about previous context."""
     for pattern in RECALL_KEYWORDS:
@@ -179,10 +229,31 @@ def main():
                 context_parts.append(f"- {mem['title']} ({mem['namespace']})")
             context_parts.append("")
 
-    # Check for capture intent
+    # Check for capture intent and auto-capture
     capture_intents = detect_capture_intent(prompt)
-    if capture_intents:
-        context_parts.append(f"**Capture Opportunity:** {', '.join(capture_intents)}")
+    for namespace in capture_intents:
+        # Extract a title from the prompt (first sentence or first 60 chars)
+        title_match = re.match(r'^[^.!?\n]+', prompt.strip())
+        title = title_match.group(0)[:60] if title_match else prompt[:60]
+
+        # Determine memory type based on namespace
+        mem_type_map = {
+            "decisions": "semantic",
+            "learnings": "semantic",
+            "patterns": "procedural",
+            "blockers": "episodic",
+        }
+        mem_type = mem_type_map.get(namespace, "semantic")
+
+        # Create the memory
+        create_memory(
+            title=title,
+            content=prompt,
+            namespace=namespace,
+            mem_type=mem_type,
+            tags=[namespace, "auto-captured", "from-prompt"]
+        )
+        context_parts.append(f"**Auto-Captured ({namespace}):** {title[:40]}...")
 
     # Build result
     if context_parts:

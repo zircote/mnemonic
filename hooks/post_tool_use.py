@@ -170,17 +170,58 @@ def main():
 
     # Auto-capture based on tool type
     if tool_name in ["Write", "Edit"] and "file" in file_info:
-        # Note: We don't actually create memories here to avoid noise
-        # Instead, we just flag for potential capture
-        messages.append(f"File modified: {file_info['file']}")
+        file_path = file_info["file"]
+        # Capture significant file creations/edits
+        if any(ext in file_path for ext in [".py", ".ts", ".js", ".go", ".rs", ".java"]):
+            # Procedural memory for code patterns
+            create_memory(
+                title=f"Code pattern in {Path(file_path).name}",
+                content=f"Modified `{file_path}`.\n\nThis file was created or updated as part of the current task.",
+                namespace="patterns",
+                mem_type="procedural",
+                tags=["code", "auto-captured"],
+                code_refs=[{"file": file_path}]
+            )
+            messages.append(f"Captured: code pattern for {Path(file_path).name}")
 
     if tool_name == "Bash" and "command" in file_info:
         command = file_info["command"]
-        # Check for significant commands
+        # Capture git commits as decisions
         if "git commit" in command:
-            messages.append("Git commit detected - consider capturing decision")
+            # Extract commit message if available
+            commit_msg = re.search(r'-m ["\']([^"\']+)["\']', command)
+            msg = commit_msg.group(1) if commit_msg else "Git commit"
+            create_memory(
+                title=msg,
+                content=f"Committed changes:\n\n```bash\n{command}\n```",
+                namespace="decisions",
+                mem_type="semantic",
+                tags=["git", "commit", "auto-captured"]
+            )
+            messages.append(f"Captured: decision - {msg[:50]}")
+
+        # Capture error resolutions as learnings
         elif "error" in tool_output.lower() or "failed" in tool_output.lower():
-            messages.append("Error encountered - capture resolution if fixed")
+            create_memory(
+                title=f"Error encountered: {command[:40]}",
+                content=f"Command:\n```bash\n{command}\n```\n\nOutput contained error. Resolution pending.",
+                namespace="blockers",
+                mem_type="episodic",
+                tags=["error", "debugging", "auto-captured"]
+            )
+            messages.append("Captured: blocker - error encountered")
+
+        # Capture successful complex commands as learnings
+        elif "success" in tool_output.lower() or tool_output.strip() and not ("error" in tool_output.lower()):
+            if any(x in command for x in ["install", "build", "deploy", "migrate"]):
+                create_memory(
+                    title=f"Command pattern: {command[:40]}",
+                    content=f"Successful command:\n```bash\n{command}\n```",
+                    namespace="learnings",
+                    mem_type="procedural",
+                    tags=["command", "workflow", "auto-captured"]
+                )
+                messages.append(f"Captured: learning - {command[:30]}")
 
     # Output result
     if messages:
