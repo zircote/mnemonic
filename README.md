@@ -1,6 +1,16 @@
 # Mnemonic
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
+[![MIF Level 3](https://img.shields.io/badge/MIF-Level%203-green)](https://github.com/zircote/MIF)
+
 A pure filesystem-based memory system for Claude Code. No external dependencies - all operations use standard Unix tools and Claude's native capabilities.
+
+<p align="center">
+  <img src=".github/readme-infographic.svg" alt="Mnemonic Architecture" width="800">
+</p>
+
+> **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification for standardized AI memory storage and interchange. MIF defines a portable, human-readable format for persistent AI memories across different systems and agents.
 
 ## Features
 
@@ -73,6 +83,14 @@ claude settings plugins add /path/to/mnemonic
 ```
 
 ## Memory Format (MIF Level 3)
+
+Mnemonic implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification. MIF is a proposed standard for portable, human-readable AI memory storage that enables:
+
+- **Interoperability**: Memories can be shared between different AI systems
+- **Human Readability**: Plain markdown with YAML frontmatter
+- **Version Control**: Git-friendly format with clear diffs
+- **Temporal Awareness**: Bi-temporal tracking (valid time vs recorded time)
+- **Decay Modeling**: Configurable relevance decay over time
 
 Each memory is a `.memory.md` file:
 
@@ -244,6 +262,10 @@ mnemonic/
 - Git
 - ripgrep (recommended)
 - Python 3.8+ (for hooks)
+
+## Related Projects
+
+- **[MIF (Memory Interchange Format)](https://github.com/zircote/MIF)** - The specification this plugin implements. A proposed standard for portable AI memory storage.
 
 ## License
 
