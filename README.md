@@ -206,6 +206,7 @@ Skills are fully self-contained and work without hooks or libraries:
 - **mnemonic-format**: MIF Level 3 templates
 - **mnemonic-organization**: Namespaces and maintenance
 - **mnemonic-blackboard**: Cross-session coordination
+- **mnemonic-agent-coordination**: Multi-agent coordination patterns
 
 ## Agents
 
@@ -213,6 +214,7 @@ Autonomous agents for specialized tasks:
 
 - **memory-curator**: Conflict detection, deduplication, decay management
 - **mnemonic-search-subcall**: Efficient search agent for iterative query refinement
+- **compression-worker**: Memory summarization for gc --compress
 
 ## Integrations
 
@@ -299,12 +301,16 @@ mnemonic/
 ├── .claude-plugin/
 │   └── plugin.json         # Plugin manifest
 ├── agents/
-│   └── memory-curator.md   # Maintenance agent
+│   ├── memory-curator.md   # Maintenance agent
+│   ├── mnemonic-search-subcall.md  # Search iteration agent
+│   └── compression-worker.md       # Memory summarization agent
 ├── commands/
 │   └── *.md                # Slash commands
 ├── docs/
 │   ├── architecture.md     # System architecture
-│   ├── contributing.md     # Contribution guide
+│   ├── validation.md       # Memory validation guide
+│   ├── agent-coordination.md  # Multi-agent patterns
+│   ├── adrs/               # Architecture decision records
 │   └── integrations/       # Multi-tool integration guides
 │       └── *.md
 ├── hooks/
@@ -317,6 +323,11 @@ mnemonic/
 │   ├── CONVENTIONS.md      # Aider conventions
 │   ├── copilot-instructions.md
 │   └── cursor-rule.mdc
+├── tools/
+│   └── mnemonic-validate   # MIF schema validation tool
+├── tests/
+│   ├── test_validator.py   # Validation tests
+│   └── fixtures/           # Test fixtures
 ├── CHANGELOG.md
 └── README.md
 ```

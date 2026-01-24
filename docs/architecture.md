@@ -78,9 +78,10 @@ Self-contained instruction sets that work without external dependencies:
 - **mnemonic-setup**: CLAUDE.md configuration
 - **mnemonic-search**: Advanced search patterns
 - **mnemonic-search-enhanced**: Agent-driven iterative search with synthesis
-- **mnemonic-format**: MIF Level 3 templates
+- **mnemonic-format**: MIF Level 3 templates and schema
 - **mnemonic-organization**: Namespace management
 - **mnemonic-blackboard**: Cross-session coordination
+- **mnemonic-agent-coordination**: Multi-agent coordination patterns
 
 ### Hooks
 
@@ -107,6 +108,15 @@ Autonomous background operations:
 
 - **memory-curator**: Conflict detection, deduplication, decay management
 - **mnemonic-search-subcall**: Efficient search agent for iterative query refinement (Haiku model)
+- **compression-worker**: Memory summarization for gc --compress (Haiku model)
+
+Agents coordinate through the blackboard pattern. See [Agent Coordination](agent-coordination.md) for details.
+
+### Tools
+
+Validation and maintenance utilities:
+
+- **mnemonic-validate**: Validates memories against MIF Level 3 schema. See [Validation](validation.md).
 
 ## Memory Model
 
@@ -250,9 +260,74 @@ All memories are version-controlled:
 - **Branching**: Support for experimental memories
 - **Conflict resolution**: Git merge for concurrent sessions
 
+## Memory Maintenance
+
+### Garbage Collection
+
+The `/mnemonic:gc` command manages memory lifecycle:
+
+- **Age-based cleanup**: Archive memories older than threshold
+- **TTL expiry**: Remove memories past their time-to-live
+- **Decay-based cleanup**: Archive low-strength memories
+- **Compression**: Summarize verbose older memories (via `--compress`)
+
+### Compression
+
+Large memories can be compressed while preserving content:
+
+```yaml
+# Added by gc --compress
+summary: "Concise summary (max 500 chars)"
+compressed_at: 2026-01-24T10:00:00Z
+```
+
+Compression criteria:
+- Age > 30 days AND lines > 100, OR
+- Strength < 0.3 AND lines > 100
+
+### Validation
+
+The `mnemonic-validate` tool checks MIF Level 3 compliance:
+
+```bash
+# Validate all memories
+./tools/mnemonic-validate
+
+# CI-friendly JSON output
+./tools/mnemonic-validate --format json
+```
+
+See [Validation](validation.md) for details.
+
+## Multi-Agent Coordination
+
+Agents coordinate using the blackboard pattern (ADR-003):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Blackboard                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │session-notes │  │active-tasks  │  │shared-context│      │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
+│         │                 │                 │               │
+│         ▼                 ▼                 ▼               │
+│      Register          Handoff          Workflow            │
+│      Status            Context          State               │
+└─────────────────────────────────────────────────────────────┘
+         ▲                 ▲                 ▲
+         │                 │                 │
+┌────────┴─────┐  ┌────────┴─────┐  ┌────────┴─────┐
+│memory-curator│  │search-subcall│  │search-enhanced│
+└──────────────┘  └──────────────┘  └───────────────┘
+```
+
+See [Agent Coordination](agent-coordination.md) for patterns.
+
 ## Performance Considerations
 
 - **Search**: ripgrep provides fast full-text search
 - **Indexing**: Filesystem is the index (no separate DB)
 - **Caching**: Recent memories cached in context
 - **Decay**: Exponential decay reduces noise over time
+- **Compression**: Reduces storage for older memories
+- **Agent isolation**: Subcall agents run in separate context (haiku model)

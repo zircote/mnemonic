@@ -64,20 +64,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Synthesized answers instead of raw file matches
 - **[GitHub Integration]**: GitHub Copilot agent configuration
 - **[Plugin Config]**: ADR and sigint plugin configurations
+- **[Validation Tool]**: MIF Level 3 schema validation for memory files
+  - `tools/mnemonic-validate` Python CLI for validating memories
+  - Validates required fields, types, UUID format, ISO 8601 timestamps
+  - Validates code_refs (file paths, line numbers, types)
+  - Validates citations (types, URLs, relevance scores)
+  - Validates memory links (`[[uuid]]` resolution)
+  - JSON and Markdown output formats
+  - `--capture` flag to save validation runs as episodic memories
+  - `--changed` flag for git-modified files only
+  - Makefile targets: `validate-memories`, `validate-memories-ci`
+- **[Memory Compression]**: Auto-summarization for verbose memories
+  - `compression-worker` agent (Haiku) for generating concise summaries
+  - New gc flags: `--compress`, `--compress-only`, `--compress-threshold`
+  - Compression criteria: (Age > 30d AND lines > 100) OR (strength < 0.3 AND lines > 100)
+  - Adds `summary` and `compressed_at` fields to MIF frontmatter
+- **[Multi-Agent Coordination]**: Blackboard-based agent coordination
+  - `mnemonic-agent-coordination` skill with agent patterns
+  - Agent registration in `session-notes.md`
+  - Task handoffs with context in `active-tasks.md`
+  - Shared workflow state in `shared-context.md`
+  - Progress reporting for subcall agents
+  - Extended blackboard entry format with Agent, Status, Capabilities fields
+- **[ADRs]**: Five new architectural decision records
+  - ADR-003: Agent Coordination via Blackboard Extension
+  - ADR-004: MIF Schema as Single Source of Truth for Validation
+  - ADR-005: Memory Compression via GC Extension
+  - ADR-006: Validation Results as Episodic Memories
+  - ADR-007: Enhanced Search with Agent-Driven Iteration
 
 ### Changed
 
 - **[Hooks]**: Format Python files with ruff
 - **[ADRs]**: Rename ADRs to 3-digit numbering scheme
+- **[GC Command]**: Extended with compression capabilities
+- **[Agents]**: memory-curator and search-subcall now use blackboard coordination
+- **[Skills]**: mnemonic-search-enhanced uses blackboard for workflow state
+- **[Architecture]**: Updated documentation with new features
 
 ### Documentation
 
 - **[Reports]**: Add AI memory filesystem research
+- **[validation.md]**: Validation tool usage and CI integration
+- **[agent-coordination.md]**: Multi-agent coordination patterns and examples
 
 ### Planned
 
 - Memory linking and relationships
 - Semantic search with embeddings
-- Memory compression for old entries
+- ~~Memory compression for old entries~~ (Implemented)
 - Export/import functionality
 - Web UI for memory browsing

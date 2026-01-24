@@ -44,7 +44,9 @@ mnemonic/
 │   └── integrations/    # Multi-tool integration guides
 ├── hooks/               # Python hook implementations
 ├── skills/              # Self-contained skills
-└── templates/           # Integration templates
+├── templates/           # Integration templates
+├── tools/               # Utility scripts (validation, etc.)
+└── tests/               # Tests and fixtures
 ```
 
 ## Making Changes
@@ -118,6 +120,12 @@ make lint
 
 # Check formatting
 make format-check
+
+# Validate memory files
+make validate-memories
+
+# Validate memory files (JSON output for CI)
+make validate-memories-ci
 ```
 
 ## Pull Request Process
@@ -142,6 +150,7 @@ make format-check
 - [ ] Plugin validates (`make lint`)
 - [ ] Commands/skills have proper frontmatter
 - [ ] Python code passes linting
+- [ ] Memory files validate (`make validate-memories`)
 - [ ] Documentation updated if needed
 - [ ] CHANGELOG.md updated for user-facing changes
 - [ ] No breaking changes (or clearly documented)
