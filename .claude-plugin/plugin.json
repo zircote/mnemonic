@@ -20,6 +20,7 @@
     "./commands/init.md",
     "./commands/recall.md",
     "./commands/search.md",
+    "./commands/search-enhanced.md",
     "./commands/setup.md",
     "./commands/status.md"
   ],
@@ -29,8 +30,12 @@
     "./skills/mnemonic-format/SKILL.md",
     "./skills/mnemonic-organization/SKILL.md",
     "./skills/mnemonic-search/SKILL.md",
+    "./skills/mnemonic-search-enhanced/SKILL.md",
     "./skills/mnemonic-setup/SKILL.md"
   ],
-  "agents": ["./agents/memory-curator.md"],
+  "agents": [
+    "./agents/memory-curator.md",
+    "./agents/mnemonic-search-subcall.md"
+  ],
   "hooks": ["./hooks/hooks.json"]
 }
