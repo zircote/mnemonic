@@ -1,15 +1,16 @@
 ---
 description: Garbage collect expired memories
-argument-hint: "[--dry-run] [--archive] [--force]"
+argument-hint: "[--dry-run] [--archive] [--force] [--compress]"
 allowed-tools:
   - Bash
   - Read
   - Write
+  - Task
 ---
 
 # /mnemonic:gc
 
-Garbage collect expired memories based on TTL and decay.
+Garbage collect expired memories based on TTL and decay, with optional compression.
 
 ## Arguments
 
@@ -18,6 +19,9 @@ Garbage collect expired memories based on TTL and decay.
 - `--force` - Skip confirmation prompts
 - `--min-strength` - Minimum strength threshold (default: 0.1)
 - `--max-age` - Maximum age in days (default: 365)
+- `--compress` - Compress large old memories before archiving
+- `--compress-only` - Only compress, don't archive/delete
+- `--compress-threshold` - Minimum lines for compression (default: 100)
 
 ## Procedure
 
@@ -112,6 +116,131 @@ echo "=== GC Summary ==="
 ALL_CANDIDATES="$OLD_FILES $TTL_EXPIRED $LOW_STRENGTH"
 TOTAL=$(echo "$ALL_CANDIDATES" | tr ' ' '\n' | sort -u | grep -c . 2>/dev/null || echo 0)
 echo "Total candidates: $TOTAL"
+```
+
+### Step 3.5: Find Compression Candidates (if --compress)
+
+Compression candidates are memories that:
+- (Age > 30 days AND lines > COMPRESS_THRESHOLD) OR
+- (strength < 0.3 AND lines > COMPRESS_THRESHOLD)
+
+```bash
+if [ "$COMPRESS" = "true" ] || [ "$COMPRESS_ONLY" = "true" ]; then
+    COMPRESS_THRESHOLD="${COMPRESS_THRESHOLD:-100}"
+    COMPRESS_CANDIDATES=""
+
+    echo ""
+    echo "=== Finding Compression Candidates ==="
+    echo "Threshold: > $COMPRESS_THRESHOLD lines"
+
+    for f in $(find "$HOME/.claude/mnemonic/$ORG" "./.claude/mnemonic" -name "*.memory.md" 2>/dev/null); do
+        # Skip if already has summary
+        if grep -q "^summary:" "$f" 2>/dev/null; then
+            continue
+        fi
+
+        LINES=$(wc -l < "$f" | tr -d ' ')
+        if [ "$LINES" -le "$COMPRESS_THRESHOLD" ]; then
+            continue
+        fi
+
+        # Check age (> 30 days) or low strength (< 0.3)
+        FILE_AGE=$(( ( $(date +%s) - $(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null) ) / 86400 ))
+        STRENGTH=$(grep "strength:" "$f" 2>/dev/null | sed 's/.*strength: //')
+
+        IS_CANDIDATE="false"
+        if [ "$FILE_AGE" -gt 30 ]; then
+            IS_CANDIDATE="true"
+        fi
+        if [ -n "$STRENGTH" ]; then
+            if python3 -c "exit(0 if float('$STRENGTH') < 0.3 else 1)" 2>/dev/null; then
+                IS_CANDIDATE="true"
+            fi
+        fi
+
+        if [ "$IS_CANDIDATE" = "true" ]; then
+            COMPRESS_CANDIDATES="$COMPRESS_CANDIDATES $f"
+            title=$(grep "^title:" "$f" 2>/dev/null | head -1 | sed 's/^title: "//' | sed 's/"$//')
+            echo "  $title ($LINES lines, ${FILE_AGE}d old)"
+        fi
+    done
+
+    COMPRESS_COUNT=$(echo "$COMPRESS_CANDIDATES" | wc -w | tr -d ' ')
+    echo "  Total compression candidates: $COMPRESS_COUNT"
+fi
+```
+
+### Step 3.6: Compress Candidates (if --compress)
+
+For each compression candidate, invoke the compression-worker agent to generate a summary.
+
+```
+For each file in COMPRESS_CANDIDATES:
+  1. Invoke Task tool with compression-worker agent:
+     - subagent_type: "mnemonic:compression-worker"
+     - model: haiku
+     - prompt: "Compress memory at {file_path}. Max 500 chars."
+
+  2. Parse JSON response to get summary and keywords
+
+  3. Insert summary into frontmatter (after provenance):
+     - Add: summary: "{summary}"
+     - Add: compressed_at: {timestamp}
+
+  4. Optionally add new keywords to tags
+```
+
+**Frontmatter Update Pattern:**
+
+```bash
+# Insert summary after provenance section
+# Look for the line after "provenance:" block ends
+# Add:
+#   summary: "The generated summary text"
+#   compressed_at: 2026-01-24T10:00:00Z
+```
+
+**Example:**
+
+```yaml
+# Before:
+provenance:
+  source_type: conversation
+  agent: claude-opus-4
+  confidence: 0.95
+---
+
+# After:
+provenance:
+  source_type: conversation
+  agent: claude-opus-4
+  confidence: 0.95
+summary: "Chose PostgreSQL for storage due to JSON support and ACID compliance. Key factors: team expertise and proven scalability."
+compressed_at: 2026-01-24T10:00:00Z
+---
+```
+
+### Step 3.7: Handle --compress-only
+
+If `--compress-only` is set, skip archive/delete steps:
+
+```bash
+if [ "$COMPRESS_ONLY" = "true" ]; then
+    echo ""
+    echo "=== Compress-Only Mode ==="
+    echo "Compressed: $COMPRESS_COUNT memories"
+    echo "Skipping archive/delete steps"
+
+    # Commit compression changes
+    cd "$HOME/.claude/mnemonic"
+    git add -A
+    git commit -m "GC: Compressed $COMPRESS_COUNT memories"
+    cd -
+
+    echo ""
+    echo "=== GC Complete (Compress Only) ==="
+    exit 0
+fi
 ```
 
 ### Step 4: Confirm and Execute
