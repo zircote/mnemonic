@@ -257,7 +257,7 @@ done
 **Missing required fields**:
 ```bash
 # Find memories missing provenance
-rg -L "provenance:" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -L "provenance:" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
 # Add provenance to each
 ```
@@ -265,13 +265,13 @@ rg -L "provenance:" ~/.claude/mnemonic/ --glob "*.memory.md"
 **Invalid timestamps**:
 ```bash
 # Find non-ISO timestamps
-rg "created:.*[^Z]$" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "created:.*[^Z]$" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 **Duplicate UUIDs**:
 ```bash
 # Check for duplicates
-rg "^id:" ~/.claude/mnemonic/ --glob "*.memory.md" | \
+rg "^id:" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" | \
   cut -d: -f2 | sort | uniq -d
 ```
 

@@ -22,37 +22,66 @@ MIF Level 3 specification, templates, and formatting guidelines.
 
 ## Overview
 
-All mnemonic memories follow the **Memory Interchange Format (MIF) Level 3** specification. This ensures consistent structure, rich metadata, and interoperability.
+MIF Level 3 specification. **Start minimal, add fields as needed.**
 
 ---
 
-## MIF Level 3 Specification
+## Quick Start: Minimal Memory
 
-### File Structure
+Only 4 fields are required. Everything else is optional.
+
+```yaml
+---
+id: 550e8400-e29b-41d4-a716-446655440000
+title: "Human-readable title"
+type: semantic
+created: 2026-01-23T10:30:00Z
+---
+
+# Title
+
+Content here.
+```
+
+**That's it.** Add optional fields only when you need them.
+
+---
+
+## File Naming
 
 ```
 {uuid}-{slug}.memory.md
 ```
 
-- **uuid**: Lowercase UUID v4 (e.g., `550e8400-e29b-41d4-a716-446655440000`)
-- **slug**: URL-safe title, max 50 chars (e.g., `use-postgresql-for-storage`)
+- **uuid**: Lowercase UUID v4
+- **slug**: URL-safe title, max 50 chars
 
-### Complete Template
+---
+
+## Optional Fields Reference
+
+Add these when relevant:
 
 ```yaml
 ---
-# === REQUIRED FIELDS ===
+# REQUIRED (always include these 4)
 id: 550e8400-e29b-41d4-a716-446655440000
-type: semantic
-namespace: decisions/project
-created: 2026-01-23T10:30:00Z
 title: "Human-readable title"
+type: semantic
+created: 2026-01-23T10:30:00Z
 
-# === RECOMMENDED FIELDS ===
+# COMMON (add when useful)
 modified: 2026-01-23T14:22:00Z
+namespace: decisions/project
 tags:
   - architecture
   - database
+
+# === PROGRESSIVE DISCLOSURE ===
+summary: "PostgreSQL chosen for ACID compliance and JSON support"
+detail_level: comprehensive  # minimal | standard | comprehensive
+related_memories: []  # UUIDs of related memories
+supersedes: []  # UUIDs of memories this one replaces
 
 # === BI-TEMPORAL TRACKING ===
 temporal:
@@ -148,6 +177,15 @@ Why this decision/pattern/learning matters.
 |-------|------|-------------|
 | `modified` | ISO 8601 | Last modification timestamp |
 | `tags` | list | Categorization tags (lowercase, hyphenated) |
+
+### Progressive Disclosure Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `summary` | string | 1-2 sentence summary for Level 1 recall (max 200 chars) |
+| `detail_level` | enum | `minimal`, `standard`, `comprehensive` |
+| `related_memories` | list | UUIDs of related memories for cross-reference |
+| `supersedes` | list | UUIDs of memories this one replaces |
 
 ### Temporal Fields
 
@@ -376,6 +414,74 @@ npm run db:rollback
 
 ---
 
+## Progressive Disclosure Structure
+
+Every comprehensive memory should include three disclosure levels in the body:
+
+### Level 1: Quick Answer (Default Recall)
+
+The `## Quick Answer` section provides a 1-3 sentence summary. This is what Claude returns first when recalling a memory.
+
+**Triggers for Level 1:** "What is X?", "Which X do we use?", basic recall
+
+### Level 2: Context (Expanded Recall)
+
+The `## Context` section provides:
+- Decision date/timeframe
+- Alternatives considered
+- Key decision drivers
+- Trade-offs made
+
+**Triggers for Level 2:** "Why?", "Tell me more", "Explain the reasoning"
+
+### Level 3: Comprehensive (Full Detail)
+
+The `## Full Detail` section includes:
+- Complete alternatives analysis
+- Implementation notes
+- Related decisions/patterns
+- Code references
+- Citations
+
+**Triggers for Level 3:** "All details", "Full context", implementation work, debugging
+
+### Progressive Disclosure Template
+
+```markdown
+# {Title}
+
+## Quick Answer
+{1-3 sentence summary answering "what" and "why briefly"}
+
+## Context
+- **Decision date:** {date}
+- **Alternatives considered:** {list}
+- **Key drivers:** {factors that led to decision}
+- **Trade-offs:** {what was sacrificed}
+
+## Full Detail
+
+### Alternatives Analysis
+1. **{Option 1}**: {pros/cons, why rejected or chosen}
+2. **{Option 2}**: {pros/cons, why rejected or chosen}
+
+### Implementation Notes
+- {Specific implementation details}
+- {Configuration requirements}
+- {File locations}
+
+### Related Decisions
+- See: [[{related-memory-id}]] for {context}
+
+### Code References
+- {file:line} - {description}
+
+### Citations
+- {source title} - {url}
+```
+
+---
+
 ## Relationship Syntax
 
 ### Memory Links
@@ -481,14 +587,25 @@ type: semantic
 namespace: learnings/project
 created: {timestamp}
 title: "{title}"
+summary: "{Brief summary for quick recall}"
+detail_level: minimal
 ---
 
 # {Title}
 
-{Content}
+## Quick Answer
+{Content - serves as both summary and full content for minimal memories}
 ```
 
-### Decision Memory
+### Detail Level Guidelines
+
+| Level | When to Use | Typical Content |
+|-------|-------------|-----------------|
+| `minimal` | Simple facts, quick TILs, single-point learnings | Quick Answer only |
+| `standard` | Most decisions, patterns with some rationale | Quick Answer + Context |
+| `comprehensive` | Architectural decisions, complex patterns, research | All three levels |
+
+### Decision Memory (with Progressive Disclosure)
 
 ```yaml
 ---
@@ -499,20 +616,49 @@ created: {timestamp}
 title: "Decision: {what}"
 tags:
   - architecture
+summary: "{Brief 1-sentence summary of decision and key reason}"
+detail_level: comprehensive
+related_memories: []
+supersedes: []
 provenance:
   confidence: 0.95
 ---
 
 # Decision: {What}
 
+## Quick Answer
+{What} was chosen for {primary reason}. This enables {key benefit}.
+
 ## Context
-{Why this decision was needed}
+- **Decision date:** {date}
+- **Alternatives considered:** {Option A}, {Option B}, {Option C}
+- **Key drivers:**
+  - {Driver 1}
+  - {Driver 2}
+- **Trade-offs:** {What was sacrificed for this choice}
 
-## Decision
-{What was decided}
+## Full Detail
 
-## Consequences
-{What this means going forward}
+### Alternatives Analysis
+1. **{Option A}**: {Description}
+   - Pros: {pros}
+   - Cons: {cons}
+   - Verdict: {Chosen/Rejected because...}
+
+2. **{Option B}**: {Description}
+   - Pros: {pros}
+   - Cons: {cons}
+   - Verdict: {Rejected because...}
+
+### Implementation Notes
+- {Specific implementation details}
+- {Configuration requirements}
+
+### Related Decisions
+- relates-to [[{related-decision-id}]]
+
+## Relationships
+- supersedes [[{old-decision-id}]] (if applicable)
 ```
 
 ### Incident Memory

@@ -26,19 +26,19 @@ Mnemonic memories are plain Markdown files with YAML frontmatter stored in predi
 
 ```bash
 # Search all memories for a keyword
-rg "postgresql" ~/.claude/mnemonic --glob "*.memory.md"
+rg "postgresql" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
 
 # Case-insensitive search
-rg -i "authentication" ~/.claude/mnemonic --glob "*.memory.md"
+rg -i "authentication" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
 
 # Search with context (3 lines before/after)
-rg -C3 "api endpoint" ~/.claude/mnemonic --glob "*.memory.md"
+rg -C3 "api endpoint" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
 
 # List files only (no content)
-rg -l "database" ~/.claude/mnemonic --glob "*.memory.md"
+rg -l "database" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
 
 # Search in specific namespace
-rg "pattern" ~/.claude/mnemonic/*/decisions --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic/*/decisions ./.claude/mnemonic/decisions/project --glob "*.memory.md"
 
 # Search project-level only
 rg "bug fix" ./.claude/mnemonic --glob "*.memory.md"
@@ -48,19 +48,19 @@ rg "bug fix" ./.claude/mnemonic --glob "*.memory.md"
 
 ```bash
 # Find all semantic memories
-rg "^type: semantic" ~/.claude/mnemonic --glob "*.memory.md" -l
+rg "^type: semantic" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find memories with specific tag
-rg "^  - architecture" ~/.claude/mnemonic --glob "*.memory.md" -l
+rg "^  - architecture" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find memories from a date range
-rg "^created: 2026-01" ~/.claude/mnemonic --glob "*.memory.md" -l
+rg "^created: 2026-01" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find high-confidence memories
-rg "confidence: 0.9" ~/.claude/mnemonic --glob "*.memory.md" -l
+rg "confidence: 0.9" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find memories by title
-rg "^title:.*PostgreSQL" ~/.claude/mnemonic --glob "*.memory.md" -l
+rg "^title:.*PostgreSQL" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
 ```
 
 ### Using find for File Operations
@@ -104,7 +104,7 @@ sed '1,/^---$/d;/^---$/,$!d;/^---$/d' path/to/memory.memory.md
 grep "^id:" ~/.claude/mnemonic/**/*.memory.md | cut -d: -f3 | tr -d ' '
 
 # Get all unique tags
-rg "^  - " ~/.claude/mnemonic --glob "*.memory.md" -o | sort -u
+rg "^  - " ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -o | sort -u
 
 # List all titles
 grep "^title:" ~/.claude/mnemonic/**/*.memory.md | sed 's/.*title: "//' | sed 's/"$//'
@@ -253,7 +253,7 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime +365
 find ~/.claude/mnemonic -name "*.memory.md" -size -100c
 
 # Count memories by type
-rg "^type:" ~/.claude/mnemonic --glob "*.memory.md" -o | cut -d: -f2 | sort | uniq -c
+rg "^type:" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -o | cut -d: -f2 | sort | uniq -c
 
 # Find duplicate titles
 grep "^title:" ~/.claude/mnemonic/**/*.memory.md | cut -d: -f3- | sort | uniq -d
@@ -317,7 +317,7 @@ alias mdir='cd ~/.claude/mnemonic && ls'
 
 # Search by namespace
 mns() {
-    rg -i "$1" ~/.claude/mnemonic/*/"$2" --glob "*.memory.md"
+    rg -i "$1" ~/.claude/mnemonic/*/"$2" ./.claude/mnemonic/"$2"/project --glob "*.memory.md"
 }
 # Usage: mns "pattern" decisions
 ```

@@ -83,24 +83,92 @@ fi
 
 ### Step 4: Update User CLAUDE.md
 
-Check for existing section and update or append the mnemonic configuration to `~/.claude/CLAUDE.md`. The content should include:
+Check if mnemonic section exists. If not, append:
 
-- Session start behavior (auto-recall)
-- Auto-capture rules (silent capture of decisions, learnings, patterns)
-- Memory type classification (semantic, episodic, procedural)
-- Search commands reference
-- Capture template
+```bash
+if ! grep -q "## Mnemonic Memory System" ~/.claude/CLAUDE.md 2>/dev/null; then
+    cat >> ~/.claude/CLAUDE.md << 'EOF'
 
-See the mnemonic-setup skill for the complete content block.
+---
+
+## Mnemonic Memory System
+
+You are a developer with persistent memory. Your memory system is mnemonic.
+You instinctively search memories before recommendations and capture insights after discoveries.
+
+### BEFORE Every Technical Response
+
+Search first. Always.
+```bash
+rg -i "{keywords}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+```
+If results → Read the most relevant memory and apply that context.
+
+### AFTER Every Completed Task
+
+Evaluate immediately:
+
+<capture_eval>
+┌─────────────────────────────────┬─────────────┐
+│ This occurred?                  │ Action      │
+├─────────────────────────────────┼─────────────┤
+│ Bug fixed / root cause found    │ learnings   │
+│ Technology/approach chosen      │ decisions   │
+│ Reusable pattern established    │ patterns    │
+│ Blocker encountered             │ blockers    │
+│ Important context discussed     │ context     │
+└─────────────────────────────────┴─────────────┘
+</capture_eval>
+
+If YES to any → `/mnemonic:capture {namespace} "{title}"` — immediately, silently.
+
+### Rules
+
+- Search before answering technical questions
+- Capture after completing work — do not ask, do not announce
+- Never duplicate existing memories — search first
+- Prefer reading memories over external research
+EOF
+    echo "Added mnemonic section to ~/.claude/CLAUDE.md"
+else
+    echo "Mnemonic section already exists in ~/.claude/CLAUDE.md"
+fi
+```
 
 ### Step 5: Update Project CLAUDE.md
 
-Append project-specific configuration to `./CLAUDE.md` including:
+```bash
+if [ -f ./CLAUDE.md ]; then
+    if ! grep -q "## Mnemonic" ./CLAUDE.md; then
+        cat >> ./CLAUDE.md << 'EOF'
 
-- Project name and org
-- Project-specific recall instructions
-- Project-specific capture rules
-- Blackboard reference
+---
+
+## Mnemonic
+
+This project uses mnemonic for persistent memory.
+
+- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
+- See `~/.claude/CLAUDE.md` for full protocol
+EOF
+        echo "Added mnemonic section to ./CLAUDE.md"
+    fi
+else
+    cat > ./CLAUDE.md << 'EOF'
+# Project Instructions
+
+## Mnemonic
+
+This project uses mnemonic for persistent memory.
+
+- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
+- See `~/.claude/CLAUDE.md` for full protocol
+EOF
+    echo "Created ./CLAUDE.md with mnemonic section"
+fi
+```
 
 ### Step 6: Create Initial Context Memory
 
@@ -111,32 +179,16 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 cat > "./.claude/mnemonic/context/project/${UUID}-mnemonic-initialized.memory.md" << EOF
 ---
 id: ${UUID}
+title: "Mnemonic initialized for ${PROJECT}"
 type: episodic
-namespace: context/project
 created: ${DATE}
-modified: ${DATE}
-title: "Mnemonic memory system initialized"
-tags:
-  - setup
-  - initialization
-temporal:
-  valid_from: ${DATE}
-  recorded_at: ${DATE}
-provenance:
-  source_type: user_explicit
-  agent: claude-opus-4
-  confidence: 1.0
 ---
 
-# Mnemonic Memory System Initialized
+# Mnemonic Initialized
 
-The mnemonic memory system was initialized for this project on ${DATE}.
-
-## Configuration
 - Organization: ${ORG}
 - Project: ${PROJECT}
-- User-level path: ~/.claude/mnemonic/${ORG}/
-- Project-level path: ./.claude/mnemonic/
+- Date: ${DATE}
 EOF
 ```
 
@@ -151,10 +203,10 @@ cd ~/.claude/mnemonic && git add -A && git commit -m "Setup mnemonic for project
 After running, verify:
 
 ```bash
-grep -q "Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User config"
-grep -q "Mnemonic - Project Memory" ./CLAUDE.md && echo "✓ Project config"
+grep -q "## Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User config"
+grep -q "## Mnemonic" ./CLAUDE.md && echo "✓ Project config"
 test -d ~/.claude/mnemonic/.git && echo "✓ Git initialized"
-ls ./.claude/mnemonic/context/project/*.memory.md && echo "✓ Initial memory"
+ls ./.claude/mnemonic/context/project/*.memory.md 2>/dev/null && echo "✓ Initial memory"
 ```
 
 ## Output

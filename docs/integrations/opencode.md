@@ -44,7 +44,7 @@ description: Capture and recall memories using the MIF Level 3 filesystem memory
 
 ### Recall Memories
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 ### Capture Memory

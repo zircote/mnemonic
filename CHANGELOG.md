@@ -7,12 +7,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **[CLAUDE.md Protocol]**: Role-based, imperative instructions (Anthropic Prompt Engineering)
+  - Added role assignment: "developer with persistent memory"
+  - Changed passive "Ask yourself" to structured `<capture_eval>` block
+  - Reduced from 63 lines to 30 lines for focused instruction
+  - Imperative language throughout ("Search first. Always.")
+
+- **[mnemonic-core Skill]**: Progressive disclosure architecture
+  - Reduced SKILL.md from 495 lines to 52 lines (quick reference only)
+  - Split detailed workflows into `references/` subdirectory:
+    - `capture.md` - Full capture workflow
+    - `recall.md` - Search and retrieval patterns
+    - `schema.md` - Complete MIF Level 3 schema
+    - `examples.md` - Working examples
+  - Follows Anthropic Architect principle: "Show only what's needed, when it's needed"
+
+- **[mnemonic-format Skill]**: Simplified schema emphasis
+  - Lead with minimal 4-field template (id, title, type, created)
+  - All other fields marked as optional
+  - Reduces barrier to adoption
+
+- **[Hook Architecture]**: Context hints only, no auto-capture
+  - `user_prompt_submit.py`: Removed `create_memory()` function
+  - Hooks provide capture signals, Claude uses skills to capture
+  - Aligns with skills-first architecture principle
+  - `post_tool_use.py`: Updated to reference `/mnemonic:capture` skill
+
+- **[Commands]**: Updated CLAUDE.md templates in init.md and setup.md
+  - Match new role-based, imperative style
+  - Simplified initial context memory to 4-field format
+
+- **[Test Suite]**: Replaced contrived tests with natural behavior tests
+  - Removed 25+ "no error" command tests
+  - Added 12 tests validating automatic capture/recall without explicit commands
+  - Tests verify silent operation, content quality, no duplicates
+
+### Fixed
+
+- **[Templates]**: Heredoc variable expansion in mnemonic-core/SKILL.md
+  - Changed `'MEMORY_EOF'` to `MEMORY_EOF` (unquoted)
+  - Changed `{UUID}` placeholders to `${UUID}` bash variables
+
+### Removed
+
+- **[Cognitive Bridge]**: Entire cognitive bridge feature removed
+  - Removed bridge commands: `/mnemonic:bridge-scan`, `/mnemonic:bridge-status`, `/mnemonic:bridge-sync`
+  - Removed bridge skills: `bridge-core`, `bridge-triggers`, `bridge-synthesis`, `bridge-integration`
+  - Removed bridge agents: `capability-mapper`, `pattern-synthesizer`
+  - Removed `check_registry()` from `session_start.py` hook
+  - Removed bridge documentation and architecture diagrams
+  - Skills-first approach replaces bridge's hook-centric pattern
+
 ### Planned
 
-- Memory linking and relationships
 - Semantic search with embeddings
 - Export/import functionality
 - Web UI for memory browsing
+
+## [1.2.0] - 2026-01-24
+
+### Added
+
+- **[Cognitive Bridge]**: Plugin integration and intelligent context injection
+  - `PreToolUse` hook for file pattern detection (auth, api, db, test, config, deploy, security)
+  - Relevant memory file paths provided when editing related files
+  - Bridge registry for plugin capability mapping
+  - Pattern synthesis for cross-memory knowledge consolidation
+
+- **[Bridge Skills]**: Four new skills for cognitive bridge
+  - `bridge-core`: Interpreting session context and memory availability
+  - `bridge-triggers`: File pattern to namespace mappings
+  - `bridge-synthesis`: Pattern consolidation and meta-pattern creation
+  - `bridge-integration`: Plugin integration for memory capture
+
+- **[Bridge Agents]**: Two new agents for automated operations
+  - `capability-mapper`: Discovers plugins and builds bridge registry
+  - `pattern-synthesizer`: Analyzes memories for patterns and creates meta-patterns
+
+- **[Bridge Commands]**: Three new commands
+  - `/mnemonic:bridge-scan`: Discover plugins and build bridge registry
+  - `/mnemonic:bridge-status`: Show registry, memory health, blackboard status
+  - `/mnemonic:bridge-sync`: Process blackboard and synthesize patterns
+
+### Changed
+
+- **[Hooks]**: All hooks now use `hookSpecificOutput.additionalContext` for Claude-readable context
+  - SessionStart: Provides memory counts, health score, registry status, suggestions
+  - PreToolUse: Provides relevant memory file paths for file edits
+  - UserPromptSubmit: Provides capture/recall trigger context
+  - PostToolUse: Provides capture opportunity context
+  - Stop: Provides session summary context
+
+- **[Architecture]**: Hooks inform, Claude decides
+  - Hooks provide context, not instructions
+  - Claude autonomously decides when to read memories or use agents
+  - Agents invoked via commands, not hook triggers
+
+### Technical
+
+- Hooks execute in <100ms with timeouts (3-5s)
+- Fast pattern matching with regex and ripgrep
+- Memory health scoring based on confidence decay and duplicates
 
 ## [1.1.1] - 2026-01-24
 

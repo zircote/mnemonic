@@ -22,7 +22,7 @@ chatOptions:
     You have access to a Mnemonic memory system at ~/.claude/mnemonic/.
 
     BEFORE implementing anything:
-    - Search: rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+    - Search: rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
     CAPTURE immediately when:
     - Decision made → decisions/user/
@@ -37,7 +37,7 @@ customCommands:
     description: Search mnemonic memories
     prompt: |
       Search for memories related to: {{input}}
-      Use: rg -i "{{input}}" ~/.claude/mnemonic/ --glob "*.memory.md"
+      Use: rg -i "{{input}}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
   - name: mnemonic-capture
     description: Capture a new memory

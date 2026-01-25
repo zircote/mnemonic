@@ -85,22 +85,26 @@ Self-contained instruction sets that work without external dependencies:
 
 ### Hooks
 
-Event-driven automation for proactive behavior:
+Event-driven context injection via `hookSpecificOutput.additionalContext`:
 
 ```
-SessionStart ──────► Load relevant memories
-                     Check blackboard for pending items
+SessionStart ──────► Memory status, health score, registry status
+                     Blackboard pending items
 
-UserPromptSubmit ──► Analyze prompt for recall keywords
-                     Detect capture opportunities
+PreToolUse ────────► Relevant memory paths when editing files
+                     File pattern detection (auth, api, db, test, etc.)
 
-PostToolUse ───────► Capture learnings from tool results
-                     Update memory access timestamps
+UserPromptSubmit ──► Capture/recall trigger detection
+                     Topic extraction for search
+
+PostToolUse ───────► Capture opportunity context
+                     Error/success detection
 
 Stop ──────────────► Commit pending changes
-                     Update blackboard
-                     Summarize session
+                     Session summary
 ```
+
+**Key Principle**: Hooks provide context, Claude decides. Hooks do not instruct Claude to take specific actions—they inform Claude about available memories and detected patterns, and Claude autonomously decides whether to read memories or use agents.
 
 ### Agents
 
