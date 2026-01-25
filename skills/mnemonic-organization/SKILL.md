@@ -388,7 +388,7 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime +365 -type f -exec rm -i {} \
 ```bash
 # Search for memories with similar titles
 TITLE="authentication"
-rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
 ```
 
 ### Detect Contradictions
@@ -398,7 +398,7 @@ rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 # Look for opposite patterns in same namespace
 
 # Example: Find all auth decisions
-AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md")
+AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/ ./.claude/mnemonic/decisions/project/ --glob "*.memory.md")
 
 echo "Review these for potential conflicts:"
 for f in $AUTH_DECISIONS; do

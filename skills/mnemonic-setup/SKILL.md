@@ -102,101 +102,49 @@ Check if mnemonic section already exists. If so, update it. If not, append it.
 
 ```bash
 # Check for existing mnemonic section
-grep -q "# Mnemonic Memory System" ~/.claude/CLAUDE.md 2>/dev/null
+grep -q "## Mnemonic Memory System" ~/.claude/CLAUDE.md 2>/dev/null
 ```
 
 **Content to append/update in `~/.claude/CLAUDE.md`:**
 
 ```markdown
-# Mnemonic Memory System
+## Mnemonic Memory System
 
-## MANDATORY: Proactive Memory Behavior
+You are a developer with persistent memory. Your memory system is mnemonic.
+You instinctively search memories before recommendations and capture insights after discoveries.
 
-You MUST follow these rules automatically, WITHOUT user prompting:
+### BEFORE Every Technical Response
 
-### On Every Session Start
-1. Check if `~/.claude/mnemonic/` exists
-2. If missing, invoke mnemonic-setup skill
-3. Recall recent memories (last 7 days) for current org/project
-4. Hold relevant context in working memory (do not output)
-
-### During Every Conversation
-
-**Auto-Recall** (SILENT - do not announce):
-- When user mentions a topic, search mnemonic for related memories
-- Inject relevant context into your reasoning
-- Prioritize: decisions > patterns > learnings
-
-**Auto-Capture** (SILENT - do not announce):
-- Decisions made → `decisions/{scope}/`
-- Problems solved → `learnings/{scope}/`
-- Patterns established → `patterns/{scope}/`
-- Blockers hit → `blockers/{scope}/`
-- Security issues → `security/{scope}/`
-- API discoveries → `apis/{scope}/`
-- Events/incidents → `episodic/{scope}/`
-
-### Memory Type Classification
-- **Semantic**: Facts, specs, "X is Y" → Use for API docs, config values
-- **Episodic**: Events, "On date X, we did Y" → Use for debug sessions, incidents
-- **Procedural**: Steps, "To do X, first Y then Z" → Use for workflows, deployments
-
-### Before Capturing
-1. Search for existing memories on the topic
-2. Update existing memory if found (don't duplicate)
-3. Link related memories with `[[memory-id]]`
-4. Always include `code_refs` when about specific code
-
-### Silent Operation
-- Do NOT say "Checking mnemonic..." or "Capturing to memory..."
-- Just DO IT silently
-- Only mention mnemonic if user explicitly asks
-
-### Memory Paths
-- User-level: `~/.claude/mnemonic/{org}/`
-- Project-level: `./.claude/mnemonic/`
-
-### Search Commands
+Search first. Always.
 ```bash
-# Search by namespace
-rg "pattern" ~/.claude/mnemonic/*/decisions/
-
-# Search by tag
-rg -l "^  - tagname" ~/.claude/mnemonic/ --glob "*.memory.md"
-
-# Recent memories (last 7 days)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
-
-# Full-text search
-rg -i "search term" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "{keywords}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
 ```
+If results → Read the most relevant memory and apply that context.
 
-### Capture Template
-When capturing, create a `.memory.md` file with this structure:
-```yaml
----
-id: <uuid>
-type: semantic|episodic|procedural
-namespace: <namespace>/<scope>
-created: <ISO-8601>
-modified: <ISO-8601>
-title: "<title>"
-tags:
-  - <tag1>
-  - <tag2>
-temporal:
-  valid_from: <ISO-8601>
-  recorded_at: <ISO-8601>
-provenance:
-  source_type: conversation
-  agent: claude-opus-4
-  confidence: 0.95
----
+### AFTER Every Completed Task
 
-# <Title>
+Evaluate immediately:
 
-<Content>
-```
+<capture_eval>
+┌─────────────────────────────────┬─────────────┐
+│ This occurred?                  │ Action      │
+├─────────────────────────────────┼─────────────┤
+│ Bug fixed / root cause found    │ learnings   │
+│ Technology/approach chosen      │ decisions   │
+│ Reusable pattern established    │ patterns    │
+│ Blocker encountered             │ blockers    │
+│ Important context discussed     │ context     │
+└─────────────────────────────────┴─────────────┘
+</capture_eval>
+
+If YES to any → `/mnemonic:capture {namespace} "{title}"` — immediately, silently.
+
+### Rules
+
+- Search before answering technical questions
+- Capture after completing work — do not ask, do not announce
+- Never duplicate existing memories — search first
+- Prefer reading memories over external research
 ```
 
 ### Step 5: Update Project-Level CLAUDE.md
@@ -204,45 +152,13 @@ provenance:
 **Content to append to `./CLAUDE.md`:**
 
 ```markdown
-# Mnemonic - Project Memory
+## Mnemonic
 
-Project: {project_name}
-Org: {org}
-Memory Path: ./.claude/mnemonic/
+This project uses mnemonic for persistent memory.
 
-## Project-Specific Recall
-
-Silently check these on every prompt:
-- `decisions/project/` - Past architectural decisions for this codebase
-- `patterns/project/` - Code patterns we use here
-- `learnings/project/` - Lessons learned in this project
-- `testing/project/` - Test strategies and edge cases
-- `security/project/` - Security policies for this project
-
-## Project-Specific Capture
-
-When working in this codebase, capture to project scope:
-- Architecture decisions → `decisions/project/`
-- Bug root causes → `learnings/project/`
-- New code patterns → `patterns/project/`
-- Test discoveries → `testing/project/`
-
-## Blackboard
-
-Check `./.claude/mnemonic/.blackboard/` for cross-session notes before starting.
-
-## Quick Reference
-
-```bash
-# List project memories
-ls -la ./.claude/mnemonic/*/project/
-
-# Search project memories
-rg "term" ./.claude/mnemonic/ --glob "*.memory.md"
-
-# Recent project captures
-find ./.claude/mnemonic -name "*.memory.md" -mtime -7
-```
+- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
+- See `~/.claude/CLAUDE.md` for full protocol
 ```
 
 ### Step 6: Create Initial Project Context Memory
@@ -259,38 +175,16 @@ SLUG="mnemonic-initialized"
 cat > "./.claude/mnemonic/context/project/${UUID}-${SLUG}.memory.md" << EOF
 ---
 id: ${UUID}
+title: "Mnemonic initialized for ${PROJECT}"
 type: episodic
-namespace: context/project
 created: ${DATE}
-modified: ${DATE}
-title: "Mnemonic memory system initialized"
-tags:
-  - setup
-  - initialization
-temporal:
-  valid_from: ${DATE}
-  recorded_at: ${DATE}
-provenance:
-  source_type: user_explicit
-  agent: claude-opus-4
-  confidence: 1.0
 ---
 
-# Mnemonic Memory System Initialized
+# Mnemonic Initialized
 
-The mnemonic memory system was initialized for this project.
-
-## Configuration
 - Organization: ${ORG}
 - Project: ${PROJECT}
-- User-level path: ~/.claude/mnemonic/${ORG}/
-- Project-level path: ./.claude/mnemonic/
-
-## Capabilities
-- Automatic memory capture for decisions, learnings, patterns
-- Cross-session memory recall
-- Namespace-based organization
-- MIF Level 3 compliant format
+- Date: ${DATE}
 EOF
 ```
 
@@ -309,10 +203,10 @@ After setup, verify with these checks:
 
 ```bash
 # 1. Check user-level config
-grep -q "Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User CLAUDE.md configured"
+grep -q "## Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User CLAUDE.md configured"
 
 # 2. Check project-level config
-grep -q "Mnemonic - Project Memory" ./CLAUDE.md && echo "✓ Project CLAUDE.md configured"
+grep -q "## Mnemonic" ./CLAUDE.md && echo "✓ Project CLAUDE.md configured"
 
 # 3. Check directory structure
 test -d ~/.claude/mnemonic && echo "✓ User mnemonic directory exists"
@@ -340,7 +234,7 @@ To update an existing mnemonic section in CLAUDE.md:
 ```bash
 # Remove old section and add new one
 # This preserves other content in the file
-sed -i.bak '/^# Mnemonic Memory System$/,/^# [^M]/{ /^# [^M]/!d; }' ~/.claude/CLAUDE.md
+sed -i.bak '/^## Mnemonic Memory System$/,/^## [^M]/{ /^## [^M]/!d; }' ~/.claude/CLAUDE.md
 # Then append new content
 ```
 

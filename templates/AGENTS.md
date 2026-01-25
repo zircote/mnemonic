@@ -12,7 +12,7 @@ Search for relevant memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
 # Check specific namespaces
 rg -i "<topic>" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md"
@@ -75,7 +75,7 @@ NAMESPACE="decisions"  # or: learnings, patterns, blockers, context
 TITLE="Your descriptive title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << 'EOF'
+cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic

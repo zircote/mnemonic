@@ -44,7 +44,7 @@ for ns in decisions learnings patterns; do
     echo "=== Checking $ns for conflicts ==="
 
     # Get all titles
-    titles=$(rg "^title:" ~/.claude/mnemonic/*/$ns --glob "*.memory.md" -o | \
+    titles=$(rg "^title:" ~/.claude/mnemonic/*/$ns ./.claude/mnemonic/$ns/project --glob "*.memory.md" -o | \
              sed 's/.*title: "//' | sed 's/"$//' | sort)
 
     # Find near-duplicates (simplified)

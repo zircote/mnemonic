@@ -1,0 +1,112 @@
+{
+  "mode": "running",
+  "total_tests": 12,
+  "current_index": 11,
+  "current_test": {
+    "id": "natural_capture_decision",
+    "description": "Verify automatic capture when user makes a decision",
+    "category": "natural",
+    "action": "Say: \"I've decided we should use Redis for caching in this project\"\n\nThen check if a new memory was created in decisions/ namespace.\nRun: ls -t ~/.claude/mnemonic/*/decisions/user/*.memory.md | head -1\n\nThe most recent file should have been created within the last\nminute and contain \"Redis\" or \"caching\".\n",
+    "expect": [
+      {
+        "contains": ".memory.md"
+      },
+      {
+        "not_contains": "No such file"
+      }
+    ],
+    "tags": [
+      "natural",
+      "capture",
+      "critical",
+      "decisions"
+    ]
+  },
+  "filtered_tests": [
+    "natural_capture_decision",
+    "natural_capture_learning",
+    "natural_capture_pattern",
+    "natural_capture_blocker",
+    "natural_capture_context",
+    "natural_recall_before_action",
+    "natural_recall_uses_context",
+    "natural_no_duplicate_capture",
+    "natural_capture_silent",
+    "natural_memory_content_quality",
+    "natural_workflow_full_cycle",
+    "natural_workflow_capture_after_resolution"
+  ],
+  "results": [
+    {
+      "id": "natural_capture_decision",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:26:23.245933+00:00Z"
+    },
+    {
+      "id": "natural_capture_learning",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:26:40.948244+00:00Z"
+    },
+    {
+      "id": "natural_capture_pattern",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:27:07.204347+00:00Z"
+    },
+    {
+      "id": "natural_capture_blocker",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:29:44.070415+00:00Z"
+    },
+    {
+      "id": "natural_capture_context",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:32:10.482826+00:00Z"
+    },
+    {
+      "id": "natural_recall_before_action",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:32:28.294359+00:00Z"
+    },
+    {
+      "id": "natural_recall_uses_context",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:32:44.074061+00:00Z"
+    },
+    {
+      "id": "natural_no_duplicate_capture",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:33:07.246337+00:00Z"
+    },
+    {
+      "id": "natural_capture_silent",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:33:24.174090+00:00Z"
+    },
+    {
+      "id": "natural_memory_content_quality",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:33:42.745952+00:00Z"
+    },
+    {
+      "id": "natural_workflow_full_cycle",
+      "status": "pass",
+      "failures": [],
+      "timestamp": "2026-01-25T17:34:02.235050+00:00Z"
+    }
+  ],
+  "saved_vars": {},
+  "filter_category": null,
+  "filter_tag": null,
+  "started_at": "2026-01-25T17:25:49.998327+00:00Z",
+  "completed_at": null
+}

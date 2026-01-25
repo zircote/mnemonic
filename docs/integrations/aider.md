@@ -41,7 +41,7 @@ This project uses Mnemonic for persistent memories at `~/.claude/mnemonic/`.
 ## Before Implementing
 Always search for relevant memories:
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 ## Capture Requirements

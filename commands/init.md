@@ -89,7 +89,51 @@ EOF
 fi
 ```
 
-### Step 5: Verify Structure
+### Step 5: Create/Update Project CLAUDE.md
+
+Add mnemonic instructions to the project's CLAUDE.md file.
+
+```bash
+mkdir -p ./.claude
+
+# Check if CLAUDE.md exists and has mnemonic section
+if [ -f ./.claude/CLAUDE.md ]; then
+    if ! grep -q "## Mnemonic" ./.claude/CLAUDE.md; then
+        # Append mnemonic section
+        cat >> ./.claude/CLAUDE.md << 'EOF'
+
+---
+
+## Mnemonic
+
+This project uses mnemonic for persistent memory.
+
+- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
+- See `~/.claude/CLAUDE.md` for full protocol
+EOF
+        echo "Added mnemonic section to existing .claude/CLAUDE.md"
+    else
+        echo "Mnemonic section already exists in .claude/CLAUDE.md"
+    fi
+else
+    # Create new CLAUDE.md with mnemonic section
+    cat > ./.claude/CLAUDE.md << 'EOF'
+# Project Instructions
+
+## Mnemonic
+
+This project uses mnemonic for persistent memory.
+
+- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
+- See `~/.claude/CLAUDE.md` for full protocol
+EOF
+    echo "Created .claude/CLAUDE.md with mnemonic section"
+fi
+```
+
+### Step 6: Verify Structure
 
 ```bash
 echo "=== Mnemonic Initialized ==="
@@ -110,4 +154,5 @@ Display:
 - Detected project name
 - Created directory paths
 - Namespace list
+- CLAUDE.md status
 - Git status

@@ -1,6 +1,6 @@
 {
   "name": "mnemonic",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Pure filesystem-based memory system for Claude Code - no external dependencies",
   "author": {
     "name": "zircote",
@@ -18,6 +18,7 @@
     "./commands/capture.md",
     "./commands/gc.md",
     "./commands/init.md",
+    "./commands/integrate.md",
     "./commands/recall.md",
     "./commands/search.md",
     "./commands/search-enhanced.md",
@@ -30,13 +31,16 @@
     "./skills/mnemonic-core/SKILL.md",
     "./skills/mnemonic-format/SKILL.md",
     "./skills/mnemonic-organization/SKILL.md",
+    "./skills/mnemonic-progressive-disclosure/SKILL.md",
     "./skills/mnemonic-search/SKILL.md",
     "./skills/mnemonic-search-enhanced/SKILL.md",
-    "./skills/mnemonic-setup/SKILL.md"
+    "./skills/mnemonic-setup/SKILL.md",
+    "./skills/integrate/SKILL.md"
   ],
   "agents": [
     "./agents/memory-curator.md",
     "./agents/mnemonic-search-subcall.md",
     "./agents/compression-worker.md"
-  ]
+  ],
+  "hooks": "./hooks/hooks.json"
 }

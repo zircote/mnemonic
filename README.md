@@ -273,16 +273,16 @@ After running `/mnemonic:setup`, Claude will:
 
 ```bash
 # Full-text search
-rg -i "authentication" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "authentication" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
 # By namespace
-rg "pattern" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic/*/decisions/ ./.claude/mnemonic/decisions/project/ --glob "*.memory.md"
 
 # By tag
-rg -l "^  - security" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^  - security" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
 # By type
-rg "^type: episodic" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: episodic" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
 
 # Recent files (last 7 days)
 find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
@@ -290,14 +290,17 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
 
 ## Hooks
 
-Hooks provide proactive automation:
+Hooks provide proactive automation via `hookSpecificOutput.additionalContext`:
 
 | Event | Purpose |
 |-------|---------|
-| SessionStart | Load relevant memories |
-| UserPromptSubmit | Inject context, detect capture opportunities |
-| PostToolUse | Capture learnings from tool results |
+| SessionStart | Memory status, health score, registry status |
+| PreToolUse | Relevant memory paths when editing files |
+| UserPromptSubmit | Capture/recall trigger detection |
+| PostToolUse | Capture opportunities from tool results |
 | Stop | Commit changes, summarize session |
+
+Hooks inform Claude with context—Claude decides when to read memories or use agents.
 
 ## Blackboard
 

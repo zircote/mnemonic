@@ -582,3 +582,189 @@ echo "- [ ] $(date +%H:%M) - $*" >> ~/.claude/mnemonic/.blackboard/todo.md
 4. **Clean up regularly** - Archive old entries, remove completed tasks
 5. **Use topics wisely** - Don't create too many; consolidate when possible
 6. **Project vs Global** - Use project blackboard for project-specific coordination
+
+---
+
+## Plan and Task Persistence
+
+### Integration with Claude Code Task Tools
+
+The Claude Code Task tools (`TaskCreate`, `TaskUpdate`, `TaskList`) handle in-session tracking.
+The blackboard persists this state across sessions:
+
+| Aspect | Task Tools | Blackboard |
+|--------|------------|------------|
+| Scope | Current session | Across sessions |
+| Lifecycle | Created → Completed | Persisted until archived |
+| Purpose | Immediate tracking | Cross-session handoff |
+
+### Session Start: Load Active Work
+
+At session start, check blackboard for pending work:
+
+```bash
+# Read active tasks
+tail -50 ~/.claude/mnemonic/.blackboard/active-tasks.md
+
+# Read pending decisions
+tail -30 ~/.claude/mnemonic/.blackboard/pending-decisions.md
+
+# Read last session notes
+tail -50 ~/.claude/mnemonic/.blackboard/session-notes.md
+```
+
+Create Task tool entries for active items that need continuation.
+
+### During Work: Sync to Blackboard
+
+When significant progress is made, update blackboard:
+
+```bash
+bb_write "active-tasks" "$(cat << 'EOF'
+## In Progress: {task_description}
+
+**Started:** {timestamp}
+**Status:** in_progress
+
+### Progress
+- [x] Step 1 completed
+- [ ] Step 2 in progress
+- [ ] Step 3 pending
+
+### Notes
+{Implementation notes for handoff}
+EOF
+)"
+```
+
+### Session End: Capture Handoff
+
+Before session ends, write handoff notes:
+
+```bash
+bb_write "session-notes" "$(cat << 'EOF'
+## Session Handoff
+
+### Completed This Session
+- Task 1: {description}
+- Task 2: {description}
+
+### In Progress
+- {task}: {current state}
+
+### Blocked
+- {blocker}: {reason}
+
+### Next Steps
+1. {next action}
+2. {next action}
+
+### Important Context
+- {key context for next session}
+EOF
+)"
+```
+
+### Plan Persistence
+
+For implementation plans, use `active-plans.md`:
+
+```bash
+bb_write "active-plans" "$(cat << 'EOF'
+## Plan: {plan_title}
+
+**Created:** {timestamp}
+**Status:** in_progress
+**Phase:** {current_phase}
+
+### Overview
+{Brief plan summary}
+
+### Phases
+1. [x] Phase 1: {description}
+2. [->] Phase 2: {description} (current)
+3. [ ] Phase 3: {description}
+
+### Files to Modify
+- {file1}: {change description}
+- {file2}: {change description}
+
+### Decisions Made
+- {decision}: {rationale}
+EOF
+)"
+```
+
+### Task State Mapping
+
+Map Claude Code Task states to blackboard:
+
+| Task Status | Blackboard Entry |
+|-------------|------------------|
+| `pending` | Listed in active-tasks with Status: pending |
+| `in_progress` | Listed with Status: in_progress, current notes |
+| `completed` | Moved to session-notes Completed section |
+| blocked | Listed in blockers.md with reason |
+
+### Automatic Handoff Template
+
+Use this template at session end:
+
+```markdown
+## Session Handoff - {date}
+
+**Session ID:** {session_id}
+**Duration:** {approximate_duration}
+
+### Summary
+{One paragraph summary of what was accomplished}
+
+### Task Progress
+| Task | Status | Notes |
+|------|--------|-------|
+| {task1} | completed | {notes} |
+| {task2} | in_progress | {current state} |
+| {task3} | blocked | {blocker} |
+
+### Key Decisions Made
+1. {decision}: {brief rationale}
+
+### Files Modified
+- {file1}: {what changed}
+- {file2}: {what changed}
+
+### For Next Session
+- [ ] {action item 1}
+- [ ] {action item 2}
+
+### Context to Remember
+{Important context that won't be in memories}
+```
+
+---
+
+## Difference from Memories
+
+| Aspect | Memories | Blackboard |
+|--------|----------|------------|
+| **Purpose** | Long-term knowledge | Active work state |
+| **Lifespan** | Captured once, decays slowly | Updated constantly, archived |
+| **Structure** | MIF Level 3 with frontmatter | Simple timestamped entries |
+| **Search** | Full-text + frontmatter | grep by topic/session |
+| **Use case** | "What database?" | "What was I working on?" |
+
+### When to Use Each
+
+**Use Memories for:**
+- Decisions that will be referenced later
+- Patterns and conventions
+- Learnings and insights
+- API documentation
+- Architecture decisions
+
+**Use Blackboard for:**
+- Current task status
+- Implementation plans in progress
+- Handoff notes between sessions
+- Temporary coordination state
+- Active blockers and issues

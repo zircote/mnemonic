@@ -18,13 +18,13 @@ This skill provides access to the Mnemonic memory system for persistent context 
 
 ```bash
 # By topic
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
 # By namespace
 ls ~/.claude/mnemonic/default/{decisions,learnings,patterns}/user/
 
 # By tag (in frontmatter)
-rg "tags:.*<tag>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "tags:.*<tag>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
 
 # Recent memories
 find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
@@ -41,7 +41,7 @@ NAMESPACE="decisions"  # or: learnings, patterns, blockers, context
 TITLE="Your descriptive title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << 'EOF'
+cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
