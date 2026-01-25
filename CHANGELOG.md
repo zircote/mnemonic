@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+- Semantic search with embeddings
+- Export/import functionality
+- Web UI for memory browsing
+
+## [1.3.0] - 2026-01-25
+
 ### Changed
 
 - **[CLAUDE.md Protocol]**: Role-based, imperative instructions (Anthropic Prompt Engineering)
@@ -41,10 +49,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **[Test Suite]**: Replaced contrived tests with natural behavior tests
   - Removed 25+ "no error" command tests
-  - Added 12 tests validating automatic capture/recall without explicit commands
+  - Added 18 functional tests validating automatic capture/recall without explicit commands
   - Tests verify silent operation, content quality, no duplicates
+  - Tests use `--plugin-dir` flag to properly load plugin hooks
+
+### Added
+
+- **[Stop Hook Enforcement]**: Blocks Claude from stopping until captures complete
+  - `stop.py` checks for pending captures via temp file
+  - Uses `decision: "block"` with reason to force capture before stopping
+  - Prevents `stop_hook_active` infinite loops
+  - Clears pending state after successful capture
+
+- **[Pending Capture State]**: Session-aware capture tracking
+  - `user_prompt_submit.py` writes pending captures to `/tmp/mnemonic-pending-{session_id}.json`
+  - Uses `CLAUDE_SESSION_ID` for consistent cross-hook communication
+  - Stop hook reads and enforces pending captures
 
 ### Fixed
+
+- **[Pattern Triggers]**: Fixed pattern namespace detection
+  - Added `\bshould always\b` and `\balways use\b` patterns
+  - Original `\balways\b.*\bwhen\b` missed common phrases like "We should always use X"
+
+- **[Skill Description]**: Updated mnemonic-core for auto-loading
+  - Added explicit trigger phrases to description field
+  - Enables Claude to auto-load skill when relevant phrases detected
 
 - **[Templates]**: Heredoc variable expansion in mnemonic-core/SKILL.md
   - Changed `'MEMORY_EOF'` to `MEMORY_EOF` (unquoted)
@@ -59,12 +89,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `check_registry()` from `session_start.py` hook
   - Removed bridge documentation and architecture diagrams
   - Skills-first approach replaces bridge's hook-centric pattern
-
-### Planned
-
-- Semantic search with embeddings
-- Export/import functionality
-- Web UI for memory browsing
 
 ## [1.2.0] - 2026-01-24
 

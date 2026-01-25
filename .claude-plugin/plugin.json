@@ -1,6 +1,6 @@
 {
   "name": "mnemonic",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Pure filesystem-based memory system for Claude Code - no external dependencies",
   "author": {
     "name": "zircote",
