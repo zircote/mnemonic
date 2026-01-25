@@ -25,7 +25,7 @@ class TestFullWorkflow:
         unique_id = f"workflow-{uuid4().hex[:8]}"
 
         # First call: make a decision
-        capture_prompt = f"I've decided to use technology-{unique_id} for the backend. Acknowledge briefly."
+        capture_prompt = f"Decision: We'll use FastAPI ({unique_id}) for the backend API. Acknowledge."
         claude_runner.run(capture_prompt)
 
         time.sleep(2)
