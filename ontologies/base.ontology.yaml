@@ -1,0 +1,72 @@
+---
+# Mnemonic Base Ontology
+#
+# This ontology defines the standard mnemonic namespaces.
+# It provides backward compatibility for existing memories
+# and serves as a reference for custom ontology development.
+#
+# Version: 1.0.0
+# Last Updated: 2026-01-25
+
+ontology:
+  id: mnemonic-base
+  version: "1.0.0"
+  description: "Base mnemonic namespaces for backward compatibility"
+
+# Standard Mnemonic Namespaces
+# These are the 9 core namespaces that ship with mnemonic.
+# Custom ontologies can extend or replace these.
+
+namespaces:
+  apis:
+    description: "API documentation, contracts, endpoints, specifications"
+    type_hint: semantic
+
+  blockers:
+    description: "Issues, impediments, incidents, things blocking progress"
+    type_hint: episodic
+
+  context:
+    description: "Background information, environment state, project context"
+    type_hint: semantic
+
+  decisions:
+    description: "Architectural choices with rationale, technology selections"
+    type_hint: semantic
+
+  learnings:
+    description: "Insights, discoveries, TILs (Today I Learned), gotchas"
+    type_hint: semantic
+
+  patterns:
+    description: "Code conventions, best practices, recurring solutions"
+    type_hint: procedural
+
+  security:
+    description: "Security policies, vulnerabilities, access controls"
+    type_hint: semantic
+
+  testing:
+    description: "Test strategies, edge cases, coverage notes"
+    type_hint: procedural
+
+  episodic:
+    description: "General events, experiences, debug sessions, meetings"
+    type_hint: episodic
+
+# No custom entity types in base ontology
+# Memories use the standard types: semantic, episodic, procedural
+entity_types: []
+
+# No custom traits in base ontology
+traits: {}
+
+# No relationships defined in base ontology
+# Standard relationships like relates-to, supersedes are handled by MIF
+relationships: {}
+
+# No discovery patterns in base ontology
+# Discovery is disabled by default
+discovery:
+  enabled: false
+  patterns: []
