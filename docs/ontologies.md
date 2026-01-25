@@ -41,7 +41,7 @@ All entities inherit from one of three base memory types:
 ### 1. Copy the software-engineering ontology
 
 ```bash
-cp ontologies/examples/software-engineering.ontology.yaml \
+cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml \
    .claude/mnemonic/ontology.yaml
 ```
 
@@ -364,7 +364,7 @@ Status: VALID
 
 ### Software Engineering Ontology
 
-See `ontologies/examples/software-engineering.ontology.yaml` for a complete
+See `skills/ontology/ontologies/examples/software-engineering.ontology.yaml` for a complete
 example with:
 
 - 5 namespaces (architecture, components, incidents, migrations, dependencies)
@@ -434,14 +434,21 @@ entity:
 
 | Command | Description |
 |---------|-------------|
-| `/mnemonic-ontology:list` | List loaded ontologies |
-| `/mnemonic-ontology:validate <file>` | Validate ontology file |
-| `/mnemonic-ontology:discover <path>` | Discover entities in files |
+| `/mnemonic:list` | List loaded ontologies and namespaces |
+| `/mnemonic:validate <file>` | Validate ontology file |
+| `/mnemonic:discover <path>` | Discover entities in files |
 
 ### Library API
 
+The ontology library is located in `skills/ontology/lib/`:
+
 ```python
-from lib import OntologyRegistry, OntologyValidator, EntityResolver
+import sys
+sys.path.insert(0, "skills/ontology/lib")
+
+from ontology_registry import OntologyRegistry
+from ontology_validator import OntologyValidator
+from entity_resolver import EntityResolver
 
 # Load ontologies
 registry = OntologyRegistry()
@@ -453,15 +460,15 @@ result = validator.validate_file(Path("ontology.yaml"))
 
 # Resolve references
 resolver = EntityResolver(registry)
-entity = resolver.resolve_reference("@[[PostgreSQL]]")
+refs = resolver.extract_references("Uses @[[PostgreSQL]] for storage")
 ```
 
 ### Schema Reference
 
-See `ontologies/schemas/ontology-meta-schema.json` for the complete JSON Schema.
+See `skills/ontology/ontologies/schemas/ontology-meta-schema.json` for the complete JSON Schema.
 
 ### See Also
 
 - [ADR-008: Custom Ontologies](adrs/adr-008-custom-ontologies.md)
-- [Base Ontology](../ontologies/base.ontology.yaml)
-- [Software Engineering Example](../ontologies/examples/software-engineering.ontology.yaml)
+- [Base Ontology](skills/ontology/ontologies/base.ontology.yaml)
+- [Software Engineering Example](skills/ontology/ontologies/examples/software-engineering.ontology.yaml)

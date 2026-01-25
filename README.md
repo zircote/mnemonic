@@ -31,6 +31,7 @@ A pure filesystem-based memory system for Claude Code. No external dependencies 
 - **MIF Level 3 Compliant**: Standardized Memory Interchange Format
 - **Skill-First Architecture**: Skills work standalone without hooks or libraries
 - **Cognitive Memory Types**: Semantic, episodic, and procedural memories
+- **Custom Ontologies**: Extend with domain-specific entity types and relationships
 - **Bi-Temporal Tracking**: Valid time vs. recorded time
 - **Git Versioned**: All changes tracked with git
 - **Cross-Session Coordination**: Blackboard for session handoffs
@@ -182,6 +183,24 @@ We decided to use PostgreSQL for our data storage needs.
 | `testing/` | Test strategies, edge cases |
 | `episodic/` | General events, experiences |
 
+## Custom Ontologies
+
+Extend mnemonic with domain-specific entity types, relationships, and discovery patterns:
+
+```bash
+# Copy the software-engineering ontology
+cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml \
+   .claude/mnemonic/ontology.yaml
+```
+
+This adds:
+- Custom namespaces (architecture, components, incidents, migrations, dependencies)
+- Typed entities (technology, component, design-pattern, incident-report, runbook)
+- Entity relationships (depends_on, implements, caused_by, resolves)
+- Discovery patterns for auto-suggesting entity captures
+
+See [docs/ontologies.md](docs/ontologies.md) for the full guide.
+
 ## Commands
 
 | Command | Description |
@@ -195,6 +214,9 @@ We decided to use PostgreSQL for our data storage needs.
 | `/mnemonic:query` | Structured frontmatter queries using yq |
 | `/mnemonic:status` | Show system status |
 | `/mnemonic:gc` | Garbage collect expired memories |
+| `/mnemonic:list` | List loaded ontologies and namespaces |
+| `/mnemonic:validate` | Validate ontology file |
+| `/mnemonic:discover` | Discover entities in files based on ontology patterns |
 
 ## Skills
 
@@ -208,6 +230,7 @@ Skills are fully self-contained and work without hooks or libraries:
 - **mnemonic-organization**: Namespaces and maintenance
 - **mnemonic-blackboard**: Cross-session coordination
 - **mnemonic-agent-coordination**: Multi-agent coordination patterns
+- **ontology**: Custom ontology support with entity types and discovery
 
 ## Agents
 
@@ -216,6 +239,7 @@ Autonomous agents for specialized tasks:
 - **memory-curator**: Conflict detection, deduplication, decay management
 - **mnemonic-search-subcall**: Efficient search agent for iterative query refinement
 - **compression-worker**: Memory summarization for gc --compress
+- **ontology-discovery**: Discovers entities in codebase based on ontology patterns
 
 ## Integrations
 
@@ -341,6 +365,7 @@ mnemonic/
 │   ├── architecture.md     # System architecture
 │   ├── validation.md       # Memory validation guide
 │   ├── agent-coordination.md  # Multi-agent patterns
+│   ├── ontologies.md       # Custom ontology guide
 │   ├── adrs/               # Architecture decision records
 │   ├── enterprise/         # Enterprise adoption guides
 │   ├── community/          # Memory Bank migration resources
@@ -350,7 +375,11 @@ mnemonic/
 │   ├── hooks.json          # Hook configuration
 │   └── *.py                # Hook implementations
 ├── skills/
-│   └── */SKILL.md          # Self-contained skills
+│   ├── */SKILL.md          # Self-contained skills
+│   └── ontology/           # Custom ontology support
+│       ├── SKILL.md
+│       ├── lib/            # Python utilities
+│       └── ontologies/     # Base ontology and examples
 ├── templates/              # Integration templates
 │   ├── AGENTS.md           # Universal agent instructions
 │   ├── CONVENTIONS.md      # Aider conventions
