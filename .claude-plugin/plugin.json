@@ -1,7 +1,7 @@
 {
   "name": "mnemonic",
-  "version": "1.3.0",
-  "description": "Pure filesystem-based memory system for Claude Code - no external dependencies",
+  "version": "1.4.0",
+  "description": "Pure filesystem-based memory system for Claude Code with custom ontology support",
   "author": {
     "name": "zircote",
     "email": "zircote@gmail.com",
@@ -12,7 +12,8 @@
     "memory",
     "mnemonic",
     "knowledge-management",
-    "persistent-memory"
+    "persistent-memory",
+    "ontology"
   ],
   "commands": [
     "./commands/capture.md",
@@ -23,7 +24,10 @@
     "./commands/search.md",
     "./commands/search-enhanced.md",
     "./commands/setup.md",
-    "./commands/status.md"
+    "./commands/status.md",
+    "./commands/list.md",
+    "./commands/validate.md",
+    "./commands/discover.md"
   ],
   "skills": [
     "./skills/mnemonic-agent-coordination/SKILL.md",
@@ -35,12 +39,14 @@
     "./skills/mnemonic-search/SKILL.md",
     "./skills/mnemonic-search-enhanced/SKILL.md",
     "./skills/mnemonic-setup/SKILL.md",
-    "./skills/integrate/SKILL.md"
+    "./skills/integrate/SKILL.md",
+    "./skills/ontology/SKILL.md"
   ],
   "agents": [
     "./agents/memory-curator.md",
     "./agents/mnemonic-search-subcall.md",
-    "./agents/compression-worker.md"
+    "./agents/compression-worker.md",
+    "./agents/ontology-discovery.md"
   ],
   "hooks": "./hooks/hooks.json"
 }

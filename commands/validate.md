@@ -1,6 +1,9 @@
 ---
 name: validate
 description: Validate an ontology YAML file against the meta-schema
+allowed-tools:
+  - Bash
+  - Read
 ---
 
 # Validate Ontology
@@ -10,12 +13,12 @@ Validates an ontology definition file for correctness.
 ## Usage
 
 ```
-/mnemonic-ontology:validate <file> [--json]
+/mnemonic:validate <file> [--json]
 ```
 
 ## Arguments
 
-- `<file>` - Path to ontology YAML file (required)
+- `<file>` - Path to ontology YAML file (required). Defaults to `.claude/mnemonic/ontology.yaml`
 - `--json` - Output as JSON
 
 ## Checks Performed
@@ -31,8 +34,33 @@ Validates an ontology definition file for correctness.
 ## Procedure
 
 ```bash
-python ~/.claude/plugins/mnemonic-ontology/skills/ontology/lib/ontology_validator.py \
-  "${1}" ${ARGS}
+ONTOLOGY_FILE="${1:-.claude/mnemonic/ontology.yaml}"
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname $(dirname $0))}"
+
+python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_validator.py" "$ONTOLOGY_FILE" ${ARGS}
+```
+
+If Python validation unavailable, perform basic YAML checks:
+
+```bash
+# Check file exists
+if [ ! -f "$ONTOLOGY_FILE" ]; then
+    echo "Error: File not found: $ONTOLOGY_FILE"
+    exit 1
+fi
+
+# Check required fields
+if ! grep -q "^ontology:" "$ONTOLOGY_FILE"; then
+    echo "Error: Missing 'ontology:' section"
+    exit 1
+fi
+
+if ! grep -q "id:" "$ONTOLOGY_FILE"; then
+    echo "Error: Missing 'id' field"
+    exit 1
+fi
+
+echo "Basic validation passed for: $ONTOLOGY_FILE"
 ```
 
 ## Example Output

@@ -1,6 +1,10 @@
 ---
 name: discover
 description: Discover entities in content based on ontology patterns
+allowed-tools:
+  - Bash
+  - Read
+  - Grep
 ---
 
 # Discover Entities
@@ -11,37 +15,63 @@ based on discovery patterns defined in loaded ontologies.
 ## Usage
 
 ```
-/mnemonic-ontology:discover <path> [--suggest] [--json]
+/mnemonic:discover [<path>] [--suggest] [--json]
 ```
 
 ## Arguments
 
-- `<path>` - File or directory to scan
+- `<path>` - File or directory to scan (defaults to current directory)
 - `--suggest` - Suggest entity types for unlinked mentions
 - `--json` - Output as JSON
 
 ## Procedure
 
-1. Load ontologies from standard paths
+1. Load ontology from `.claude/mnemonic/ontology.yaml`
 2. Extract discovery patterns
 3. Scan content for pattern matches
 4. Report found entities and suggestions
 
 ```bash
-python ~/.claude/plugins/mnemonic-ontology/skills/ontology/lib/entity_resolver.py \
-  --search "${1}" ${ARGS}
+SCAN_PATH="${1:-.}"
+ONTOLOGY_FILE=".claude/mnemonic/ontology.yaml"
+
+# Check for ontology
+if [ ! -f "$ONTOLOGY_FILE" ]; then
+    echo "No ontology found at $ONTOLOGY_FILE"
+    echo "Copy an ontology to enable discovery:"
+    echo "  cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml .claude/mnemonic/ontology.yaml"
+    exit 1
+fi
+
+echo "Scanning $SCAN_PATH for entity patterns..."
+echo ""
+
+# Extract and run discovery patterns from ontology
+# Technology patterns
+echo "## Technologies Found"
+rg -i '\b(PostgreSQL|MySQL|MongoDB|Redis|Elasticsearch)\b' "$SCAN_PATH" --glob '*.{md,py,js,ts,yaml,yml}' -l 2>/dev/null | head -10
+
+echo ""
+echo "## Design Patterns Found"
+rg -i '\b(Factory|Singleton|Observer|Repository|Adapter|Strategy)\s+Pattern\b' "$SCAN_PATH" --glob '*.{md,py,js,ts}' -l 2>/dev/null | head -10
+
+echo ""
+echo "## Incidents/Postmortems Found"
+rg -i '\b(outage|incident|postmortem|RCA)\b' "$SCAN_PATH" --glob '*.md' -l 2>/dev/null | head -10
+
+echo ""
+echo "## Runbooks Found"
+rg -i '\b(runbook|playbook|SOP|procedure)\b' "$SCAN_PATH" --glob '*.md' -l 2>/dev/null | head -10
 ```
 
-## Example Output
+## Suggestions
+
+When patterns match, Claude will suggest:
 
 ```
-Discovered entities in src/services/:
+I found mentions of these technologies that could be captured as entities:
+- PostgreSQL (mentioned in src/database.py)
+- Redis (mentioned in src/cache.py)
 
-Found references:
-  - @[[PostgreSQL]] -> technology:postgres-7d61fac6
-  - @[[Redis]] -> technology:redis-cache-01
-  
-Suggestions (unlinked):
-  - "MongoDB" at line 45 -> suggest: technology
-  - "Circuit Breaker" at line 89 -> suggest: design-pattern
+Would you like me to create technology entities for these?
 ```

@@ -41,10 +41,65 @@ def get_project_name() -> str:
     return Path.cwd().name
 
 
+def load_ontology_namespaces() -> list:
+    """Load custom namespaces from ontology files."""
+    custom_namespaces = []
+    ontology_paths = [
+        Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
+        Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
+    ]
+
+    for ont_path in ontology_paths:
+        if ont_path.exists():
+            try:
+                import yaml
+                with open(ont_path) as f:
+                    data = yaml.safe_load(f)
+                if data and "namespaces" in data:
+                    custom_namespaces.extend(data["namespaces"].keys())
+            except Exception:
+                pass
+
+    return list(set(custom_namespaces))
+
+
+def get_ontology_info() -> dict:
+    """Get loaded ontology information."""
+    info = {"loaded": False, "id": None, "namespaces": [], "entity_types": []}
+    ontology_paths = [
+        Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
+        Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
+    ]
+
+    for ont_path in ontology_paths:
+        if ont_path.exists():
+            try:
+                import yaml
+                with open(ont_path) as f:
+                    data = yaml.safe_load(f)
+                if data:
+                    info["loaded"] = True
+                    info["path"] = str(ont_path)
+                    if "ontology" in data:
+                        info["id"] = data["ontology"].get("id")
+                        info["version"] = data["ontology"].get("version")
+                    if "namespaces" in data:
+                        info["namespaces"] = list(data["namespaces"].keys())
+                    if "entity_types" in data:
+                        info["entity_types"] = [et.get("name") for et in data["entity_types"] if isinstance(et, dict)]
+                    break
+            except Exception:
+                pass
+
+    return info
+
+
 def count_memories_by_namespace(home: Path, org: str) -> dict:
     """Count memories by namespace with fast enumeration."""
     counts = {}
-    namespaces = ["decisions", "learnings", "patterns", "blockers", "context", "apis", "security", "testing", "episodic"]
+    base_namespaces = ["decisions", "learnings", "patterns", "blockers", "context", "apis", "security", "testing", "episodic"]
+    custom_namespaces = load_ontology_namespaces()
+    namespaces = base_namespaces + custom_namespaces
 
     paths = [
         home / ".claude" / "mnemonic" / org,
@@ -240,6 +295,7 @@ def main():
     blackboard = check_blackboard(home)
     bb_summaries = get_blackboard_summaries(home)
     relevant_memories = find_project_relevant_memories(home, org, project)
+    ontology_info = get_ontology_info()
     suggestions = get_suggestions(health, counts)
 
     total = sum(counts.values())
@@ -263,6 +319,13 @@ def main():
 
     if health["duplicates_possible"] > 0:
         context_lines.append(f"- Potential duplicates: {health['duplicates_possible']}")
+
+    if ontology_info["loaded"]:
+        context_lines.append(f"- Ontology: {ontology_info.get('id', 'custom')} v{ontology_info.get('version', '?')}")
+        if ontology_info["namespaces"]:
+            context_lines.append(f"- Custom namespaces: {', '.join(ontology_info['namespaces'])}")
+        if ontology_info["entity_types"]:
+            context_lines.append(f"- Entity types: {', '.join(ontology_info['entity_types'][:5])}")
 
     if blackboard["pending_items"] > 0:
         context_lines.append(f"- Blackboard pending: {blackboard['pending_items']} items")

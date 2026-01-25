@@ -13,13 +13,15 @@ Capture a new memory to the mnemonic filesystem.
 
 ## Arguments
 
-- `<namespace>` - Required. One of: apis, blockers, context, decisions, learnings, patterns, security, testing, episodic
+- `<namespace>` - Required. Base: apis, blockers, context, decisions, learnings, patterns, security, testing, episodic. Or custom namespace from loaded ontology.
 - `<title>` - Required. Human-readable title for the memory
 - `--type` - Memory type: semantic (default), episodic, or procedural
 - `--tags` - Comma-separated list of tags
 - `--scope` - user (cross-project) or project (default, current codebase)
 - `--confidence` - Confidence score 0.0-1.0 (default: 0.95)
 - `--citations` - JSON array of citation objects (see mnemonic-format skill for schema)
+- `--entity-type` - Entity type from ontology (e.g., technology, component, runbook)
+- `--entity-id` - Custom entity ID (auto-generated if not provided)
 
 ## Procedure
 
@@ -38,6 +40,14 @@ TAGS="${TAGS:-}"
 
 ```bash
 VALID_NS="apis blockers context decisions learnings patterns security testing episodic"
+
+# Check for custom namespaces from ontology
+ONTOLOGY_FILE=".claude/mnemonic/ontology.yaml"
+if [ -f "$ONTOLOGY_FILE" ]; then
+    CUSTOM_NS=$(grep -E "^  [a-z]" "$ONTOLOGY_FILE" | grep -v "#" | sed 's/:.*//;s/ //g' | tr '\n' ' ')
+    VALID_NS="$VALID_NS $CUSTOM_NS"
+fi
+
 if ! echo "$VALID_NS" | grep -qw "$NAMESPACE"; then
     echo "Error: Invalid namespace '$NAMESPACE'"
     echo "Valid namespaces: $VALID_NS"
@@ -144,6 +154,8 @@ provenance:
   agent: claude-opus-4
   confidence: {CONFIDENCE}
 {CITATIONS_YAML}
+{ONTOLOGY_YAML}
+{ENTITY_YAML}
 ---
 
 # {TITLE}
@@ -158,6 +170,28 @@ provenance:
 
 - relates-to [[other-memory-id]]
 ```
+
+### Step 7b: Add Ontology Fields (if --entity-type provided)
+
+If `--entity-type` is specified, add ontology metadata:
+
+```yaml
+# ONTOLOGY_YAML (if entity-type provided):
+ontology:
+  entity_type: {ENTITY_TYPE}
+  entity_id: {ENTITY_ID}
+
+# ENTITY_YAML (entity-specific fields based on schema):
+entity:
+  name: "{extracted from title}"
+  # Additional fields based on entity type schema
+```
+
+When capturing with an entity type:
+1. Look up entity type schema from loaded ontology
+2. Prompt user for required fields
+3. Include entity block in frontmatter
+4. Claude suggests entity references in content using @[[Name]] syntax
 
 ### Step 8: Commit to Git
 
