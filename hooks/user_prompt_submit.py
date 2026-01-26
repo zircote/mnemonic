@@ -65,7 +65,8 @@ def get_fallback_patterns() -> dict:
     """Fallback patterns if ontology loading fails."""
     return {
         "semantic/decisions": [
-            r"\blet'?s use\b", r"\bdecided to\b", r"\bgoing with\b",
+            r"\blet'?s use\b", r"\bwe'?ll use\b", r"\bdecided to\b",
+            r"\bgoing with\b", r"\bdecision:\b", r"\bselected\b",
         ],
         "semantic/knowledge": [
             r"\blearned that\b", r"\bturns out\b", r"\bthe fix was\b",
