@@ -42,7 +42,14 @@ def get_project_name() -> str:
 
 
 def load_ontology_namespaces() -> list:
-    """Load custom namespaces from ontology files."""
+    """Load all namespaces from MIF and custom ontology files."""
+    # Hierarchical namespaces (cognitive triad)
+    base_namespaces = [
+        "semantic", "semantic/decisions", "semantic/knowledge", "semantic/entities",
+        "episodic", "episodic/incidents", "episodic/sessions", "episodic/blockers",
+        "procedural", "procedural/runbooks", "procedural/patterns", "procedural/migrations",
+    ]
+
     custom_namespaces = []
     ontology_paths = [
         Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
@@ -56,16 +63,42 @@ def load_ontology_namespaces() -> list:
                 with open(ont_path) as f:
                     data = yaml.safe_load(f)
                 if data and "namespaces" in data:
-                    custom_namespaces.extend(data["namespaces"].keys())
+                    _collect_namespaces(data["namespaces"], "", custom_namespaces)
             except Exception:
                 pass
 
-    return list(set(custom_namespaces))
+    return list(set(base_namespaces + custom_namespaces))
+
+
+def _collect_namespaces(namespaces: dict, prefix: str, result: list):
+    """Recursively collect namespace paths from hierarchical structure."""
+    for name, data in namespaces.items():
+        path = f"{prefix}/{name}" if prefix else name
+        result.append(path)
+        if isinstance(data, dict) and "children" in data:
+            _collect_namespaces(data["children"], path, result)
 
 
 def get_ontology_info() -> dict:
-    """Get loaded ontology information."""
-    info = {"loaded": False, "id": None, "namespaces": [], "entity_types": []}
+    """Get loaded ontology information including MIF base."""
+    info = {
+        "loaded": False,
+        "id": None,
+        "namespaces": [],
+        "entity_types": [],
+        "traits": [],
+        "relationships": [],
+        "discovery_enabled": False,
+    }
+
+    # Check MIF base ontology first
+    mif_base = Path(__file__).parent.parent / "mif" / "ontologies" / "mif-base.ontology.yaml"
+    if mif_base.exists():
+        info["loaded"] = True
+        info["id"] = "mif-base"
+        info["source"] = "mif"
+
+    # Then check custom ontologies
     ontology_paths = [
         Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
         Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
@@ -84,9 +117,19 @@ def get_ontology_info() -> dict:
                         info["id"] = data["ontology"].get("id")
                         info["version"] = data["ontology"].get("version")
                     if "namespaces" in data:
-                        info["namespaces"] = list(data["namespaces"].keys())
+                        ns_list = []
+                        _collect_namespaces(data["namespaces"], "", ns_list)
+                        info["namespaces"] = ns_list
                     if "entity_types" in data:
-                        info["entity_types"] = [et.get("name") for et in data["entity_types"] if isinstance(et, dict)]
+                        ets = data["entity_types"]
+                        if isinstance(ets, list):
+                            info["entity_types"] = [et.get("name") for et in ets if isinstance(et, dict)]
+                    if "traits" in data:
+                        info["traits"] = list(data["traits"].keys())
+                    if "relationships" in data:
+                        info["relationships"] = list(data["relationships"].keys())
+                    if "discovery" in data:
+                        info["discovery_enabled"] = data["discovery"].get("enabled", False)
                     break
             except Exception:
                 pass

@@ -18,37 +18,61 @@ structures.
 
 ## Overview
 
-The ontology system extends mnemonic beyond its 9 base namespaces, enabling:
+The ontology system provides a cognitive triad namespace hierarchy, enabling:
 
-- **Custom namespaces** for domain-specific knowledge organization
+- **Hierarchical namespaces** organized by memory type (semantic/episodic/procedural)
 - **Typed entities** with schemas for structured data capture
 - **Relationships** between entities for knowledge graphs
 - **Traits/mixins** for reusable field sets
 - **Discovery patterns** for agent-driven entity suggestion
 
-### Cognitive Memory Type Triad
+### Cognitive Triad Hierarchy
 
-All entities inherit from one of three base memory types:
+Namespaces are organized into three top-level categories based on cognitive memory types:
 
-| Type | Purpose | Examples |
-|------|---------|----------|
-| **Semantic** | Facts, concepts, relationships | Components, technologies, decisions |
-| **Episodic** | Events, experiences, timelines | Incidents, debug sessions, meetings |
-| **Procedural** | Step-by-step processes | Runbooks, deployments, migrations |
+```
+semantic/              # Facts, concepts, relationships
+├── decisions/         # Architectural choices, rationale
+├── knowledge/         # APIs, context, learnings, security
+└── entities/          # Entity definitions (technologies, components)
+
+episodic/              # Events, experiences, timelines
+├── incidents/         # Production issues, postmortems
+├── sessions/          # Debug sessions, work sessions
+└── blockers/          # Impediments, issues
+
+procedural/            # Step-by-step processes
+├── runbooks/          # Operational procedures
+├── patterns/          # Code conventions, testing strategies
+└── migrations/        # Migration steps, upgrade procedures
+```
+
+### Memory Type Reference
+
+| Type | Purpose | Sub-namespaces |
+|------|---------|----------------|
+| **Semantic** | Declarative knowledge | decisions, knowledge, entities |
+| **Episodic** | Event-based memory | incidents, sessions, blockers |
+| **Procedural** | Skill-based knowledge | runbooks, patterns, migrations |
 
 ## Quick Start
 
 ### 1. Copy the software-engineering ontology
 
 ```bash
-cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml \
+# From MIF submodule (preferred)
+cp mif/ontologies/examples/software-engineering.ontology.yaml \
+   .claude/mnemonic/ontology.yaml
+
+# Or from fallback
+cp skills/ontology/fallback/ontologies/examples/software-engineering.ontology.yaml \
    .claude/mnemonic/ontology.yaml
 ```
 
-### 2. Capture a memory with an entity type
+### 2. Capture a memory with a hierarchical namespace
 
 ```bash
-/mnemonic:capture dependencies "PostgreSQL Database"
+/mnemonic:capture semantic/entities "PostgreSQL Database"
 ```
 
 When you mention PostgreSQL, Claude will suggest creating a `technology` entity
@@ -64,22 +88,28 @@ The payment service depends on @[[PostgreSQL]] for transaction storage.
 
 ### Namespaces
 
-Namespaces organize memories by domain. The base mnemonic has 9 namespaces:
+Namespaces use a hierarchical path format: `{top-level}/{sub-namespace}`
 
-- `apis`, `blockers`, `context`, `decisions`, `learnings`
-- `patterns`, `security`, `testing`, `episodic`
+**Base namespaces (from MIF):**
+- Semantic: `semantic/decisions`, `semantic/knowledge`, `semantic/entities`
+- Episodic: `episodic/incidents`, `episodic/sessions`, `episodic/blockers`
+- Procedural: `procedural/runbooks`, `procedural/patterns`, `procedural/migrations`
 
-Custom ontologies add more:
+**Custom namespaces extend the hierarchy:**
 
 ```yaml
 namespaces:
-  architecture:
-    description: "System architecture decisions"
-    type_hint: semantic
-  
-  incidents:
-    description: "Production incidents and postmortems"
-    type_hint: episodic
+  semantic:
+    children:
+      architecture:
+        description: "System architecture decisions"
+        type_hint: semantic
+
+  episodic:
+    children:
+      outages:
+        description: "Production outages and recovery"
+        type_hint: episodic
 ```
 
 ### Entity Types
@@ -194,12 +224,16 @@ discovery:
 
 ### Ontology File Locations
 
-| Location | Scope |
-|----------|-------|
-| `.claude/mnemonic/ontology.yaml` | Project-specific |
-| `~/.claude/mnemonic/ontology.yaml` | Global (all projects) |
+Resolution order (later overrides earlier):
 
-Project ontologies take precedence over global ones.
+| Location | Scope | Notes |
+|----------|-------|-------|
+| `mif/ontologies/` | Base | MIF submodule (cognitive triad) |
+| `skills/ontology/fallback/` | Fallback | Used when submodule missing |
+| `~/.claude/mnemonic/{org}/{project}/ontology.yaml` | User | Org/project specific |
+| `.claude/mnemonic/ontology.yaml` | Project | Current project |
+
+Project ontologies can extend or override base definitions.
 
 ## Using Ontologies
 
@@ -465,10 +499,10 @@ refs = resolver.extract_references("Uses @[[PostgreSQL]] for storage")
 
 ### Schema Reference
 
-See `skills/ontology/ontologies/schemas/ontology-meta-schema.json` for the complete JSON Schema.
+See `mif/schema/ontology/ontology.schema.json` for the JSON Schema.
 
 ### See Also
 
-- [ADR-008: Custom Ontologies](adrs/adr-008-custom-ontologies.md)
-- [Base Ontology](skills/ontology/ontologies/base.ontology.yaml)
-- [Software Engineering Example](skills/ontology/ontologies/examples/software-engineering.ontology.yaml)
+- [MIF Base Ontology](mif/ontologies/mif-base.ontology.yaml)
+- [Software Engineering Example](mif/ontologies/examples/software-engineering.ontology.yaml)
+- [MIF Ontology README](mif/ontologies/README.md)

@@ -84,12 +84,11 @@ ontology:
   schema_url: https://github.com/org/ontologies/se.yaml
   description: "Software engineering domain ontology"
 
-  # Namespace definitions (can replace base namespaces)
+  # Custom namespace definitions
   namespaces:
     architecture:
       description: "System architecture and design patterns"
       type_hint: "semantic"
-      replaces: decisions  # Optional: replaces base namespace
 
     incidents:
       description: "Production incidents and postmortems"
@@ -266,17 +265,15 @@ mnemonic/
 
 ## Migration Strategy
 
-### Backward Compatibility
-1. Create `ontologies/base.ontology.yaml` defining the 9 base namespaces
-2. Registry falls back to base ontology for existing namespaces
-3. Existing memories work without modification
-4. Validation tolerates missing ontology fields (warnings, not errors)
+### One-Time Migration
+1. Run `scripts/migrate_namespaces.py` to convert existing memories
+2. Registry uses MIF base ontology from submodule
+3. Custom ontologies extend base namespaces
 
-### Gradual Adoption
-1. Users can opt-in by creating `.claude/mnemonic/ontology.yaml`
-2. Custom ontologies extend (not replace) base namespaces by default
-3. `replaces: <namespace>` allows explicit replacement
-4. Discovery agent suggests, never forces
+### Adoption
+1. Users create `.claude/mnemonic/ontology.yaml` for custom entities
+2. Custom ontologies extend base namespaces
+3. Discovery agent suggests, never forces
 
 ## Consequences
 

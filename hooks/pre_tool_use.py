@@ -2,8 +2,8 @@
 """
 Mnemonic PreToolUse Hook
 
-Detects file patterns and provides relevant memory file paths via additionalContext.
-Claude sees this context and may read those memories before proceeding.
+Detects file patterns from ontology and provides relevant memory paths.
+Patterns are loaded from MIF ontology discovery configuration.
 """
 
 import json
@@ -11,51 +11,109 @@ import os
 import subprocess
 from pathlib import Path
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
-# File patterns mapped to memory contexts
-FILE_PATTERNS = {
-    "auth": {
-        "patterns": ["auth", "login", "logout", "session", "jwt", "oauth", "token", "credential", "password"],
-        "namespaces": ["security", "decisions", "patterns"],
-        "context": "authentication"
-    },
-    "api": {
-        "patterns": ["api", "endpoint", "route", "controller", "handler", "rest", "graphql"],
-        "namespaces": ["apis", "decisions", "patterns"],
-        "context": "API design"
-    },
-    "database": {
-        "patterns": ["db", "database", "model", "schema", "migration", "query", "sql", "orm", "entity"],
-        "namespaces": ["decisions", "patterns"],
-        "context": "database"
-    },
-    "test": {
-        "patterns": ["test", "spec", "mock", "fixture", "jest", "pytest", "vitest"],
-        "namespaces": ["testing", "patterns"],
-        "context": "testing"
-    },
-    "config": {
-        "patterns": ["config", "settings", "env", "environment", ".env", "configuration"],
-        "namespaces": ["decisions", "context"],
-        "context": "configuration"
-    },
-    "deploy": {
-        "patterns": ["deploy", "docker", "kubernetes", "k8s", "helm", "ci", "cd", "pipeline", "workflow"],
-        "namespaces": ["decisions", "patterns"],
-        "context": "deployment"
-    },
-    "security": {
-        "patterns": ["security", "encrypt", "decrypt", "hash", "sanitize", "validate", "xss", "csrf"],
-        "namespaces": ["security", "decisions"],
-        "context": "security"
-    },
-}
+
+def load_file_patterns() -> list:
+    """Load file patterns from MIF ontology."""
+    # Search paths for ontology
+    plugin_root = Path(__file__).parent.parent
+    ontology_paths = [
+        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
+        plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
+    ]
+
+    ontology_file = None
+    for path in ontology_paths:
+        if path.exists():
+            ontology_file = path
+            break
+
+    if not ontology_file or not yaml:
+        return get_fallback_file_patterns()
+
+    try:
+        with open(ontology_file) as f:
+            data = yaml.safe_load(f)
+
+        discovery = data.get("discovery", {})
+        if not discovery.get("enabled", False):
+            return get_fallback_file_patterns()
+
+        patterns = []
+        for fp in discovery.get("file_patterns", []):
+            pattern = fp.get("pattern")
+            namespaces = fp.get("namespaces", [])
+            context = fp.get("context", "")
+            if pattern and namespaces:
+                patterns.append({
+                    "patterns": pattern.split("|"),
+                    "namespaces": namespaces,
+                    "context": context
+                })
+
+        return patterns if patterns else get_fallback_file_patterns()
+
+    except Exception:
+        return get_fallback_file_patterns()
+
+
+def get_fallback_file_patterns() -> list:
+    """Fallback patterns if ontology loading fails."""
+    return [
+        {
+            "patterns": ["auth", "login", "session", "jwt", "oauth"],
+            "namespaces": ["semantic/knowledge", "semantic/decisions"],
+            "context": "authentication"
+        },
+        {
+            "patterns": ["api", "endpoint", "route", "controller"],
+            "namespaces": ["semantic/knowledge", "semantic/decisions"],
+            "context": "API design"
+        },
+        {
+            "patterns": ["db", "database", "model", "schema", "migration"],
+            "namespaces": ["semantic/decisions", "procedural/migrations"],
+            "context": "database"
+        },
+        {
+            "patterns": ["test", "spec", "mock", "fixture"],
+            "namespaces": ["procedural/patterns"],
+            "context": "testing"
+        },
+        {
+            "patterns": ["config", "settings", "env"],
+            "namespaces": ["semantic/decisions", "semantic/knowledge"],
+            "context": "configuration"
+        },
+        {
+            "patterns": ["deploy", "docker", "kubernetes", "helm"],
+            "namespaces": ["procedural/runbooks", "semantic/decisions"],
+            "context": "deployment"
+        },
+        {
+            "patterns": ["security", "encrypt", "hash", "sanitize"],
+            "namespaces": ["semantic/knowledge", "semantic/decisions"],
+            "context": "security"
+        },
+        {
+            "patterns": ["service", "component", "module"],
+            "namespaces": ["semantic/entities", "semantic/decisions"],
+            "context": "components"
+        },
+    ]
 
 
 def get_org() -> str:
     """Get organization from git remote."""
     try:
-        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            capture_output=True, text=True, timeout=5
+        )
         if result.returncode == 0:
             url = result.stdout.strip()
             if ":" in url and "@" in url:
@@ -69,15 +127,14 @@ def get_org() -> str:
     return "default"
 
 
-def detect_file_context(file_path: str) -> dict | None:
+def detect_file_context(file_path: str, file_patterns: list) -> dict | None:
     """Detect which context a file belongs to based on path patterns."""
     path_lower = file_path.lower()
 
-    for context_name, config in FILE_PATTERNS.items():
+    for config in file_patterns:
         for pattern in config["patterns"]:
             if pattern in path_lower:
                 return {
-                    "name": context_name,
                     "context_description": config["context"],
                     "namespaces": config["namespaces"]
                 }
@@ -103,20 +160,21 @@ def find_memories_for_context(context: dict, home: Path, org: str) -> list:
     # Search for memories in relevant namespaces
     for namespace in context["namespaces"]:
         try:
-            # Use ripgrep to find memories in this namespace
             cmd = [
                 "rg", "-l",
                 f"namespace:.*{namespace}",
                 "--glob", "*.memory.md",
-                "--max-count", "1"  # Just check if pattern exists
+                "--max-count", "1"
             ] + existing_paths
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=3
+            )
             if result.returncode == 0:
                 for line in result.stdout.strip().split("\n"):
                     if line and line.endswith(".memory.md"):
                         memory_files.append(line)
-                        if len(memory_files) >= 5:  # Limit to 5 files
+                        if len(memory_files) >= 5:
                             break
         except Exception:
             continue
@@ -124,27 +182,7 @@ def find_memories_for_context(context: dict, home: Path, org: str) -> list:
         if len(memory_files) >= 5:
             break
 
-    # If namespace search didn't find enough, search by context keywords
-    if len(memory_files) < 3:
-        try:
-            context_keyword = context["name"]
-            cmd = [
-                "rg", "-l", "-i",
-                context_keyword,
-                "--glob", "*.memory.md",
-            ] + existing_paths
-
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
-            if result.returncode == 0:
-                for line in result.stdout.strip().split("\n"):
-                    if line and line.endswith(".memory.md") and line not in memory_files:
-                        memory_files.append(line)
-                        if len(memory_files) >= 5:
-                            break
-        except Exception:
-            pass
-
-    return memory_files[:5]  # Return at most 5
+    return memory_files[:5]
 
 
 def main():
@@ -173,8 +211,11 @@ def main():
         print(json.dumps({"continue": True}))
         return
 
+    # Load patterns from ontology
+    file_patterns = load_file_patterns()
+
     # Detect file context
-    context = detect_file_context(file_path)
+    context = detect_file_context(file_path, file_patterns)
     if not context:
         print(json.dumps({"continue": True}))
         return
@@ -195,7 +236,7 @@ def main():
     for f in memory_files:
         context_lines.append(f"  - {f}")
     context_lines.append("")
-    context_lines.append("These may contain patterns or decisions applicable to this edit.")
+    context_lines.append("These may contain patterns or decisions for this edit.")
 
     additional_context = "\n".join(context_lines)
 

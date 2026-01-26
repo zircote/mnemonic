@@ -259,19 +259,26 @@ class OntologyValidator:
                         type_hint,
                     )
 
-                # Check replaces references valid base namespace
-                replaces = ns_data.get("replaces")
-                if replaces:
-                    base_namespaces = {
-                        "apis", "blockers", "context", "decisions",
-                        "learnings", "patterns", "security", "testing", "episodic"
-                    }
-                    if replaces not in base_namespaces:
-                        self.result.add_warning(
-                            f"{path}.replaces",
-                            f"Replaces unknown base namespace: {replaces}",
-                            replaces,
-                        )
+                # Validate children (hierarchical namespaces)
+                children = ns_data.get("children", {})
+                if children:
+                    for child_name, child_data in children.items():
+                        child_path = f"{path}.children.{child_name}"
+                        if not self.ID_PATTERN.match(child_name):
+                            self.result.add_warning(
+                                child_path,
+                                "Child namespace should be lowercase",
+                                child_name,
+                            )
+                        if isinstance(child_data, dict):
+                            child_type = child_data.get("type_hint")
+                            if child_type:
+                                if child_type not in self.VALID_TYPE_HINTS:
+                                    self.result.add_error(
+                                        f"{child_path}.type_hint",
+                                        f"Invalid type_hint: {child_type}",
+                                        child_type,
+                                    )
 
         return defined_namespaces
 

@@ -13,6 +13,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export/import functionality
 - Web UI for memory browsing
 
+## [2.0.0] - 2026-01-26
+
+### Breaking Changes
+
+- **Namespace Hierarchy**: Migrated from 9 flat namespaces to cognitive triad hierarchy
+  - Old: `apis`, `blockers`, `context`, `decisions`, `learnings`, `patterns`, `security`, `testing`, `episodic`
+  - New: `semantic/`, `episodic/`, `procedural/` with sub-namespaces
+
+### Added
+
+- **MIF Submodule**: Ontologies now sourced from [MIF](https://github.com/zircote/MIF)
+  - `mif-base.ontology.yaml` defines cognitive triad hierarchy
+  - JSON-LD export for semantic web compatibility
+  - `scripts/yaml2jsonld.py` converter
+
+- **Cognitive Triad Namespaces**:
+  - `semantic/decisions` - Architectural choices
+  - `semantic/knowledge` - APIs, context, learnings, security
+  - `semantic/entities` - Technologies, components
+  - `episodic/incidents` - Production issues
+  - `episodic/sessions` - Debug sessions
+  - `episodic/blockers` - Impediments
+  - `procedural/runbooks` - Operational procedures
+  - `procedural/patterns` - Code conventions, testing
+  - `procedural/migrations` - Migration steps
+
+- **Ontology Loader**: Centralized MIF loading (`skills/ontology/lib/ontology_loader.py`)
+- **Fallback Support**: Offline installations via `skills/ontology/fallback/`
+- **Migration Script**: `scripts/migrate_namespaces.py` for upgrading existing memories
+
+### Changed
+
+- **Hooks**: Updated to use hierarchical namespace paths
+- **Commands**: `/mnemonic:capture` supports new namespace format
+- **Documentation**: Updated for cognitive triad model
+
+### Migration Guide
+
+1. **Run migration script** (one-time, required):
+   ```bash
+   python scripts/migrate_namespaces.py --dry-run
+   python scripts/migrate_namespaces.py --commit
+   ```
+2. **Update custom ontologies** to use hierarchical namespaces:
+   ```yaml
+   namespaces:
+     semantic:
+       children:
+         my-namespace:
+           description: "..."
+   ```
+
 ## [1.3.0] - 2026-01-25
 
 ### Changed

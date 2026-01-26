@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/zircote/MIF/schema/ontology/v2",
+  "title": "MIF Ontology Schema",
+  "description": "JSON Schema for validating ontology definition files with cognitive triad namespace hierarchy",
+  "type": "object",
+  "properties": {
+    "ontology": {
+      "type": "object",
+      "description": "Ontology metadata",
+      "required": ["id", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ontology",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+.*$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description"
+        },
+        "schema_url": {
+          "type": "string",
+          "description": "URL to external schema definition",
+          "format": "uri"
+        }
+      }
+    },
+    "namespaces": {
+      "type": "object",
+      "description": "Hierarchical namespace definitions following cognitive triad",
+      "additionalProperties": {
+        "$ref": "#/$defs/namespace"
+      }
+    },
+    "entity_types": {
+      "type": "array",
+      "description": "Custom entity type definitions",
+      "items": {
+        "$ref": "#/$defs/entityType"
+      }
+    },
+    "traits": {
+      "type": "object",
+      "description": "Reusable trait/mixin definitions",
+      "additionalProperties": {
+        "$ref": "#/$defs/trait"
+      }
+    },
+    "relationships": {
+      "type": "object",
+      "description": "Relationship type definitions",
+      "additionalProperties": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "description": "Entity discovery configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether discovery is enabled",
+          "default": false
+        },
+        "patterns": {
+          "type": "array",
+          "description": "Discovery patterns",
+          "items": {
+            "$ref": "#/$defs/discoveryPattern"
+          }
+        },
+        "confidence_threshold": {
+          "type": "number",
+          "description": "Minimum confidence for suggestions",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.8
+        }
+      }
+    }
+  },
+  "$defs": {
+    "namespace": {
+      "type": "object",
+      "description": "Namespace definition with optional children for hierarchical structure",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Namespace description"
+        },
+        "type_hint": {
+          "type": "string",
+          "description": "Default memory type for this namespace",
+          "enum": ["semantic", "episodic", "procedural"]
+        },
+        "replaces": {
+          "type": "string",
+          "description": "Base namespace this replaces (for migration)"
+        },
+        "children": {
+          "type": "object",
+          "description": "Child namespaces forming hierarchical structure",
+          "additionalProperties": {
+            "$ref": "#/$defs/namespace"
+          }
+        }
+      }
+    },
+    "entityType": {
+      "type": "object",
+      "description": "Entity type definition",
+      "required": ["name", "base"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Entity type name",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Entity type description"
+        },
+        "base": {
+          "type": "string",
+          "description": "Base memory type",
+          "enum": ["semantic", "episodic", "procedural"]
+        },
+        "traits": {
+          "type": "array",
+          "description": "Traits this entity type includes",
+          "items": {
+            "type": "string"
+          }
+        },
+        "schema": {
+          "type": "object",
+          "description": "JSON Schema for entity fields",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "properties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/propertySchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "trait": {
+      "type": "object",
+      "description": "Trait/mixin definition",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object",
+          "description": "Fields provided by this trait",
+          "additionalProperties": {
+            "$ref": "#/$defs/propertySchema"
+          }
+        },
+        "requires": {
+          "type": "array",
+          "description": "MIF fields this trait requires",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "description": "Relationship type definition",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "from": {
+          "type": "array",
+          "description": "Entity types that can be the source",
+          "items": {
+            "type": "string"
+          }
+        },
+        "to": {
+          "type": "array",
+          "description": "Entity types that can be the target",
+          "items": {
+            "type": "string"
+          }
+        },
+        "symmetric": {
+          "type": "boolean",
+          "description": "Whether the relationship is symmetric",
+          "default": false
+        }
+      }
+    },
+    "discoveryPattern": {
+      "type": "object",
+      "description": "Pattern for discovering entities",
+      "required": ["suggest_entity"],
+      "properties": {
+        "content_pattern": {
+          "type": "string",
+          "description": "Regex pattern to match in content"
+        },
+        "file_pattern": {
+          "type": "string",
+          "description": "Glob pattern to match file paths"
+        },
+        "suggest_entity": {
+          "type": "string",
+          "description": "Entity type to suggest when pattern matches"
+        },
+        "suggest_namespace": {
+          "type": "string",
+          "description": "Namespace to suggest (hierarchical path like semantic/decisions)"
+        }
+      }
+    },
+    "propertySchema": {
+      "type": "object",
+      "description": "JSON Schema property definition",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "array",
+            "object",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "description": "Format hint (e.g., 'uri', 'date-time')"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regex pattern for string validation"
+        },
+        "items": {
+          "type": "object",
+          "description": "Schema for array items"
+        },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values"
+        }
+      }
+    }
+  }
+}

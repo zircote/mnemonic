@@ -1,0 +1,507 @@
+---
+# Software Engineering Ontology
+#
+# A comprehensive ontology for software development teams.
+# Extends the MIF base ontology with domain-specific entity types.
+#
+# Compatible with: mif-base v1.0.0 (cognitive triad hierarchy)
+#
+# Version: 1.0.0
+# Last Updated: 2026-01-26
+
+ontology:
+  id: software-engineering
+  version: "1.0.0"
+  description: "Software engineering domain ontology"
+
+# Custom Namespaces
+# These extend the base cognitive triad hierarchy.
+namespaces:
+  semantic:
+    children:
+      architecture:
+        description: "System architecture and component designs"
+        type_hint: semantic
+      components:
+        description: "Software components, modules, services"
+        type_hint: semantic
+      dependencies:
+        description: "Third-party libraries, packages, integrations"
+        type_hint: semantic
+
+  procedural:
+    children:
+      deployments:
+        description: "Deployment procedures, release processes"
+        type_hint: procedural
+
+# Entity Types
+# Structured entities with JSON Schema validation.
+entity_types:
+  - name: component
+    description: "A software component, module, or service"
+    base: semantic
+    traits:
+      - versioned
+      - documented
+    schema:
+      required:
+        - name
+        - responsibility
+      properties:
+        name:
+          type: string
+          description: "Component name"
+        responsibility:
+          type: string
+          description: "Single responsibility description"
+        dependencies:
+          type: array
+          description: "List of component dependencies"
+          items:
+            type: string
+        interfaces:
+          type: array
+          description: "Public interfaces/APIs"
+          items:
+            type: string
+        owner:
+          type: string
+          description: "Team or person owning this component"
+
+  - name: architectural-decision
+    description: "An architectural decision with full context"
+    base: semantic
+    traits:
+      - dated
+      - cited
+    schema:
+      required:
+        - decision
+        - rationale
+      properties:
+        decision:
+          type: string
+          description: "The decision made"
+        rationale:
+          type: string
+          description: "Why this decision was made"
+        alternatives:
+          type: array
+          description: "Alternatives considered"
+          items:
+            type: object
+        consequences:
+          type: object
+          description: "Known consequences and trade-offs"
+        status:
+          type: string
+          description: "Decision status"
+          enum:
+            - proposed
+            - accepted
+            - deprecated
+            - superseded
+
+  - name: incident-report
+    description: "A production incident or outage report"
+    base: episodic
+    traits:
+      - timeline
+      - stakeholders
+    schema:
+      required:
+        - severity
+        - impact
+        - resolution
+      properties:
+        severity:
+          type: string
+          description: "Incident severity level"
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+        impact:
+          type: string
+          description: "Business/user impact description"
+        resolution:
+          type: string
+          description: "How the incident was resolved"
+        root_cause:
+          type: string
+          description: "Root cause analysis"
+        prevention:
+          type: array
+          description: "Prevention measures"
+          items:
+            type: string
+        duration_minutes:
+          type: integer
+          description: "Incident duration in minutes"
+
+  - name: technology
+    description: "A technology, framework, or tool"
+    base: semantic
+    traits:
+      - versioned
+      - documented
+    schema:
+      required:
+        - name
+        - category
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+          enum:
+            - database
+            - framework
+            - language
+            - infrastructure
+            - tool
+            - library
+        website:
+          type: string
+          format: uri
+        license:
+          type: string
+        use_case:
+          type: string
+          description: "Why/where we use this technology"
+
+  - name: design-pattern
+    description: "A design pattern or architectural pattern"
+    base: semantic
+    traits:
+      - cited
+    schema:
+      required:
+        - pattern_name
+        - context
+        - solution
+      properties:
+        pattern_name:
+          type: string
+        context:
+          type: string
+          description: "When to use this pattern"
+        solution:
+          type: string
+          description: "How the pattern solves the problem"
+        consequences:
+          type: object
+          description: "Trade-offs and implications"
+        related_patterns:
+          type: array
+          items:
+            type: string
+
+  - name: runbook
+    description: "Operational runbook for handling scenarios"
+    base: procedural
+    traits:
+      - versioned
+      - stakeholders
+    schema:
+      required:
+        - title
+        - trigger
+        - procedure
+      properties:
+        title:
+          type: string
+        trigger:
+          type: string
+          description: "What triggers this runbook"
+        severity:
+          type: string
+          enum:
+            - critical
+            - high
+            - medium
+            - low
+        procedure:
+          type: array
+          description: "Step-by-step procedure"
+          items:
+            type: object
+            properties:
+              step:
+                type: integer
+              action:
+                type: string
+              expected_outcome:
+                type: string
+        escalation:
+          type: object
+          description: "Escalation path"
+
+  - name: deployment-procedure
+    description: "Step-by-step deployment or release procedure"
+    base: procedural
+    traits:
+      - versioned
+      - stakeholders
+    schema:
+      required:
+        - name
+        - steps
+        - target_environment
+      properties:
+        name:
+          type: string
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              order:
+                type: integer
+              action:
+                type: string
+              verification:
+                type: string
+              rollback:
+                type: string
+        target_environment:
+          type: string
+          enum:
+            - development
+            - staging
+            - production
+        prerequisites:
+          type: array
+          items:
+            type: string
+
+  - name: migration-guide
+    description: "Database or system migration procedure"
+    base: procedural
+    traits:
+      - versioned
+      - dated
+    schema:
+      required:
+        - title
+        - from_state
+        - to_state
+        - steps
+      properties:
+        title:
+          type: string
+        from_state:
+          type: string
+        to_state:
+          type: string
+        steps:
+          type: array
+          items:
+            type: object
+        rollback_procedure:
+          type: array
+          items:
+            type: object
+        downtime_required:
+          type: boolean
+
+# Traits (Mixins)
+traits:
+  versioned:
+    description: "Adds version tracking fields"
+    fields:
+      version:
+        type: string
+        pattern: "^\\d+\\.\\d+\\.\\d+.*$"
+      changelog:
+        type: array
+        items:
+          type: object
+
+  documented:
+    description: "Adds documentation reference"
+    fields:
+      documentation_url:
+        type: string
+        format: uri
+      readme_path:
+        type: string
+
+  dated:
+    description: "Adds decision/event date"
+    fields:
+      decision_date:
+        type: string
+        format: date
+      review_date:
+        type: string
+        format: date
+
+  cited:
+    description: "Requires citations/sources"
+    requires:
+      - citations
+
+  timeline:
+    description: "Adds incident timeline"
+    fields:
+      timeline:
+        type: array
+        items:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            event:
+              type: string
+            actor:
+              type: string
+
+  stakeholders:
+    description: "Adds stakeholder tracking"
+    fields:
+      stakeholders:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            role:
+              type: string
+            contact:
+              type: string
+
+# Relationships
+relationships:
+  depends_on:
+    description: "Component dependency relationship"
+    from:
+      - component
+    to:
+      - component
+      - technology
+    symmetric: false
+
+  implements:
+    description: "Component implements a pattern or decision"
+    from:
+      - component
+    to:
+      - design-pattern
+      - architectural-decision
+    symmetric: false
+
+  caused_by:
+    description: "Incident causality"
+    from:
+      - incident-report
+    to:
+      - component
+      - technology
+    symmetric: false
+
+  resolves:
+    description: "Decision resolves an issue"
+    from:
+      - architectural-decision
+    to:
+      - incident-report
+    symmetric: false
+
+  supersedes:
+    description: "Newer version supersedes older"
+    from:
+      - architectural-decision
+      - component
+      - runbook
+      - deployment-procedure
+    to:
+      - architectural-decision
+      - component
+      - runbook
+      - deployment-procedure
+    symmetric: false
+
+  documents:
+    description: "Procedure documents how to work with entity"
+    from:
+      - runbook
+      - deployment-procedure
+      - migration-guide
+    to:
+      - component
+      - technology
+    symmetric: false
+
+  triggers:
+    description: "Incident triggers runbook execution"
+    from:
+      - incident-report
+    to:
+      - runbook
+    symmetric: false
+
+# Discovery Configuration
+discovery:
+  enabled: true
+  confidence_threshold: 0.8
+
+  patterns:
+    # Technology patterns - suggest semantic/knowledge namespace
+    - content_pattern: "\\b(PostgreSQL|MySQL|MongoDB|Redis)\\b"
+      suggest_entity: technology
+      suggest_namespace: semantic/entities
+    - content_pattern: "\\b(React|Vue|Angular|Next\\.js|Django)\\b"
+      suggest_entity: technology
+      suggest_namespace: semantic/entities
+    - content_pattern: "\\b(FastAPI|Express|Flask|Spring)\\b"
+      suggest_entity: technology
+      suggest_namespace: semantic/entities
+    - content_pattern: "\\b(Docker|Kubernetes|Terraform|AWS)\\b"
+      suggest_entity: technology
+      suggest_namespace: semantic/entities
+
+    # Pattern patterns - suggest procedural/patterns
+    - content_pattern: "\\b(Factory|Singleton|Observer)\\s+Pattern\\b"
+      suggest_entity: design-pattern
+      suggest_namespace: procedural/patterns
+    - content_pattern: "\\b(Repository|Strategy|Decorator)\\s+Pattern\\b"
+      suggest_entity: design-pattern
+      suggest_namespace: procedural/patterns
+    - content_pattern: "\\b(CQRS|Event\\s+Sourcing|Saga)\\b"
+      suggest_entity: design-pattern
+      suggest_namespace: procedural/patterns
+
+    # Component patterns from file paths
+    - file_pattern: "**/services/**/*.py"
+      suggest_entity: component
+      suggest_namespace: semantic/components
+    - file_pattern: "**/components/**/*.tsx"
+      suggest_entity: component
+      suggest_namespace: semantic/components
+
+    # Incident patterns - suggest episodic/incidents
+    - content_pattern: "\\b(outage|incident|postmortem|RCA)\\b"
+      suggest_entity: incident-report
+      suggest_namespace: episodic/incidents
+
+    # Procedural patterns
+    - content_pattern: "\\b(runbook|playbook|SOP|procedure)\\b"
+      suggest_entity: runbook
+      suggest_namespace: procedural/runbooks
+    - content_pattern: "\\b(deploy|release|rollout)\\s+(steps|procedure)\\b"
+      suggest_entity: deployment-procedure
+      suggest_namespace: procedural/deployments
+    - content_pattern: "\\b(migration|migrate|upgrade)\\s+(guide|plan)\\b"
+      suggest_entity: migration-guide
+      suggest_namespace: procedural/migrations
+    - file_pattern: "**/runbooks/**/*.md"
+      suggest_entity: runbook
+      suggest_namespace: procedural/runbooks
+    - file_pattern: "**/docs/procedures/**/*.md"
+      suggest_entity: deployment-procedure
+      suggest_namespace: procedural/deployments

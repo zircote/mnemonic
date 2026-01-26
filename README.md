@@ -171,30 +171,32 @@ We decided to use PostgreSQL for our data storage needs.
 
 ## Namespaces
 
-| Namespace | Purpose |
-|-----------|---------|
-| `apis/` | API documentation, contracts |
-| `blockers/` | Issues, impediments, incidents |
-| `context/` | Background information, state |
-| `decisions/` | Architectural choices, rationale |
-| `learnings/` | Insights, discoveries, TILs |
-| `patterns/` | Code conventions, best practices |
-| `security/` | Security policies, vulnerabilities |
-| `testing/` | Test strategies, edge cases |
-| `episodic/` | General events, experiences |
+Mnemonic uses a cognitive triad namespace hierarchy:
+
+| Top-Level | Sub-namespace | Purpose |
+|-----------|---------------|---------|
+| `semantic/` | `decisions/` | Architectural choices, rationale |
+| | `knowledge/` | APIs, context, learnings, security |
+| | `entities/` | Entity definitions (technologies, components) |
+| `episodic/` | `incidents/` | Production issues, postmortems |
+| | `sessions/` | Debug sessions, work sessions |
+| | `blockers/` | Impediments, issues |
+| `procedural/` | `runbooks/` | Operational procedures |
+| | `patterns/` | Code conventions, testing strategies |
+| | `migrations/` | Migration steps, upgrade procedures |
 
 ## Custom Ontologies
 
-Extend mnemonic with domain-specific entity types, relationships, and discovery patterns:
+Extend mnemonic with domain-specific entity types, relationships, and discovery:
 
 ```bash
 # Copy the software-engineering ontology
-cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml \
+cp mif/ontologies/examples/software-engineering.ontology.yaml \
    .claude/mnemonic/ontology.yaml
 ```
 
 This adds:
-- Custom namespaces (architecture, components, incidents, migrations, dependencies)
+- Custom sub-namespaces (architecture, components, deployments)
 - Typed entities (technology, component, design-pattern, incident-report, runbook)
 - Entity relationships (depends_on, implements, caused_by, resolves)
 - Discovery patterns for auto-suggesting entity captures

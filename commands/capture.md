@@ -13,7 +13,10 @@ Capture a new memory to the mnemonic filesystem.
 
 ## Arguments
 
-- `<namespace>` - Required. Base: apis, blockers, context, decisions, learnings, patterns, security, testing, episodic. Or custom namespace from loaded ontology.
+- `<namespace>` - Required. Hierarchical namespace path using cognitive triad:
+  - **Semantic** (facts/knowledge): `semantic/decisions`, `semantic/knowledge`, `semantic/entities`
+  - **Episodic** (events/experiences): `episodic/incidents`, `episodic/sessions`, `episodic/blockers`
+  - **Procedural** (processes/steps): `procedural/runbooks`, `procedural/patterns`, `procedural/migrations`
 - `<title>` - Required. Human-readable title for the memory
 - `--type` - Memory type: semantic (default), episodic, or procedural
 - `--tags` - Comma-separated list of tags
@@ -39,7 +42,10 @@ TAGS="${TAGS:-}"
 ### Step 2: Validate Namespace
 
 ```bash
-VALID_NS="apis blockers context decisions learnings patterns security testing episodic"
+# Cognitive triad hierarchical namespaces
+VALID_NS="semantic semantic/decisions semantic/knowledge semantic/entities"
+VALID_NS="$VALID_NS episodic episodic/incidents episodic/sessions episodic/blockers"
+VALID_NS="$VALID_NS procedural procedural/runbooks procedural/patterns procedural/migrations"
 
 # Check for custom namespaces from ontology
 ONTOLOGY_FILE=".claude/mnemonic/ontology.yaml"
@@ -215,13 +221,15 @@ echo "  Type: $TYPE"
 ## Example Usage
 
 ```
-/mnemonic:capture decisions "Use PostgreSQL for data storage" --type semantic --tags database,architecture --scope project
+/mnemonic:capture semantic/decisions "Use PostgreSQL for data storage" --tags database,architecture
+/mnemonic:capture procedural/patterns "Repository pattern for data access" --tags database,patterns
+/mnemonic:capture episodic/incidents "Database connection timeout issue" --type episodic
 ```
 
 ### Example with Citations
 
 ```
-/mnemonic:capture learnings "PostgreSQL JSON Performance" --type semantic --tags database,performance --citations '[{"type":"paper","title":"PostgreSQL vs MySQL Performance","url":"https://arxiv.org/abs/2024.12345","author":"Smith et al.","relevance":0.95}]'
+/mnemonic:capture semantic/knowledge "PostgreSQL JSON Performance" --tags database,performance --citations '[{"type":"paper","title":"PostgreSQL vs MySQL Performance","url":"https://arxiv.org/abs/2024.12345","author":"Smith et al.","relevance":0.95}]'
 ```
 
 ## Output

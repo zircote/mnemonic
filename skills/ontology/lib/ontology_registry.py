@@ -64,12 +64,6 @@ class Namespace:
     name: str
     description: str = ""
     type_hint: str = "semantic"  # Default memory type for this namespace
-    replaces: Optional[str] = None  # Base namespace this replaces
-
-    @property
-    def is_replacement(self) -> bool:
-        """Check if this namespace replaces a base namespace."""
-        return self.replaces is not None
 
 
 @dataclass
@@ -156,16 +150,20 @@ class OntologyRegistry:
     Later sources override earlier ones for the same namespace.
     """
 
+    # Cognitive triad hierarchy
     BASE_NAMESPACES = [
-        "apis",
-        "blockers",
-        "context",
-        "decisions",
-        "learnings",
-        "patterns",
-        "security",
-        "testing",
+        "semantic",
+        "semantic/decisions",
+        "semantic/knowledge",
+        "semantic/entities",
         "episodic",
+        "episodic/incidents",
+        "episodic/sessions",
+        "episodic/blockers",
+        "procedural",
+        "procedural/runbooks",
+        "procedural/patterns",
+        "procedural/migrations",
     ]
 
     BASE_TYPES = ["semantic", "episodic", "procedural"]
@@ -380,7 +378,6 @@ class OntologyRegistry:
                 name=ns_name,
                 description=ns_data.get("description", ""),
                 type_hint=ns_data.get("type_hint", "semantic"),
-                replaces=ns_data.get("replaces"),
             )
 
         # Parse entity types
@@ -459,14 +456,24 @@ def get_registry(
     base_path: Optional[Path] = None,
     user_path: Optional[Path] = None,
     project_path: Optional[Path] = None,
+    org: str = "default",
+    project_name: Optional[str] = None,
 ) -> OntologyRegistry:
     """
     Get a configured OntologyRegistry.
 
+    Resolution order (later overrides earlier):
+    1. MIF submodule ontologies (mif/ontologies/)
+    2. Fallback ontologies (skills/ontology/fallback/)
+    3. User ontologies (~/.claude/mnemonic/{org}/{project}/)
+    4. Project ontologies (./.claude/mnemonic/)
+
     Args:
-        base_path: Path to base ontologies (defaults to plugin ontologies/)
-        user_path: Path to user ontologies (defaults to ~/.claude/mnemonic/)
-        project_path: Path to project ontologies (defaults to ./.claude/mnemonic/)
+        base_path: Path to base ontologies (defaults to MIF/fallback)
+        user_path: Path to user ontologies
+        project_path: Path to project ontologies
+        org: Organization name for user-level path
+        project_name: Project name for user-level path
 
     Returns:
         Configured OntologyRegistry
@@ -475,20 +482,36 @@ def get_registry(
 
     paths = []
 
-    # Base ontologies
+    # Base ontologies - MIF submodule first, then fallback
     if base_path:
         paths.append(base_path)
     else:
-        # Try to find plugin root
         plugin_root = Path(__file__).parent.parent
+
+        # 1. MIF submodule (preferred)
+        mif_ontologies = plugin_root.parent.parent / "mif" / "ontologies"
+        if mif_ontologies.exists():
+            paths.append(mif_ontologies)
+
+        # 2. Fallback (if MIF not available)
+        fallback_ontologies = plugin_root / "fallback" / "ontologies"
+        if fallback_ontologies.exists():
+            paths.append(fallback_ontologies)
+
+        # 3. Legacy plugin ontologies (deprecated)
         if (plugin_root / "ontologies").exists():
             paths.append(plugin_root / "ontologies")
 
-    # User ontologies
+    # User ontologies (with org/project hierarchy)
     if user_path:
         paths.append(user_path)
     else:
-        paths.append(Path.home() / ".claude" / "mnemonic")
+        user_base = Path.home() / ".claude" / "mnemonic"
+        if project_name:
+            paths.append(user_base / org / project_name)
+        else:
+            paths.append(user_base / org)
+        paths.append(user_base)
 
     # Project ontologies
     if project_path:

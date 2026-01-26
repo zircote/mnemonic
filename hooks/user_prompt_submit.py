@@ -2,8 +2,8 @@
 """
 Mnemonic UserPromptSubmit Hook
 
-Detects capture/recall triggers and provides context hints to Claude.
-Claude performs the actual capture using skills (skills-first architecture).
+Detects capture/recall triggers from ontology and provides context hints.
+Patterns are loaded from MIF ontology discovery configuration.
 """
 
 import json
@@ -13,34 +13,79 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Capture triggers by namespace
-CAPTURE_TRIGGERS = {
-    "decisions": [
-        r"\blet'?s use\b", r"\bwe('ll| will| should) use\b", r"\bdecided to\b",
-        r"\bgoing with\b", r"\bchose\b", r"\bpicked\b", r"\bwe('ll| will) go with\b",
-        r"\bthe plan is\b", r"\bwe('re| are) going to\b", r"\bour approach\b",
-    ],
-    "learnings": [
-        r"\blearned that\b", r"\bturns out\b", r"\bTIL\b",
-        r"\bdiscovered\b", r"\brealized\b", r"\bthe fix was\b",
-        r"\bthe solution\b", r"\bgotcha\b", r"\bthe key is\b",
-    ],
-    "patterns": [
-        r"\bshould always\b", r"\balways use\b", r"\bnever\b.*\bwhen\b",
-        r"\bconvention\b", r"\bbest practice\b", r"\bwe do it this way\b",
-        r"\bthe pattern is\b", r"\bstandard\b.*\bfor\b",
-    ],
-    "blockers": [
-        r"\bblocked by\b", r"\bstuck on\b", r"\bcan'?t figure out\b",
-        r"\bcan'?t get .* to work\b",
-    ],
-    "context": [
-        r"\bdon'?t forget\b", r"\bremember this\b", r"\bremember that\b",
-        r"\bnote to self\b", r"\bsave this\b",
-    ],
-}
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
-# Recall triggers
+
+def load_ontology_patterns() -> dict:
+    """Load content patterns from MIF ontology."""
+    patterns = {}
+
+    # Search paths for ontology
+    plugin_root = Path(__file__).parent.parent
+    ontology_paths = [
+        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
+        plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
+    ]
+
+    ontology_file = None
+    for path in ontology_paths:
+        if path.exists():
+            ontology_file = path
+            break
+
+    if not ontology_file or not yaml:
+        return get_fallback_patterns()
+
+    try:
+        with open(ontology_file) as f:
+            data = yaml.safe_load(f)
+
+        discovery = data.get("discovery", {})
+        if not discovery.get("enabled", False):
+            return get_fallback_patterns()
+
+        for cp in discovery.get("content_patterns", []):
+            namespace = cp.get("namespace")
+            pattern = cp.get("pattern")
+            if namespace and pattern:
+                if namespace not in patterns:
+                    patterns[namespace] = []
+                patterns[namespace].append(pattern)
+
+        return patterns if patterns else get_fallback_patterns()
+
+    except Exception:
+        return get_fallback_patterns()
+
+
+def get_fallback_patterns() -> dict:
+    """Fallback patterns if ontology loading fails."""
+    return {
+        "semantic/decisions": [
+            r"\blet'?s use\b", r"\bdecided to\b", r"\bgoing with\b",
+        ],
+        "semantic/knowledge": [
+            r"\blearned that\b", r"\bturns out\b", r"\bthe fix was\b",
+        ],
+        "procedural/patterns": [
+            r"\bshould always\b", r"\balways use\b", r"\bconvention\b",
+        ],
+        "episodic/blockers": [
+            r"\bblocked by\b", r"\bstuck on\b",
+        ],
+        "episodic/incidents": [
+            r"\boutage\b", r"\bincident\b", r"\bpostmortem\b",
+        ],
+        "procedural/runbooks": [
+            r"\brunbook\b", r"\bplaybook\b", r"\bSOP\b",
+        ],
+    }
+
+
+# Recall triggers (not in ontology yet)
 RECALL_TRIGGERS = [
     r"\bremember\b", r"\brecall\b", r"\bwhat did we\b", r"\bhow did we\b",
     r"\bwhat was\b", r"\bpreviously\b", r"\blast time\b", r"\bbefore\b",
@@ -53,10 +98,10 @@ def get_pending_file() -> Path:
     return Path("/tmp") / f"mnemonic-pending-{session_id}.json"
 
 
-def detect_triggers(prompt: str) -> dict:
+def detect_triggers(prompt: str, capture_patterns: dict) -> dict:
     """Detect capture and recall triggers."""
     result = {"capture": [], "recall": False}
-    for namespace, patterns in CAPTURE_TRIGGERS.items():
+    for namespace, patterns in capture_patterns.items():
         for pattern in patterns:
             if re.search(pattern, prompt, re.IGNORECASE):
                 if namespace not in result["capture"]:
@@ -72,11 +117,13 @@ def detect_triggers(prompt: str) -> dict:
 def extract_topic(prompt: str) -> str:
     """Extract topic keywords for search."""
     words = re.sub(r"[^\w\s]", "", prompt.lower()).split()
-    stopwords = {"the", "a", "an", "is", "are", "was", "were", "we", "i", "you", "it",
-                 "do", "did", "does", "have", "has", "had", "what", "how", "why", "when",
-                 "about", "this", "that", "there", "here", "with", "for", "to", "from",
-                 "remember", "recall", "before", "earlier", "previously", "last", "time",
-                 "let", "lets", "use", "using", "go", "going", "will", "should", "can"}
+    stopwords = {
+        "the", "a", "an", "is", "are", "was", "were", "we", "i", "you", "it",
+        "do", "did", "does", "have", "has", "had", "what", "how", "why", "when",
+        "about", "this", "that", "there", "here", "with", "for", "to", "from",
+        "remember", "recall", "before", "earlier", "previously", "last", "time",
+        "let", "lets", "use", "using", "go", "going", "will", "should", "can",
+    }
     keywords = [w for w in words if w not in stopwords and len(w) > 2]
     return " ".join(keywords[:5]) if keywords else ""
 
@@ -120,6 +167,9 @@ def get_memory_title(memory_path: str) -> str:
 
 
 def main():
+    # Load patterns from ontology
+    capture_patterns = load_ontology_patterns()
+
     # Read hook input from stdin
     try:
         input_data = json.load(sys.stdin)
@@ -131,7 +181,7 @@ def main():
         print(json.dumps({"continue": True}))
         return
 
-    triggers = detect_triggers(prompt)
+    triggers = detect_triggers(prompt, capture_patterns)
     topic = extract_topic(prompt)
     context_lines = []
 
@@ -147,9 +197,14 @@ def main():
             "topic": topic
         }))
 
-        context_lines.append(f"**MEMORY CAPTURE REQUIRED** - namespace(s): {namespaces}")
-        context_lines.append(f"You MUST invoke `/mnemonic:capture {triggers['capture'][0]} \"{topic}\"` to capture this.")
-        context_lines.append("Do NOT respond until you have captured this to memory.")
+        context_lines.append(
+            f"**MEMORY CAPTURE REQUIRED** - namespace(s): {namespaces}"
+        )
+        context_lines.append(
+            f"You MUST invoke `/mnemonic:capture {triggers['capture'][0]} "
+            f'"{topic}"` to capture this.'
+        )
+        context_lines.append("Do NOT respond until you have captured this.")
         context_lines.append("")
 
     # Search for relevant existing memories
@@ -165,7 +220,10 @@ def main():
 
     # Add recall context
     if triggers["recall"] and not relevant_memories:
-        context_lines.append(f"Recall triggered. Search: rg -i '{topic}' ~/.claude/mnemonic/ --glob '*.memory.md'")
+        context_lines.append(
+            f"Recall triggered. Search: rg -i '{topic}' "
+            "~/.claude/mnemonic/ --glob '*.memory.md'"
+        )
 
     if context_lines:
         output = {

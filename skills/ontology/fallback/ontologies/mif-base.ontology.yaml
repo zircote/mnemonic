@@ -1,0 +1,198 @@
+---
+# MIF Base Ontology - Cognitive Triad Model
+#
+# This ontology defines the hierarchical namespace structure based on the
+# cognitive science triad: semantic, episodic, and procedural memory.
+#
+# Version: 1.0.0
+# Last Updated: 2026-01-26
+
+ontology:
+  id: mif-base
+  version: "1.0.0"
+  description: "MIF base ontology with cognitive triad namespace hierarchy"
+  schema_url: "https://github.com/zircote/MIF/schema/ontology/v1"
+
+# Cognitive Triad Namespace Hierarchy
+#
+# Three top-level namespaces based on memory types:
+# - semantic: Facts, concepts, relationships (declarative knowledge)
+# - episodic: Events, experiences, timelines (autobiographical memory)
+# - procedural: Step-by-step processes (skill-based knowledge)
+#
+# Each top-level has sub-namespaces for organization.
+# Path format: {top-level}/{sub-namespace}
+# Example: semantic/decisions, episodic/incidents, procedural/runbooks
+
+namespaces:
+  semantic:
+    description: "Facts, concepts, relationships - declarative knowledge"
+    type_hint: semantic
+    children:
+      decisions:
+        description: "Architectural choices with rationale"
+        type_hint: semantic
+      knowledge:
+        description: "APIs, context, learnings, security - factual knowledge"
+        type_hint: semantic
+      entities:
+        description: "Entity definitions - technologies, components, systems"
+        type_hint: semantic
+
+  episodic:
+    description: "Events, experiences, timelines - autobiographical memory"
+    type_hint: episodic
+    children:
+      incidents:
+        description: "Production issues, outages, postmortems"
+        type_hint: episodic
+      sessions:
+        description: "Debug sessions, work sessions, meeting notes"
+        type_hint: episodic
+      blockers:
+        description: "Impediments, issues preventing progress"
+        type_hint: episodic
+
+  procedural:
+    description: "Step-by-step processes - skill-based knowledge"
+    type_hint: procedural
+    children:
+      runbooks:
+        description: "Operational procedures, SOPs, playbooks"
+        type_hint: procedural
+      patterns:
+        description: "Code conventions, best practices, testing strategies"
+        type_hint: procedural
+      migrations:
+        description: "Migration steps, upgrade procedures, data transformations"
+        type_hint: procedural
+
+# Base entity types
+# These are the fundamental memory types that all entities inherit from.
+# Custom ontologies define domain-specific entity types with these as base.
+entity_types: []
+
+# Base traits
+# Reusable mixins that can be composed into entity types.
+traits:
+  timestamped:
+    description: "Adds creation and update timestamps"
+    fields:
+      created_at:
+        type: string
+        format: date-time
+        description: "When the memory was created"
+      updated_at:
+        type: string
+        format: date-time
+        description: "When the memory was last updated"
+
+  confidence:
+    description: "Adds confidence score for memory decay"
+    fields:
+      confidence:
+        type: number
+        description: "Confidence score (0.0-1.0)"
+
+  provenance:
+    description: "Adds source tracking"
+    fields:
+      source:
+        type: string
+        description: "Where this knowledge came from"
+      author:
+        type: string
+        description: "Who captured this memory"
+
+# Base relationships
+# Standard relationships that apply across all memory types.
+relationships:
+  relates_to:
+    description: "General association between memories"
+    from: []
+    to: []
+    symmetric: true
+
+  supersedes:
+    description: "Newer memory replaces older one"
+    from: []
+    to: []
+    symmetric: false
+
+  derived_from:
+    description: "Memory was derived from another"
+    from: []
+    to: []
+    symmetric: false
+
+# Discovery patterns for automatic namespace suggestion
+discovery:
+  enabled: true
+  confidence_threshold: 0.8
+
+  # Content patterns - matched against user prompts
+  content_patterns:
+    - pattern: "\\blet'?s use\\b|\\bdecided to\\b|\\bwe will use\\b"
+      namespace: semantic/decisions
+    - pattern: "\\bgoing with\\b|\\bchose\\b|\\bpicked\\b"
+      namespace: semantic/decisions
+    - pattern: "\\bthe plan is\\b|\\bour approach\\b"
+      namespace: semantic/decisions
+    - pattern: "\\blearned that\\b|\\bturns out\\b|\\bTIL\\b"
+      namespace: semantic/knowledge
+    - pattern: "\\brealized\\b|\\bthe fix was\\b|\\bthe solution\\b"
+      namespace: semantic/knowledge
+    - pattern: "\\bdon'?t forget\\b|\\bremember this\\b"
+      namespace: semantic/knowledge
+    - pattern: "\\bshould always\\b|\\balways use\\b"
+      namespace: procedural/patterns
+    - pattern: "\\bconvention\\b|\\bbest practice\\b"
+      namespace: procedural/patterns
+    - pattern: "\\bblocked by\\b|\\bstuck on\\b"
+      namespace: episodic/blockers
+    - pattern: "\\boutage\\b|\\bincident\\b|\\bpostmortem\\b"
+      namespace: episodic/incidents
+    - pattern: "\\brunbook\\b|\\bplaybook\\b|\\bSOP\\b"
+      namespace: procedural/runbooks
+
+  # File patterns - matched against file paths being edited
+  file_patterns:
+    - pattern: "auth|login|session|jwt|oauth|token"
+      namespaces:
+        - semantic/knowledge
+        - semantic/decisions
+      context: authentication
+    - pattern: "api|endpoint|route|controller|handler"
+      namespaces:
+        - semantic/knowledge
+        - semantic/decisions
+      context: API design
+    - pattern: "db|database|model|schema|migration|sql"
+      namespaces:
+        - semantic/decisions
+        - procedural/migrations
+      context: database
+    - pattern: "test|spec|mock|fixture"
+      namespaces:
+        - procedural/patterns
+      context: testing
+    - pattern: "config|settings|env"
+      namespaces:
+        - semantic/decisions
+        - semantic/knowledge
+      context: configuration
+    - pattern: "deploy|docker|kubernetes|helm|ci|cd"
+      namespaces:
+        - procedural/runbooks
+        - semantic/decisions
+      context: deployment
+    - pattern: "security|encrypt|hash|sanitize"
+      namespaces:
+        - semantic/knowledge
+        - semantic/decisions
+      context: security
+    - pattern: "service|component|module"
+      namespaces:
+        - semantic/entities
+        - semantic/decisions
+      context: components
