@@ -46,8 +46,8 @@ awk '/^---$/{p=!p; print; next} p' /path/to/memory.memory.md
 
 ```bash
 # Find all decisions
-rg "^namespace: decisions" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
-rg "^namespace: decisions" ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^namespace: semantic/decisions" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^namespace: semantic/decisions" ./.claude/mnemonic/ --glob "*.memory.md" -l
 
 # Find project-scoped only
 rg "^namespace: .*/project" ./.claude/mnemonic/ --glob "*.memory.md" -l
@@ -383,7 +383,7 @@ rg "\[\[" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
 
 | Goal | Command |
 |------|---------|
-| All decisions | `rg "^namespace: decisions" ~/.claude/mnemonic/ ./.claude/mnemonic/ -l` |
+| All decisions | `rg "^namespace: semantic/decisions" ~/.claude/mnemonic/ ./.claude/mnemonic/ -l` |
 | By tag | `rg -l "^  - tagname" ~/.claude/mnemonic/ ./.claude/mnemonic/` |
 | By type | `rg "^type: semantic" ~/.claude/mnemonic/ ./.claude/mnemonic/ -l` |
 | Full-text | `rg -i "search term" ~/.claude/mnemonic/ ./.claude/mnemonic/` |

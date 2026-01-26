@@ -367,7 +367,7 @@ Subcall agents report progress for monitoring.
 search-auth-20260124
 
 ### Progress
-- Searching namespace: patterns
+- Searching namespace: procedural/patterns
 - Files processed: 15/23
 - Matches found: 2
 

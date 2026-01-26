@@ -19,7 +19,7 @@ created: 2026-01-23T10:30:00Z
 ---
 id: 550e8400-e29b-41d4-a716-446655440000
 type: semantic|episodic|procedural
-namespace: decisions/project
+namespace: semantic/decisions/project
 created: 2026-01-23T10:30:00Z
 modified: 2026-01-23T14:22:00Z
 title: "Human-readable title"

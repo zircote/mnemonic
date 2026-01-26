@@ -72,7 +72,7 @@ created: 2026-01-23T10:30:00Z
 
 # COMMON (add when useful)
 modified: 2026-01-23T14:22:00Z
-namespace: decisions/project
+namespace: semantic/decisions/project
 tags:
   - architecture
   - database
@@ -167,7 +167,7 @@ Why this decision/pattern/learning matters.
 |-------|------|-------------|
 | `id` | UUID | Unique identifier (v4, lowercase) |
 | `type` | enum | Cognitive type: `semantic`, `episodic`, `procedural` |
-| `namespace` | string | Category/scope: `decisions/project`, `learnings/user`, etc. |
+| `namespace` | string | Category/scope: `semantic/decisions`, `semantic/knowledge`, `procedural/patterns`, etc. |
 | `created` | ISO 8601 | Creation timestamp with timezone |
 | `title` | string | Human-readable title in quotes |
 
@@ -268,7 +268,7 @@ The summary field enables quick scanning without reading full content. Original 
 ---
 id: abc123
 type: semantic
-namespace: apis/project
+namespace: semantic/knowledge/project
 title: "REST API Authentication Endpoint"
 tags:
   - api
@@ -304,7 +304,7 @@ POST /api/v1/auth/login
 ---
 id: def456
 type: episodic
-namespace: blockers/project
+namespace: episodic/sessions/blockers/project
 title: "Database connection timeout incident"
 tags:
   - incident
@@ -347,7 +347,7 @@ Added connection.close() in finally block. Deployed fix at 15:45 UTC.
 ---
 id: ghi789
 type: procedural
-namespace: patterns/project
+namespace: procedural/patterns/project
 title: "Database migration procedure"
 tags:
   - database
@@ -584,7 +584,7 @@ FILENAME="${UUID}-${SLUG}.memory.md"
 ---
 id: {uuid}
 type: semantic
-namespace: learnings/project
+namespace: semantic/knowledge/project
 created: {timestamp}
 title: "{title}"
 summary: "{Brief summary for quick recall}"
@@ -611,7 +611,7 @@ detail_level: minimal
 ---
 id: {uuid}
 type: semantic
-namespace: decisions/project
+namespace: semantic/decisions/project
 created: {timestamp}
 title: "Decision: {what}"
 tags:
@@ -667,7 +667,7 @@ provenance:
 ---
 id: {uuid}
 type: episodic
-namespace: blockers/project
+namespace: episodic/sessions/blockers/project
 created: {timestamp}
 title: "Incident: {summary}"
 tags:
@@ -697,7 +697,7 @@ temporal:
 ---
 id: {uuid}
 type: semantic
-namespace: learnings/project
+namespace: semantic/knowledge/project
 created: {timestamp}
 title: "Learning: {topic}"
 tags:

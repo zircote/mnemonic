@@ -115,7 +115,7 @@ The skill produces structured markdown output:
 - Iterations: 3
 - Memories examined: 45
 - Relevant memories: 12
-- Namespaces searched: decisions, learnings, patterns, security
+- Namespaces searched: semantic/decisions, semantic/knowledge, procedural/patterns
 
 ## Source Memories
 

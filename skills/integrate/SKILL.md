@@ -121,10 +121,10 @@ After completing: `/mnemonic:capture {namespace} "{title}"`
 ```
 
 **Namespace mapping:**
-- ADRs → `decisions`
-- Documentation → `learnings`
-- Code patterns → `patterns`
-- Issues/bugs → `blockers`
+- ADRs → `semantic/decisions`
+- Documentation → `semantic/knowledge`
+- Code patterns → `procedural/patterns`
+- Issues/bugs → `episodic/blockers`
 
 ### Pattern B: Recall Before Action
 
@@ -170,8 +170,8 @@ def main():
 
     # Detect capture-worthy files
     namespace = None
-    if "/adr/" in file_path: namespace = "decisions"
-    elif "/docs/" in file_path: namespace = "learnings"
+    if "/adr/" in file_path: namespace = "semantic/decisions"
+    elif "/docs/" in file_path: namespace = "semantic/knowledge"
 
     if namespace:
         print(json.dumps({

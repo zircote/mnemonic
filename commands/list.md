@@ -50,11 +50,13 @@ fi
 
 ```
 Loaded ontologies:
-  - mnemonic-base v1.0.0
-    Namespaces: apis, blockers, context, decisions, learnings, patterns, security, testing, episodic
-    Entity types: (none)
-    
-  - software-engineering v1.0.0
-    Namespaces: architecture, components, incidents, migrations, dependencies
-    Entity types: component, architectural-decision, incident-report, technology, design-pattern, deployment-procedure, runbook, migration-guide
+  - mif-base v1.0.0
+    Namespaces: semantic/, semantic/decisions, semantic/knowledge, semantic/entities,
+                episodic/, episodic/incidents, episodic/sessions, episodic/blockers,
+                procedural/, procedural/runbooks, procedural/patterns, procedural/migrations
+    Traits: timestamped, confidence, provenance
+    Relationships: relates_to, supersedes, derived_from
+
+  - software-engineering v1.0.0 (extends mif-base)
+    Entity types: component, architectural-decision, incident-report, technology
 ```

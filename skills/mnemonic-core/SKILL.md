@@ -24,26 +24,26 @@ Memory system operations. See `references/` for full documentation.
 
 ### Capture Triggers (silently capture when user says):
 
-**Decisions** (namespace: decisions):
+**Decisions** (namespace: semantic/decisions):
 - "I've decided", "let's use", "we're going with"
 - "we'll use", "I'm choosing", "going forward with"
 - "the decision is", "we chose", "decided on"
 
-**Learnings** (namespace: learnings):
+**Learnings** (namespace: semantic/knowledge):
 - "I learned", "turns out", "discovered that"
 - "TIL", "gotcha", "found out", "realized"
 - "the root cause was", "it was because"
 
-**Patterns** (namespace: patterns):
+**Patterns** (namespace: procedural/patterns):
 - "always use", "never do", "when X do Y"
 - "the pattern is", "we should always", "convention is"
 - "standard approach", "best practice here"
 
-**Blockers** (namespace: blockers):
+**Blockers** (namespace: episodic/sessions/blockers):
 - "I'm stuck on", "blocked by", "can't figure out"
 - "hitting a wall", "the problem is", "struggling with"
 
-**Context** (namespace: context):
+**Context** (namespace: semantic/knowledge):
 - "important to know", "keep in mind", "context is"
 - "background", "constraint", "requirement"
 
@@ -69,7 +69,7 @@ When trigger phrases are detected:
 /mnemonic:capture {namespace} "{title}"
 ```
 
-Namespaces: `decisions` | `learnings` | `patterns` | `blockers` | `context` | `apis` | `security` | `testing` | `episodic`
+Namespaces: `semantic/decisions` | `semantic/knowledge` | `procedural/patterns` | `episodic/blockers` | `semantic/knowledge` | `semantic/knowledge` | `semantic/knowledge` | `procedural/patterns` | `episodic`
 
 ## Recall
 
