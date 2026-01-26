@@ -123,7 +123,8 @@ def memory_helper(test_session_id):
             slug = title.lower().replace(" ", "-")[:40]
 
             org = org or default_org
-            memory_dir = user_mnemonic / org / namespace / "user"
+            # Scope is implicit from base path - no /user/ suffix needed
+            memory_dir = user_mnemonic / org / namespace
             memory_dir.mkdir(parents=True, exist_ok=True)
 
             filepath = memory_dir / f"{memory_id}-{slug}.memory.md"
@@ -133,8 +134,9 @@ def memory_helper(test_session_id):
 id: {memory_id}
 title: "{title}"
 type: semantic
-namespace: {namespace}/user
+namespace: {namespace}
 created: {timestamp}
+confidence: 0.9
 tags: [test, {unique_id}, {test_session_id}]
 ---
 
