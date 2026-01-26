@@ -20,7 +20,7 @@
 A pure filesystem-based memory system for Claude Code. No external dependencies - all operations use standard Unix tools and Claude's native capabilities.
 
 <p align="center">
-  <img src=".github/readme-infographic-g.jpeg" alt="Mnemonic Architecture" width="800">
+  <img src=".github/readme-infographic.png" alt="Mnemonic Architecture" width="800">
 </p>
 
 > **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification for standardized AI memory storage and interchange. MIF defines a portable, human-readable format for persistent AI memories across different systems and agents.

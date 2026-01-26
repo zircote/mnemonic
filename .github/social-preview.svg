@@ -4,15 +4,15 @@
       <stop offset="0%" style="stop-color:#0d1117"/>
       <stop offset="100%" style="stop-color:#161b22"/>
     </linearGradient>
-    <linearGradient id="accent1" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="semantic" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#58a6ff"/>
       <stop offset="100%" style="stop-color:#1f6feb"/>
     </linearGradient>
-    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="episodic" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#7ee787"/>
       <stop offset="100%" style="stop-color:#238636"/>
     </linearGradient>
-    <linearGradient id="accent3" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="procedural" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#d2a8ff"/>
       <stop offset="100%" style="stop-color:#8957e5"/>
     </linearGradient>
@@ -21,44 +21,8 @@
   <!-- Background -->
   <rect width="1280" height="640" fill="url(#bg)"/>
 
-  <!-- Geometric memory nodes - representing interconnected memories -->
-  <!-- Central hexagon cluster -->
-  <g opacity="0.9">
-    <!-- Main hexagon -->
-    <polygon points="640,180 700,210 700,270 640,300 580,270 580,210" fill="url(#accent1)" opacity="0.8"/>
-    <!-- Connected hexagons -->
-    <polygon points="540,230 600,260 600,320 540,350 480,320 480,260" fill="url(#accent2)" opacity="0.6"/>
-    <polygon points="740,230 800,260 800,320 740,350 680,320 680,260" fill="url(#accent3)" opacity="0.6"/>
-    <polygon points="640,320 700,350 700,410 640,440 580,410 580,350" fill="url(#accent1)" opacity="0.5"/>
-  </g>
-
-  <!-- Connection lines -->
-  <g stroke="#58a6ff" stroke-width="2" opacity="0.4">
-    <line x1="640" y1="240" x2="540" y2="290"/>
-    <line x1="640" y1="240" x2="740" y2="290"/>
-    <line x1="640" y1="300" x2="640" y2="350"/>
-    <line x1="540" y1="320" x2="580" y2="350"/>
-    <line x1="740" y1="320" x2="700" y2="350"/>
-  </g>
-
-  <!-- Floating geometric shapes - representing memory types -->
-  <g opacity="0.5">
-    <!-- Semantic (circles) -->
-    <circle cx="200" cy="150" r="30" fill="url(#accent1)"/>
-    <circle cx="280" cy="200" r="20" fill="url(#accent1)" opacity="0.7"/>
-    <circle cx="160" cy="220" r="15" fill="url(#accent1)" opacity="0.5"/>
-
-    <!-- Episodic (squares) -->
-    <rect x="1000" y="120" width="50" height="50" rx="8" fill="url(#accent2)" transform="rotate(15 1025 145)"/>
-    <rect x="1080" y="180" width="35" height="35" rx="6" fill="url(#accent2)" opacity="0.7" transform="rotate(-10 1097 197)"/>
-
-    <!-- Procedural (triangles) -->
-    <polygon points="180,450 210,500 150,500" fill="url(#accent3)"/>
-    <polygon points="1100,420 1130,470 1070,470" fill="url(#accent3)" opacity="0.7"/>
-  </g>
-
   <!-- Grid pattern overlay -->
-  <g stroke="#30363d" stroke-width="1" opacity="0.3">
+  <g stroke="#30363d" stroke-width="1" opacity="0.15">
     <line x1="0" y1="160" x2="1280" y2="160"/>
     <line x1="0" y1="320" x2="1280" y2="320"/>
     <line x1="0" y1="480" x2="1280" y2="480"/>
@@ -67,23 +31,71 @@
     <line x1="960" y1="0" x2="960" y2="640"/>
   </g>
 
-  <!-- Data flow arrows -->
-  <g fill="none" stroke="#58a6ff" stroke-width="2" opacity="0.4">
-    <path d="M300,320 Q400,280 500,300" marker-end="url(#arrow)"/>
-    <path d="M780,300 Q880,280 980,320" marker-end="url(#arrow)"/>
+  <!-- Three memory type cards -->
+
+  <!-- SEMANTIC Card (left) -->
+  <g transform="translate(140, 120)">
+    <rect x="0" y="0" width="280" height="200" rx="12" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+    <circle cx="140" cy="60" r="35" fill="url(#semantic)" opacity="0.9"/>
+    <text x="140" y="120" font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#58a6ff" text-anchor="middle">SEMANTIC</text>
+    <text x="140" y="148" font-family="system-ui, sans-serif" font-size="13" fill="#8b949e" text-anchor="middle">Facts &amp; Knowledge</text>
+    <text x="140" y="175" font-family="monospace" font-size="11" fill="#6e7681" text-anchor="middle">decisions/ knowledge/ entities/</text>
+  </g>
+
+  <!-- EPISODIC Card (center) -->
+  <g transform="translate(500, 120)">
+    <rect x="0" y="0" width="280" height="200" rx="12" fill="#161b22" stroke="#7ee787" stroke-width="2"/>
+    <rect x="115" y="25" width="50" height="50" rx="8" fill="url(#episodic)" opacity="0.9"/>
+    <text x="140" y="120" font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#7ee787" text-anchor="middle">EPISODIC</text>
+    <text x="140" y="148" font-family="system-ui, sans-serif" font-size="13" fill="#8b949e" text-anchor="middle">Events &amp; Experiences</text>
+    <text x="140" y="175" font-family="monospace" font-size="11" fill="#6e7681" text-anchor="middle">incidents/ sessions/ blockers/</text>
+  </g>
+
+  <!-- PROCEDURAL Card (right) -->
+  <g transform="translate(860, 120)">
+    <rect x="0" y="0" width="280" height="200" rx="12" fill="#161b22" stroke="#d2a8ff" stroke-width="2"/>
+    <polygon points="140,20 175,75 105,75" fill="url(#procedural)" opacity="0.9"/>
+    <text x="140" y="120" font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#d2a8ff" text-anchor="middle">PROCEDURAL</text>
+    <text x="140" y="148" font-family="system-ui, sans-serif" font-size="13" fill="#8b949e" text-anchor="middle">Workflows &amp; Steps</text>
+    <text x="140" y="175" font-family="monospace" font-size="11" fill="#6e7681" text-anchor="middle">runbooks/ patterns/ migrations/</text>
+  </g>
+
+  <!-- Central Ontology badge -->
+  <g transform="translate(540, 350)">
+    <rect x="0" y="0" width="200" height="60" rx="30" fill="#21262d" stroke="#f0883e" stroke-width="2"/>
+    <text x="100" y="28" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#f0883e" text-anchor="middle">EXTENSIBLE</text>
+    <text x="100" y="46" font-family="system-ui, sans-serif" font-size="12" fill="#8b949e" text-anchor="middle">Ontologies</text>
   </g>
 
   <!-- Title -->
-  <text x="640" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="#f0f6fc" text-anchor="middle">mnemonic</text>
+  <text x="640" y="480" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="#f0f6fc" text-anchor="middle">mnemonic</text>
 
   <!-- Subtitle -->
-  <text x="640" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#8b949e" text-anchor="middle">Persistent Memory for Claude Code</text>
+  <text x="640" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#8b949e" text-anchor="middle">Cognitive Memory System for Claude Code</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(340, 570)">
+    <rect x="0" y="0" width="120" height="28" rx="14" fill="#238636" opacity="0.3"/>
+    <text x="60" y="19" font-family="system-ui, sans-serif" font-size="11" fill="#7ee787" text-anchor="middle">MIF Level 3</text>
+  </g>
+  <g transform="translate(480, 570)">
+    <rect x="0" y="0" width="120" height="28" rx="14" fill="#1f6feb" opacity="0.3"/>
+    <text x="60" y="19" font-family="system-ui, sans-serif" font-size="11" fill="#58a6ff" text-anchor="middle">Git Versioned</text>
+  </g>
+  <g transform="translate(620, 570)">
+    <rect x="0" y="0" width="120" height="28" rx="14" fill="#8957e5" opacity="0.3"/>
+    <text x="60" y="19" font-family="system-ui, sans-serif" font-size="11" fill="#d2a8ff" text-anchor="middle">Filesystem</text>
+  </g>
+  <g transform="translate(760, 570)">
+    <rect x="0" y="0" width="140" height="28" rx="14" fill="#f0883e" opacity="0.3"/>
+    <text x="70" y="19" font-family="system-ui, sans-serif" font-size="11" fill="#f0883e" text-anchor="middle">No Dependencies</text>
+  </g>
 
   <!-- Corner decorations -->
   <g opacity="0.3">
-    <rect x="20" y="20" width="80" height="4" rx="2" fill="#58a6ff"/>
-    <rect x="20" y="20" width="4" height="80" rx="2" fill="#58a6ff"/>
-    <rect x="1180" y="616" width="80" height="4" rx="2" fill="#58a6ff"/>
-    <rect x="1256" y="540" width="4" height="80" rx="2" fill="#58a6ff"/>
+    <rect x="20" y="20" width="60" height="3" rx="1.5" fill="#58a6ff"/>
+    <rect x="20" y="20" width="3" height="60" rx="1.5" fill="#58a6ff"/>
+    <rect x="1200" y="617" width="60" height="3" rx="1.5" fill="#58a6ff"/>
+    <rect x="1257" y="560" width="3" height="60" rx="1.5" fill="#58a6ff"/>
   </g>
 </svg>
