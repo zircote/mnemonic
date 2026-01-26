@@ -11,6 +11,11 @@ import subprocess
 from pathlib import Path
 import re
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 
 def get_org() -> str:
     """Get organization from git remote."""
@@ -84,52 +89,87 @@ def get_ontology_info() -> dict:
     info = {
         "loaded": False,
         "id": None,
+        "version": None,
         "namespaces": [],
         "entity_types": [],
-        "traits": [],
-        "relationships": [],
+        "traits": {},
+        "relationships": {},
         "discovery_enabled": False,
     }
 
-    # Check MIF base ontology first
-    mif_base = Path(__file__).parent.parent / "mif" / "ontologies" / "mif-base.ontology.yaml"
-    if mif_base.exists():
-        info["loaded"] = True
-        info["id"] = "mif-base"
-        info["source"] = "mif"
+    if not yaml:
+        return info
 
-    # Then check custom ontologies
+    # Search paths for MIF ontology
+    plugin_root = Path(__file__).parent.parent
     ontology_paths = [
+        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
+        plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
+    ]
+
+    mif_data = None
+    for ont_path in ontology_paths:
+        if ont_path.exists():
+            try:
+                with open(ont_path) as f:
+                    mif_data = yaml.safe_load(f)
+                info["loaded"] = True
+                info["source"] = str(ont_path)
+                break
+            except Exception:
+                continue
+
+    if mif_data:
+        if "ontology" in mif_data:
+            info["id"] = mif_data["ontology"].get("id")
+            info["version"] = mif_data["ontology"].get("version")
+        if "namespaces" in mif_data:
+            ns_list = []
+            _collect_namespaces(mif_data["namespaces"], "", ns_list)
+            info["namespaces"] = ns_list
+        if "entity_types" in mif_data:
+            ets = mif_data["entity_types"]
+            if isinstance(ets, list):
+                info["entity_types"] = [
+                    et.get("name") for et in ets if isinstance(et, dict)
+                ]
+        if "traits" in mif_data:
+            info["traits"] = mif_data["traits"]
+        if "relationships" in mif_data:
+            info["relationships"] = mif_data["relationships"]
+        if "discovery" in mif_data:
+            info["discovery_enabled"] = mif_data["discovery"].get("enabled", False)
+
+    # Also check custom ontologies (they extend MIF base)
+    custom_paths = [
         Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
         Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
     ]
 
-    for ont_path in ontology_paths:
+    for ont_path in custom_paths:
         if ont_path.exists():
             try:
-                import yaml
                 with open(ont_path) as f:
                     data = yaml.safe_load(f)
                 if data:
                     info["loaded"] = True
-                    info["path"] = str(ont_path)
+                    info["custom_path"] = str(ont_path)
                     if "ontology" in data:
-                        info["id"] = data["ontology"].get("id")
-                        info["version"] = data["ontology"].get("version")
+                        info["custom_id"] = data["ontology"].get("id")
                     if "namespaces" in data:
                         ns_list = []
                         _collect_namespaces(data["namespaces"], "", ns_list)
-                        info["namespaces"] = ns_list
+                        info["namespaces"].extend(ns_list)
                     if "entity_types" in data:
                         ets = data["entity_types"]
                         if isinstance(ets, list):
-                            info["entity_types"] = [et.get("name") for et in ets if isinstance(et, dict)]
-                    if "traits" in data:
-                        info["traits"] = list(data["traits"].keys())
-                    if "relationships" in data:
-                        info["relationships"] = list(data["relationships"].keys())
-                    if "discovery" in data:
-                        info["discovery_enabled"] = data["discovery"].get("enabled", False)
+                            info["entity_types"].extend(
+                                [et.get("name") for et in ets if isinstance(et, dict)]
+                            )
+                    if "traits" in data and isinstance(data["traits"], dict):
+                        info["traits"].update(data["traits"])
+                    if "relationships" in data and isinstance(data["relationships"], dict):
+                        info["relationships"].update(data["relationships"])
                     break
             except Exception:
                 pass
@@ -140,9 +180,14 @@ def get_ontology_info() -> dict:
 def count_memories_by_namespace(home: Path, org: str) -> dict:
     """Count memories by namespace with fast enumeration."""
     counts = {}
-    base_namespaces = ["decisions", "learnings", "patterns", "blockers", "context", "apis", "security", "testing", "episodic"]
+    # Hierarchical namespace leaf nodes (what we count)
+    leaf_namespaces = [
+        "decisions", "knowledge", "entities",
+        "incidents", "sessions", "blockers",
+        "runbooks", "patterns", "migrations",
+    ]
     custom_namespaces = load_ontology_namespaces()
-    namespaces = base_namespaces + custom_namespaces
+    all_namespaces = leaf_namespaces + custom_namespaces
 
     paths = [
         home / ".claude" / "mnemonic" / org,
@@ -156,7 +201,7 @@ def count_memories_by_namespace(home: Path, org: str) -> dict:
         for memory_file in base_path.rglob("*.memory.md"):
             parts = memory_file.parts
             for part in parts:
-                if part in namespaces:
+                if part in all_namespaces:
                     counts[part] = counts.get(part, 0) + 1
                     break
 
@@ -290,7 +335,7 @@ def find_project_relevant_memories(home: Path, org: str, project: str) -> list:
 
                 if f"/{project}" in header or f"project: {project}" in header.lower():
                     relevant.append(str(memory_file))
-                elif "namespace: decisions" in header or "namespace: patterns" in header:
+                elif "semantic/decisions" in header or "procedural/patterns" in header:
                     # Include key decision/pattern memories
                     relevant.append(str(memory_file))
 
@@ -319,10 +364,12 @@ def get_suggestions(health: dict, counts: dict) -> list:
     if health["score"] < 70:
         suggestions.append("Memory health is below optimal - maintenance recommended")
 
+    # Check hierarchical namespace counts
     total_decisions = counts.get("decisions", 0)
     total_patterns = counts.get("patterns", 0)
+    total_knowledge = counts.get("knowledge", 0)
 
-    if total_decisions > 20 or total_patterns > 15:
+    if total_decisions > 20 or total_patterns > 15 or total_knowledge > 30:
         suggestions.append("Consider recalling relevant decisions before architectural work")
 
     return suggestions
@@ -364,11 +411,20 @@ def main():
         context_lines.append(f"- Potential duplicates: {health['duplicates_possible']}")
 
     if ontology_info["loaded"]:
-        context_lines.append(f"- Ontology: {ontology_info.get('id', 'custom')} v{ontology_info.get('version', '?')}")
-        if ontology_info["namespaces"]:
-            context_lines.append(f"- Custom namespaces: {', '.join(ontology_info['namespaces'])}")
-        if ontology_info["entity_types"]:
-            context_lines.append(f"- Entity types: {', '.join(ontology_info['entity_types'][:5])}")
+        ont_id = ontology_info.get('id', 'custom')
+        ont_ver = ontology_info.get('version', '?')
+        context_lines.append(f"- Ontology: {ont_id} v{ont_ver}")
+        if ontology_info.get("discovery_enabled"):
+            context_lines.append("- Discovery patterns: enabled")
+        if ontology_info.get("entity_types"):
+            ets = ontology_info["entity_types"][:5]
+            context_lines.append(f"- Entity types: {', '.join(ets)}")
+        if ontology_info.get("traits"):
+            trait_names = list(ontology_info["traits"].keys())[:5]
+            context_lines.append(f"- Traits: {', '.join(trait_names)}")
+        if ontology_info.get("relationships"):
+            rel_names = list(ontology_info["relationships"].keys())[:5]
+            context_lines.append(f"- Relationships: {', '.join(rel_names)}")
 
     if blackboard["pending_items"] > 0:
         context_lines.append(f"- Blackboard pending: {blackboard['pending_items']} items")

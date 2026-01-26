@@ -8,12 +8,31 @@ Patterns are loaded from MIF ontology discovery configuration.
 
 import json
 import os
+import subprocess
 from pathlib import Path
 
 try:
     import yaml
 except ImportError:
     yaml = None
+
+
+def load_ontology_data() -> dict:
+    """Load full ontology data including relationships."""
+    plugin_root = Path(__file__).parent.parent
+    ontology_paths = [
+        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
+        plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
+    ]
+
+    for path in ontology_paths:
+        if path.exists() and yaml:
+            try:
+                with open(path) as f:
+                    return yaml.safe_load(f)
+            except Exception:
+                continue
+    return {}
 
 
 def load_file_patterns() -> list:
@@ -83,8 +102,51 @@ def detect_namespace_for_file(file_path: str, file_patterns: list) -> str:
         for pattern in config["patterns"]:
             if pattern in path_lower:
                 # Return first namespace as suggestion
-                return config["namespaces"][0] if config["namespaces"] else None
-    return None
+                return config["namespaces"][0] if config["namespaces"] else ""
+    return ""
+
+
+def find_related_memories(context: str) -> list:
+    """Find existing memories that might be related to current work."""
+    if not context:
+        return []
+
+    mnemonic_dir = Path.home() / ".claude" / "mnemonic"
+    if not mnemonic_dir.exists():
+        return []
+
+    try:
+        result = subprocess.run(
+            ["rg", "-i", "-l", context, "--glob", "*.memory.md", "--max-count", "1"],
+            capture_output=True,
+            text=True,
+            cwd=str(mnemonic_dir),
+            timeout=2
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip().split("\n")[:3]
+    except Exception:
+        pass
+    return []
+
+
+def get_relationship_suggestions(ontology_data: dict, context: str) -> str:
+    """Get relationship suggestions based on ontology."""
+    relationships = ontology_data.get("relationships", {})
+    if not relationships:
+        return ""
+
+    related = find_related_memories(context)
+    if not related:
+        return ""
+
+    rel_names = list(relationships.keys())
+    rel_str = ", ".join(rel_names[:3])
+    return (
+        f"\n**ENTITY LINKING:** Found {len(related)} related memories.\n"
+        f"Available relationships: {rel_str}\n"
+        f"Consider linking with `relates_to:` in frontmatter."
+    )
 
 
 def main():
@@ -98,6 +160,7 @@ def main():
         tool_input = {}
 
     context_message = None
+    ontology_data = load_ontology_data()
     file_patterns = load_file_patterns()
 
     # Check for significant Write/Edit operations
@@ -112,10 +175,15 @@ def main():
                 if not ns_hint:
                     ns_hint = "semantic/decisions or procedural/patterns"
 
+                # Extract context for relationship suggestions
+                file_context = Path(file_path).stem.replace("-", " ").replace("_", " ")
+                rel_suggestion = get_relationship_suggestions(ontology_data, file_context)
+
                 context_message = (
                     f"**CODE MODIFIED:** {file_path}\n"
                     f"Evaluate: Does this represent a pattern or decision?\n"
                     f"If yes → `/mnemonic:capture {ns_hint}` immediately."
+                    f"{rel_suggestion}"
                 )
 
     # Check for significant Bash operations
