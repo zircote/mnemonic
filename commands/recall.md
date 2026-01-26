@@ -1,6 +1,6 @@
 ---
 description: Recall memories with filtering and search
-argument-hint: "[query] [--namespace ns] [--tags tag1,tag2] [--since 7d] [--type semantic|episodic|procedural] [--scope user|project|all]"
+argument-hint: "[query] [--namespace ns] [--tags tag1,tag2] [--since 7d] [--type semantic|episodic|procedural] [--scope project|org|all]"
 allowed-tools:
   - Bash
   - Read
@@ -19,7 +19,7 @@ Search and recall memories from the mnemonic filesystem.
 - `--tags` - Filter by tags (comma-separated)
 - `--since` - Time filter (7d, 30d, 90d, 1y)
 - `--type` - Filter by cognitive type (semantic, episodic, procedural)
-- `--scope` - user, project, or all (default: all)
+- `--scope` - project, org, or all (default: all)
 - `--limit` - Maximum results (default: 10)
 - `--full` - Show full memory content instead of summary
 
@@ -46,15 +46,25 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 ```bash
 SEARCH_PATHS=""
 
+# Get project name from git remote or directory
+PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
+[ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
+
+# All memories are under ~/.claude/mnemonic/
+# Path structure:
+#   {org}/{project}/ - project-specific memories
+#   {org}/ - org-wide memories (shared across projects)
+#   default/ - fallback when org detection fails
 case "$SCOPE" in
-    user)
+    project)
+        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG/$PROJECT"
+        ;;
+    org)
         SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG"
         ;;
-    project)
-        SEARCH_PATHS="./.claude/mnemonic"
-        ;;
     all|*)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG ./.claude/mnemonic"
+        # Search project-specific, then org-wide, then default
+        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG/$PROJECT $HOME/.claude/mnemonic/$ORG $HOME/.claude/mnemonic/default"
         ;;
 esac
 

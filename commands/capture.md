@@ -1,6 +1,6 @@
 ---
 description: Capture a new memory
-argument-hint: "<namespace> <title> [--type semantic|episodic|procedural] [--tags tag1,tag2] [--scope user|project] [--citations JSON]"
+argument-hint: "<namespace> <title> [--type semantic|episodic|procedural] [--tags tag1,tag2] [--scope project|org] [--citations JSON]"
 allowed-tools:
   - Bash
   - Write
@@ -20,7 +20,7 @@ Capture a new memory to the mnemonic filesystem.
 - `<title>` - Required. Human-readable title for the memory
 - `--type` - Memory type: semantic (default), episodic, or procedural
 - `--tags` - Comma-separated list of tags
-- `--scope` - user (cross-project) or project (default, current codebase)
+- `--scope` - project (default, current project) or org (shared across all projects in organization)
 - `--confidence` - Confidence score 0.0-1.0 (default: 0.95)
 - `--citations` - JSON array of citation objects (see mnemonic-format skill for schema)
 - `--entity-type` - Entity type from ontology (e.g., technology, component, runbook)
@@ -82,13 +82,19 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 ### Step 4: Determine Path
 
 ```bash
-# Scope is implicit from base path:
-# - ./.claude/mnemonic/ = project scope
-# - ~/.claude/mnemonic/{org}/ = user scope
-if [ "$SCOPE" = "project" ]; then
-    MEMORY_DIR="./.claude/mnemonic/${NAMESPACE}"
-else
+# Get project name from git remote or directory
+PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
+[ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
+
+# All memories are stored under ~/.claude/mnemonic/
+# Path structure: {org}/{project}/{namespace}/ for project scope
+#                 {org}/{namespace}/ for org scope (when --scope org)
+if [ "$SCOPE" = "org" ]; then
+    # Org-wide memory (shared across projects in org)
     MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}"
+else
+    # Project-specific memory (default)
+    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${PROJECT}/${NAMESPACE}"
 fi
 
 mkdir -p "$MEMORY_DIR"
@@ -149,7 +155,7 @@ Ask the user to provide the memory content. This should include:
 ---
 id: {UUID}
 type: {TYPE}
-namespace: {NAMESPACE}/{SCOPE}
+namespace: {NAMESPACE}
 created: {DATE}
 modified: {DATE}
 title: "{TITLE}"

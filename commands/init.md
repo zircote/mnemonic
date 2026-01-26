@@ -1,6 +1,6 @@
 ---
 description: Initialize mnemonic directory structure
-argument-hint: "[--org <name>] [--project-only]"
+argument-hint: "[--org <name>]"
 allowed-tools:
   - Bash
   - Write
@@ -14,7 +14,6 @@ Initialize the mnemonic memory system directory structure.
 ## Arguments
 
 - `--org <name>` - Override auto-detected organization name
-- `--project-only` - Only create project-level structure, skip user-level
 
 ## Procedure
 
@@ -33,36 +32,39 @@ PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
 [ -z "$PROJECT" ] && PROJECT=$(basename "$PWD")
 ```
 
-### Step 2: Create User-Level Structure
+### Step 2: Create Unified Directory Structure
 
-Skip if `--project-only` is specified.
+All memories are stored under `~/.claude/mnemonic/` with the V2 path structure:
 
 ```bash
-# Namespaces
-for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"/{user,project}
+# Base directories
+mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"
+mkdir -p ~/.claude/mnemonic/"$ORG"  # For org-wide memories
+
+# Cognitive triad namespaces (project-specific)
+for ns in semantic/decisions semantic/knowledge semantic/entities \
+          episodic/incidents episodic/sessions episodic/blockers \
+          procedural/runbooks procedural/patterns procedural/migrations; do
+    mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/"$ns"
 done
 
-# Blackboard
-mkdir -p ~/.claude/mnemonic/.blackboard
+# Org-wide namespaces (shared across projects)
+for ns in semantic/decisions semantic/knowledge semantic/entities \
+          episodic/incidents episodic/sessions episodic/blockers \
+          procedural/runbooks procedural/patterns procedural/migrations; do
+    mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"
+done
+
+# Blackboard for session coordination (per-project)
+mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard
 
 # Initialize standard blackboard topics
-touch ~/.claude/mnemonic/.blackboard/active-tasks.md
-touch ~/.claude/mnemonic/.blackboard/session-notes.md
-touch ~/.claude/mnemonic/.blackboard/shared-context.md
+touch ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard/active-tasks.md
+touch ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard/session-notes.md
+touch ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard/shared-context.md
 ```
 
-### Step 3: Create Project-Level Structure
-
-```bash
-for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    mkdir -p ./.claude/mnemonic/"$ns"/project
-done
-
-mkdir -p ./.claude/mnemonic/.blackboard
-```
-
-### Step 4: Initialize Git Repository
+### Step 3: Initialize Git Repository
 
 ```bash
 if [ ! -d ~/.claude/mnemonic/.git ]; then
@@ -89,62 +91,25 @@ EOF
 fi
 ```
 
-### Step 5: Create/Update Project CLAUDE.md
-
-Add mnemonic instructions to the project's CLAUDE.md file.
-
-```bash
-mkdir -p ./.claude
-
-# Check if CLAUDE.md exists and has mnemonic section
-if [ -f ./.claude/CLAUDE.md ]; then
-    if ! grep -q "## Mnemonic" ./.claude/CLAUDE.md; then
-        # Append mnemonic section
-        cat >> ./.claude/CLAUDE.md << 'EOF'
-
----
-
-## Mnemonic
-
-This project uses mnemonic for persistent memory.
-
-- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
-- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
-- See `~/.claude/CLAUDE.md` for full protocol
-EOF
-        echo "Added mnemonic section to existing .claude/CLAUDE.md"
-    else
-        echo "Mnemonic section already exists in .claude/CLAUDE.md"
-    fi
-else
-    # Create new CLAUDE.md with mnemonic section
-    cat > ./.claude/CLAUDE.md << 'EOF'
-# Project Instructions
-
-## Mnemonic
-
-This project uses mnemonic for persistent memory.
-
-- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
-- Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
-- See `~/.claude/CLAUDE.md` for full protocol
-EOF
-    echo "Created .claude/CLAUDE.md with mnemonic section"
-fi
-```
-
-### Step 6: Verify Structure
+### Step 4: Verify Structure
 
 ```bash
 echo "=== Mnemonic Initialized ==="
 echo "Organization: $ORG"
 echo "Project: $PROJECT"
 echo ""
-echo "User-level: ~/.claude/mnemonic/$ORG/"
-echo "Project-level: ./.claude/mnemonic/"
+echo "Memory path: ~/.claude/mnemonic/$ORG/$PROJECT/"
 echo ""
 echo "Namespaces:"
-ls -1 ~/.claude/mnemonic/"$ORG"/ 2>/dev/null | grep -v "^\."
+echo "  semantic/decisions   - Architectural choices"
+echo "  semantic/knowledge   - APIs, context, learnings"
+echo "  semantic/entities    - Entity definitions"
+echo "  episodic/incidents   - Production issues"
+echo "  episodic/sessions    - Debug sessions"
+echo "  episodic/blockers    - Impediments"
+echo "  procedural/runbooks  - Operational procedures"
+echo "  procedural/patterns  - Code conventions"
+echo "  procedural/migrations - Migration steps"
 ```
 
 ## Output
@@ -152,7 +117,6 @@ ls -1 ~/.claude/mnemonic/"$ORG"/ 2>/dev/null | grep -v "^\."
 Display:
 - Detected/configured organization
 - Detected project name
-- Created directory paths
-- Namespace list
-- CLAUDE.md status
+- Memory path (unified under ~/.claude/mnemonic/)
+- Namespace list with descriptions
 - Git status
