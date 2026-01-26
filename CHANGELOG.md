@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **[Code Quality]**: Simplified functional test infrastructure
+  - Extracted `ClaudeRunner` and `MemoryHelper` classes to module level
+  - Extracted `NAMESPACE_MAP` and `MEMORY_WRITE_DELAY` constants
+  - Replaced debug prints with `logging.debug()`
+  - Simplified verbose GIVEN/WHEN/THEN docstrings to concise single-line format
+  - Improved assertion messages with expected vs actual context
+
+- **[Scripts]**: Improved migration and repair scripts
+  - `migrate_scope_paths.py`: Returns `(migrations, errors)` tuple for better error handling
+  - `fix_malformed_memories.py`: Extracted `_format_yaml_field` helper, replaced conditional chains with dict mapping
+  - Removed unused `current_key` variable from YAML parser
+
+- **[Hooks]**: Refined `user_prompt_submit.py`
+  - Simplified `detect_triggers()` using `any()` pattern
+  - Use specific exception types (`yaml.YAMLError`, `OSError`, `subprocess.SubprocessError`)
+
+### Fixed
+
+- **[Git History]**: Purged `.fastembed_cache/` directories from repository history
+
 ### Planned
 
 - Semantic search with embeddings
