@@ -472,7 +472,7 @@ The real power comes from combining structured queries with rg:
 
 ```bash
 # Find security decisions mentioning passwords
-mnemonic-query --namespace "decisions/*" --tag security | xargs rg "password"
+mnemonic-query --namespace "semantic/decisions" --tag security | xargs rg "password"
 
 # Find high-confidence memories about authentication
 mnemonic-query --confidence ">0.8" | xargs rg -i "auth"

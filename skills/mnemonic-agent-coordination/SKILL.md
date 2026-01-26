@@ -208,8 +208,8 @@ Execute search iteration 2 for query "authentication"
   "query": "authentication",
   "iteration": 2,
   "previous_findings": 5,
-  "namespaces_searched": ["decisions"],
-  "namespaces_remaining": ["patterns", "security"]
+  "namespaces_searched": ["semantic/decisions"],
+  "namespaces_remaining": ["procedural/patterns", "semantic/knowledge"]
 }
 ```
 

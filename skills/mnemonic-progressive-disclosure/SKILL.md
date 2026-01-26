@@ -221,4 +221,4 @@ Expand to higher detail level automatically when:
 2. **Offer expansion** - Let user know more detail is available
 3. **Cite the memory** - Reference the memory file for traceability
 4. **Check for updates** - Note if memory has low confidence or is old
-5. **Search multiple namespaces** - Decisions, patterns, and learnings may all be relevant
+5. **Search multiple namespaces** - semantic/decisions, procedural/patterns, and semantic/knowledge may all be relevant
