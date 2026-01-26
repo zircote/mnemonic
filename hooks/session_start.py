@@ -7,18 +7,52 @@ Claude sees this context and may use it to inform decisions about memory operati
 """
 
 import json
-import subprocess
-from pathlib import Path
 import re
+import sys
+from pathlib import Path
+
+# Add project root to path for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 try:
     import yaml
 except ImportError:
     yaml = None
 
+# Import path resolution from lib
+try:
+    from lib.paths import PathResolver, PathContext, PathScheme, Scope
+    USE_LIB_PATHS = True
+except ImportError:
+    USE_LIB_PATHS = False
+
+
+def _get_path_resolver() -> "PathResolver | None":
+    """Get a PathResolver instance, returning None if lib not available."""
+    if not USE_LIB_PATHS:
+        return None
+    # Use V2 scheme - unified path structure
+    context = PathContext.detect(scheme=PathScheme.V2)
+    return PathResolver(context)
+
+
+def _get_legacy_paths(home: Path, org: str) -> list:
+    """Get memory paths using legacy hardcoded logic (fallback)."""
+    return [
+        home / ".claude" / "mnemonic" / org,
+        home / ".claude" / "mnemonic" / "default",
+        Path.cwd() / ".claude" / "mnemonic",
+    ]
+
 
 def get_org() -> str:
-    """Get organization from git remote."""
+    """Get organization from PathResolver or git remote."""
+    resolver = _get_path_resolver()
+    if resolver:
+        return resolver.context.org
+
+    # Fallback to git detection
+    import subprocess
     try:
         result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
@@ -35,7 +69,13 @@ def get_org() -> str:
 
 
 def get_project_name() -> str:
-    """Get project name from git or directory."""
+    """Get project name from PathResolver or git/directory."""
+    resolver = _get_path_resolver()
+    if resolver:
+        return resolver.context.project
+
+    # Fallback to git detection
+    import subprocess
     try:
         result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
@@ -44,6 +84,33 @@ def get_project_name() -> str:
     except Exception:
         pass
     return Path.cwd().name
+
+
+def get_memory_roots() -> list:
+    """Get all memory root paths using PathResolver or legacy logic."""
+    resolver = _get_path_resolver()
+    if resolver:
+        roots = resolver.get_all_memory_roots()
+        # Also check legacy paths during migration period
+        legacy_roots = _get_legacy_paths(Path.home(), resolver.context.org)
+        return list(set(roots + [p for p in legacy_roots if p.exists()]))
+
+    # Fallback to legacy logic
+    org = get_org()
+    return [p for p in _get_legacy_paths(Path.home(), org) if p.exists()]
+
+
+def get_blackboard_path() -> Path:
+    """Get blackboard directory using PathResolver or legacy logic."""
+    resolver = _get_path_resolver()
+    if resolver:
+        return resolver.get_blackboard_dir(Scope.PROJECT)
+
+    # Fallback - check project first, then user level
+    project_bb = Path.cwd() / ".claude" / "mnemonic" / ".blackboard"
+    if project_bb.exists():
+        return project_bb
+    return Path.home() / ".claude" / "mnemonic" / ".blackboard"
 
 
 def load_ontology_namespaces() -> list:
@@ -56,10 +123,16 @@ def load_ontology_namespaces() -> list:
     ]
 
     custom_namespaces = []
-    ontology_paths = [
-        Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
-        Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
-    ]
+
+    # Get ontology paths from resolver or use defaults
+    resolver = _get_path_resolver()
+    if resolver:
+        ontology_paths = resolver.get_ontology_paths()
+    else:
+        ontology_paths = [
+            Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
+            Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
+        ]
 
     for ont_path in ontology_paths:
         if ont_path.exists():
@@ -141,10 +214,14 @@ def get_ontology_info() -> dict:
             info["discovery_enabled"] = mif_data["discovery"].get("enabled", False)
 
     # Also check custom ontologies (they extend MIF base)
-    custom_paths = [
-        Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
-        Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
-    ]
+    resolver = _get_path_resolver()
+    if resolver:
+        custom_paths = resolver.get_ontology_paths()
+    else:
+        custom_paths = [
+            Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
+            Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
+        ]
 
     for ont_path in custom_paths:
         if ont_path.exists():
@@ -177,7 +254,7 @@ def get_ontology_info() -> dict:
     return info
 
 
-def count_memories_by_namespace(home: Path, org: str) -> dict:
+def count_memories_by_namespace() -> dict:
     """Count memories by namespace with fast enumeration."""
     counts = {}
     # Hierarchical namespace leaf nodes (what we count)
@@ -189,13 +266,10 @@ def count_memories_by_namespace(home: Path, org: str) -> dict:
     custom_namespaces = load_ontology_namespaces()
     all_namespaces = leaf_namespaces + custom_namespaces
 
-    paths = [
-        home / ".claude" / "mnemonic" / org,
-        home / ".claude" / "mnemonic" / "default",
-        Path.cwd() / ".claude" / "mnemonic",
-    ]
+    # Get paths using PathResolver or legacy logic
+    memory_roots = get_memory_roots()
 
-    for base_path in paths:
+    for base_path in memory_roots:
         if not base_path.exists():
             continue
         for memory_file in base_path.rglob("*.memory.md"):
@@ -208,20 +282,17 @@ def count_memories_by_namespace(home: Path, org: str) -> dict:
     return counts
 
 
-def calculate_memory_health(home: Path, org: str) -> dict:
+def calculate_memory_health() -> dict:
     """Calculate memory health metrics (fast heuristics)."""
     total = 0
     decayed = 0
     duplicates_possible = 0
     titles_seen = {}
 
-    paths = [
-        home / ".claude" / "mnemonic" / org,
-        home / ".claude" / "mnemonic" / "default",
-        Path.cwd() / ".claude" / "mnemonic",
-    ]
+    # Get paths using PathResolver or legacy logic
+    memory_roots = get_memory_roots()
 
-    for base_path in paths:
+    for base_path in memory_roots:
         if not base_path.exists():
             continue
         for memory_file in base_path.rglob("*.memory.md"):
@@ -263,9 +334,9 @@ def calculate_memory_health(home: Path, org: str) -> dict:
     }
 
 
-def check_blackboard(home: Path) -> dict:
+def check_blackboard() -> dict:
     """Check blackboard for pending items."""
-    bb_dir = home / ".claude" / "mnemonic" / ".blackboard"
+    bb_dir = get_blackboard_path()
     pending = 0
     if bb_dir.exists():
         for _ in bb_dir.glob("*.md"):
@@ -273,9 +344,9 @@ def check_blackboard(home: Path) -> dict:
     return {"pending_items": pending}
 
 
-def get_blackboard_summaries(home: Path) -> dict:
+def get_blackboard_summaries() -> dict:
     """Get summaries of key blackboard files for session context."""
-    bb_dir = home / ".claude" / "mnemonic" / ".blackboard"
+    bb_dir = get_blackboard_path()
     summaries = {}
 
     key_files = ["active-tasks.md", "pending-decisions.md", "session-notes.md"]
@@ -307,19 +378,17 @@ def get_blackboard_summaries(home: Path) -> dict:
     return summaries
 
 
-def find_project_relevant_memories(home: Path, org: str, project: str) -> list:
+def find_project_relevant_memories(project: str) -> list:
     """Find memories likely relevant to current project."""
     relevant = []
-    paths = [
-        home / ".claude" / "mnemonic" / org,
-        home / ".claude" / "mnemonic" / "default",
-        Path.cwd() / ".claude" / "mnemonic",
-    ]
+
+    # Get paths using PathResolver or legacy logic
+    memory_roots = get_memory_roots()
 
     # Look for memories mentioning project name or in project namespace
     project_lower = project.lower()
 
-    for base_path in paths:
+    for base_path in memory_roots:
         if not base_path.exists():
             continue
         for memory_file in base_path.rglob("*.memory.md"):
@@ -376,15 +445,14 @@ def get_suggestions(health: dict, counts: dict) -> list:
 
 
 def main():
-    home = Path.home()
     org = get_org()
     project = get_project_name()
 
-    counts = count_memories_by_namespace(home, org)
-    health = calculate_memory_health(home, org)
-    blackboard = check_blackboard(home)
-    bb_summaries = get_blackboard_summaries(home)
-    relevant_memories = find_project_relevant_memories(home, org, project)
+    counts = count_memories_by_namespace()
+    health = calculate_memory_health()
+    blackboard = check_blackboard()
+    bb_summaries = get_blackboard_summaries()
+    relevant_memories = find_project_relevant_memories(project)
     ontology_info = get_ontology_info()
     suggestions = get_suggestions(health, counts)
 

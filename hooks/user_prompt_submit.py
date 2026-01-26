@@ -13,10 +13,49 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Add project root to path for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 try:
     import yaml
 except ImportError:
     yaml = None
+
+# Import path resolution from lib
+try:
+    from lib.paths import PathResolver, PathContext, PathScheme
+    USE_LIB_PATHS = True
+except ImportError:
+    USE_LIB_PATHS = False
+
+
+def _get_path_resolver() -> "PathResolver | None":
+    """Get a PathResolver instance, returning None if lib not available."""
+    if not USE_LIB_PATHS:
+        return None
+    # Use V2 scheme - unified path structure
+    context = PathContext.detect(scheme=PathScheme.V2)
+    return PathResolver(context)
+
+
+def _get_memory_roots() -> list:
+    """Get all memory root paths for searching."""
+    resolver = _get_path_resolver()
+    if resolver:
+        roots = resolver.get_all_memory_roots()
+        # Also check legacy paths during migration period
+        home = Path.home()
+        org = resolver.context.org
+        legacy_roots = [
+            home / ".claude" / "mnemonic" / org,
+            home / ".claude" / "mnemonic" / "default",
+            Path.cwd() / ".claude" / "mnemonic",
+        ]
+        return list(set(roots + [p for p in legacy_roots if p.exists()]))
+
+    # Fallback to default path
+    mnemonic_dir = Path.home() / ".claude" / "mnemonic"
+    return [mnemonic_dir] if mnemonic_dir.exists() else []
 
 
 def load_ontology_patterns() -> dict:
@@ -134,30 +173,47 @@ def search_memories(topic: str) -> list:
     if not topic:
         return []
 
-    mnemonic_dir = Path.home() / ".claude" / "mnemonic"
-    if not mnemonic_dir.exists():
+    memory_roots = _get_memory_roots()
+    if not memory_roots:
         return []
 
-    try:
-        result = subprocess.run(
-            ["rg", "-i", "-l", topic, "--glob", "*.memory.md"],
-            capture_output=True,
-            text=True,
-            cwd=str(mnemonic_dir),
-            timeout=2
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip().split("\n")[:3]
-    except Exception:
-        pass
-    return []
+    results = []
+    for mnemonic_dir in memory_roots:
+        if not mnemonic_dir.exists():
+            continue
+        try:
+            result = subprocess.run(
+                ["rg", "-i", "-l", topic, "--glob", "*.memory.md"],
+                capture_output=True,
+                text=True,
+                cwd=str(mnemonic_dir),
+                timeout=2
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                # Prefix paths with their root directory
+                for rel_path in result.stdout.strip().split("\n"):
+                    results.append(str(mnemonic_dir / rel_path))
+                    if len(results) >= 3:
+                        break
+        except Exception:
+            pass
+        if len(results) >= 3:
+            break
+    return results[:3]
 
 
 def get_memory_title(memory_path: str) -> str:
     """Get title from a memory file."""
     try:
-        mnemonic_dir = Path.home() / ".claude" / "mnemonic"
-        with open(mnemonic_dir / memory_path, 'r') as f:
+        full_path = Path(memory_path)
+        if not full_path.is_absolute():
+            # Search in memory roots
+            for root in _get_memory_roots():
+                candidate = root / memory_path
+                if candidate.exists():
+                    full_path = candidate
+                    break
+        with open(full_path, 'r') as f:
             content = f.read(500)
         match = re.search(r'title:\s*["\']?([^"\'\n]+)', content)
         if match:
