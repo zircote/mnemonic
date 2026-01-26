@@ -24,8 +24,11 @@ class TestFullWorkflow:
         """
         unique_id = f"workflow-{uuid4().hex[:8]}"
 
-        # First call: make a decision
-        capture_prompt = f"Decision: We'll use FastAPI ({unique_id}) for the backend API. Acknowledge."
+        # First call: make a decision (explicitly ask to capture)
+        capture_prompt = (
+            f"I've decided we'll use FastAPI ({unique_id}) for the backend API. "
+            f"Please capture this decision to memory."
+        )
         claude_runner.run(capture_prompt)
 
         time.sleep(2)
@@ -57,8 +60,11 @@ class TestFullWorkflow:
         """
         unique_id = f"learn-{uuid4().hex[:8]}"
 
-        # Share a learning
-        learn_prompt = f"I learned that service-{unique_id} requires authentication. Acknowledge."
+        # Share a learning (explicitly ask to capture)
+        learn_prompt = (
+            f"I learned that service-{unique_id} requires authentication. "
+            f"Please capture this learning to memory."
+        )
         claude_runner.run(learn_prompt)
 
         time.sleep(2)
@@ -85,8 +91,8 @@ class TestNoDuplication:
         """
         unique_id = f"nodup-{uuid4().hex[:8]}"
 
-        # First statement
-        prompt1 = f"We'll use {unique_id} for caching. Acknowledge."
+        # First statement (explicitly capture)
+        prompt1 = f"I've decided we'll use {unique_id} for caching. Please capture this decision."
         claude_runner.run(prompt1)
 
         time.sleep(2)
@@ -95,8 +101,8 @@ class TestNoDuplication:
         memories_after_first = memory_helper.find_with_content(unique_id)
         count_after_first = len(memories_after_first)
 
-        # Second statement (same topic)
-        prompt2 = f"Yes, {unique_id} is definitely the right choice for caching. Acknowledge."
+        # Second statement (same topic - should detect duplicate)
+        prompt2 = f"Yes, {unique_id} is definitely the right choice for caching. Capture this decision."
         claude_runner.run(prompt2)
 
         time.sleep(2)
@@ -125,8 +131,8 @@ class TestMemoryPersistence:
         """
         unique_id = f"persist-{uuid4().hex[:8]}"
 
-        # Create in first call
-        claude_runner.run(f"Decision: use framework-{unique_id}. Acknowledge.")
+        # Create in first call (explicitly capture)
+        claude_runner.run(f"I've decided to use framework-{unique_id}. Please capture this decision.")
 
         time.sleep(2)
 
