@@ -22,3 +22,4 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+.claude/tests/.fastembed_cache/
