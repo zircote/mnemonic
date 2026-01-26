@@ -119,12 +119,14 @@ Location: `./.claude/mnemonic/`
 
 | Scope | Location | Use Case |
 |-------|----------|----------|
-| `user/` | `~/.claude/mnemonic/{org}/{ns}/user/` | Personal knowledge, cross-project |
-| `project/` | `./.claude/mnemonic/{ns}/project/` | Specific to current codebase |
+| user | `~/.claude/mnemonic/{org}/{namespace}/` | Personal knowledge, cross-project |
+| project | `./.claude/mnemonic/{namespace}/` | Specific to current codebase |
+
+**Scope is implicit from base path** - no `/user/` or `/project/` subdirectories needed.
 
 **Guidelines:**
-- Use `user/` for reusable knowledge (personal patterns, general learnings)
-- Use `project/` for codebase-specific information (architecture decisions, local patterns)
+- Use `user` scope for reusable knowledge (personal patterns, general learnings)
+- Use `project` scope for codebase-specific information (architecture decisions, local patterns)
 
 ---
 

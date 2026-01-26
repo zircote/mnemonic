@@ -82,10 +82,13 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 ### Step 4: Determine Path
 
 ```bash
+# Scope is implicit from base path:
+# - ./.claude/mnemonic/ = project scope
+# - ~/.claude/mnemonic/{org}/ = user scope
 if [ "$SCOPE" = "project" ]; then
-    MEMORY_DIR="./.claude/mnemonic/${NAMESPACE}/project"
+    MEMORY_DIR="./.claude/mnemonic/${NAMESPACE}"
 else
-    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}/user"
+    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}"
 fi
 
 mkdir -p "$MEMORY_DIR"
