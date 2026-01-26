@@ -80,34 +80,46 @@ claude settings plugins add /path/to/mnemonic
 
 ## Directory Structure
 
-**User-level** (`~/.claude/mnemonic/{org}/`):
+All memories are stored under `~/.claude/mnemonic/` with a unified path structure:
+
 ```
-~/.claude/mnemonic/{org}/
-├── apis/user/           # API documentation
-├── blockers/user/       # Issues, impediments
-├── context/user/        # Background information
-├── decisions/user/      # Architectural choices
-├── learnings/user/      # Insights, discoveries
-├── patterns/user/       # Code conventions
-├── security/user/       # Security policies
-├── testing/user/        # Test strategies
-├── episodic/user/       # Events, experiences
-└── .blackboard/         # Cross-session coordination
+~/.claude/mnemonic/
+├── default/                           # Fallback when org detection fails
+│   └── {namespace}/                   # Cognitive triad namespaces
+├── {org}/                             # Organization-level
+│   ├── semantic/                      # Org-wide facts/knowledge
+│   │   ├── decisions/
+│   │   ├── knowledge/
+│   │   └── entities/
+│   ├── episodic/                      # Org-wide events
+│   │   ├── incidents/
+│   │   ├── sessions/
+│   │   └── blockers/
+│   ├── procedural/                    # Org-wide procedures
+│   │   ├── runbooks/
+│   │   ├── patterns/
+│   │   └── migrations/
+│   └── {project}/                     # Project-specific memories
+│       ├── semantic/
+│       │   ├── decisions/
+│       │   ├── knowledge/
+│       │   └── entities/
+│       ├── episodic/
+│       │   ├── incidents/
+│       │   ├── sessions/
+│       │   └── blockers/
+│       ├── procedural/
+│       │   ├── runbooks/
+│       │   ├── patterns/
+│       │   └── migrations/
+│       └── .blackboard/               # Project session coordination
+└── .git/                              # Version control
 ```
 
-**Project-level** (`./.claude/mnemonic/`):
-```
-./.claude/mnemonic/
-├── apis/project/
-├── blockers/project/
-├── decisions/project/
-├── learnings/project/
-├── patterns/project/
-├── security/project/
-├── testing/project/
-├── episodic/project/
-└── .blackboard/
-```
+**Memory scope hierarchy:**
+- `{org}/{project}/` - Project-specific memories (default)
+- `{org}/` - Organization-wide memories (shared across projects)
+- `default/` - Fallback when org cannot be detected
 
 ## Memory Format (MIF Level 3)
 

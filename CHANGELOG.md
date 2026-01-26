@@ -7,7 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **[Path Resolution Library]**: Centralized path management in `lib/paths.py`
+  - `PathResolver` class with V2 unified path scheme
+  - `PathContext` dataclass for context detection (org, project, home, scheme)
+  - `PathScheme` enum (LEGACY, V2) for migration support
+  - `Scope` enum (USER, PROJECT, ORG) for memory scoping
+  - Convenience functions: `get_memory_dir()`, `get_search_paths()`, `get_blackboard_dir()`
+  - 26 unit tests in `tests/unit/test_paths.py`
+
+- **[Migration Script]**: `scripts/migrate_to_v2_paths.py`
+  - Migrates memories from dual-location (LEGACY) to unified (V2) path structure
+  - Automatic backup creation before migration
+  - Rollback capability
+  - `--dry-run` mode for previewing changes
+  - Progress tracking and git commit of changes
+
 ### Changed
+
+- **[Unified Path Structure]**: All memories now stored under `~/.claude/mnemonic/`
+  - Eliminates "split brain" between user-level and project-level storage
+  - New structure: `{org}/{project}/{namespace}/` for project-specific memories
+  - Org-wide: `{org}/{namespace}/` for memories shared across projects
+  - Fallback: `default/{namespace}/` when org detection fails
+  - Single git repository for all memories
+
+- **[Hooks]**: Updated to use PathResolver
+  - `session_start.py`: Uses PathResolver for path resolution with LEGACY fallback
+  - `user_prompt_submit.py`: Uses PathResolver for memory search paths
+  - Hooks check both V2 and LEGACY paths during migration period
+
+- **[Commands]**: Updated scope options
+  - `capture.md`: `--scope project|org` (was `user|project`)
+  - `recall.md`: `--scope project|org|all` (was `user|project|all`)
 
 - **[Code Quality]**: Simplified functional test infrastructure
   - Extracted `ClaudeRunner` and `MemoryHelper` classes to module level
@@ -28,6 +61,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **[Git History]**: Purged `.fastembed_cache/` directories from repository history
+
+### Migration Guide
+
+To migrate existing memories to the unified path structure:
+
+```bash
+# Preview changes
+python scripts/migrate_to_v2_paths.py --dry-run
+
+# Execute migration (creates backup automatically)
+python scripts/migrate_to_v2_paths.py
+
+# Rollback if needed
+python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/legacy_backup_TIMESTAMP
+```
 
 ### Planned
 
