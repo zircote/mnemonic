@@ -10,7 +10,7 @@ Always search for existing memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # Check patterns
 rg -i "pattern" ~/.claude/mnemonic/*/patterns/

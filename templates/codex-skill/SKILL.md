@@ -10,7 +10,7 @@ This skill provides access to the Mnemonic memory system for persistent context 
 ## Memory Locations
 
 - **Global**: `~/.claude/mnemonic/{org}/{namespace}/`
-- **Project**: `./.claude/mnemonic/{namespace}/`
+- **Project**: `~/.claude/mnemonic/{namespace}/`
 
 ## Commands
 
@@ -18,13 +18,13 @@ This skill provides access to the Mnemonic memory system for persistent context 
 
 ```bash
 # By topic
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # By namespace
 ls ~/.claude/mnemonic/default/{decisions,learnings,patterns}/user/
 
 # By tag (in frontmatter)
-rg "tags:.*<tag>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg "tags:.*<tag>" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # Recent memories
 find ~/.claude/mnemonic -name "*.memory.md" -mtime -7

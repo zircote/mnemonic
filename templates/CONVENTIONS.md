@@ -10,7 +10,7 @@ Always search for relevant memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # Check decisions
 rg -i "<topic>" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md"

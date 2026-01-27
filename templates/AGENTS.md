@@ -12,7 +12,7 @@ Search for relevant memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # Check specific namespaces
 rg -i "<topic>" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md"
@@ -121,6 +121,6 @@ EOF
 ## Memory Locations
 
 - **Global**: `~/.claude/mnemonic/{org}/{namespace}/`
-- **Project**: `./.claude/mnemonic/{namespace}/`
+- **Project**: `~/.claude/mnemonic/{namespace}/`
 
 Use global for cross-project knowledge, project-local for project-specific context.

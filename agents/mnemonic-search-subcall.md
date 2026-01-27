@@ -197,7 +197,7 @@ For query "What do we know about authentication?" on iteration 1:
   "files_matched": 5,
   "findings": [
     {
-      "file": "./.claude/mnemonic/decisions/project/abc123-use-jwt-auth.memory.md",
+      "file": "~/.claude/mnemonic/semantic/decisions/abc123-use-jwt-auth.memory.md",
       "id": "abc123",
       "title": "Use JWT for API Authentication",
       "namespace": "decisions/project",
@@ -208,7 +208,7 @@ For query "What do we know about authentication?" on iteration 1:
       "citations_count": 0
     },
     {
-      "file": "./.claude/mnemonic/patterns/project/def456-auth-middleware.memory.md",
+      "file": "~/.claude/mnemonic/procedural/patterns/def456-auth-middleware.memory.md",
       "id": "def456",
       "title": "Authentication Middleware Pattern",
       "namespace": "patterns/project",
