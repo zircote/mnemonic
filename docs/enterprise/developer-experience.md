@@ -24,7 +24,7 @@ Mnemonic collects nothing:
 
 ```
 ~/.claude/mnemonic/          # Your memories
-./.claude/mnemonic/          # Project memories (optional)
+~/.claude/mnemonic/          # Project memories (optional)
 ```
 
 That's it. Plain files on your filesystem.

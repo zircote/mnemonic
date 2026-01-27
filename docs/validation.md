@@ -45,7 +45,7 @@ Options:
 
 If no path is specified, the tool searches:
 1. `~/.claude/mnemonic/` (global memories)
-2. `./.claude/mnemonic/` (project memories)
+2. `~/.claude/mnemonic/` (project memories)
 
 ## Validation Checks
 

@@ -38,13 +38,13 @@ description: Capture and recall memories using the MIF Level 3 filesystem memory
 
 ## Memory Locations
 - Global: `~/.claude/mnemonic/{org}/{namespace}/`
-- Project: `./.claude/mnemonic/{namespace}/`
+- Project: `~/.claude/mnemonic/{namespace}/`
 
 ## Commands
 
 ### Recall Memories
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 ### Capture Memory

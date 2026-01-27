@@ -311,16 +311,16 @@ After running `/mnemonic:setup`, Claude will:
 
 ```bash
 # Full-text search
-rg -i "authentication" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "authentication" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # By namespace
-rg "pattern" ~/.claude/mnemonic/*/decisions/ ./.claude/mnemonic/decisions/project/ --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md"
 
 # By tag
-rg -l "^  - security" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^  - security" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # By type
-rg "^type: episodic" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: episodic" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 # Recent files (last 7 days)
 find ~/.claude/mnemonic -name "*.memory.md" -mtime -7

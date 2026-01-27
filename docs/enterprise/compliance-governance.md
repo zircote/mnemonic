@@ -64,7 +64,7 @@ All data stays on your infrastructure:
 
 ```
 ~/.claude/mnemonic/           # User-level memories
-./.claude/mnemonic/           # Project-level memories
+~/.claude/mnemonic/           # Project-level memories
 ```
 
 **No external dependencies:**

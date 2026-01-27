@@ -116,7 +116,7 @@ Add to agents/skills that **make decisions or research**:
 ```markdown
 ## Memory
 
-Before starting: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+Before starting: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 After completing: `/mnemonic:capture {namespace} "{title}"`
 ```
 
@@ -127,7 +127,7 @@ For components that both research AND create:
 ```markdown
 ## Memory
 
-Search first: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+Search first: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 Capture after: `/mnemonic:capture {namespace} "{title}"`
 ```
 

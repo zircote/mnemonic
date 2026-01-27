@@ -42,7 +42,7 @@ These principles are grounded in both empirical research and theoretical foundat
 │  │              Filesystem (.memory.md files)           │   │
 │  │  ┌─────────────────┐    ┌─────────────────────────┐  │   │
 │  │  │  User-Level     │    │  Project-Level          │  │   │
-│  │  │  ~/.claude/     │    │  ./.claude/mnemonic/    │  │   │
+│  │  │  ~/.claude/     │    │     │  │   │
 │  │  │  mnemonic/{org}/│    │                         │  │   │
 │  │  └─────────────────┘    └─────────────────────────┘  │   │
 │  └──────────────────────────────────────────────────────┘   │

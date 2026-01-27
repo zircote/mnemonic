@@ -13,7 +13,7 @@ Mnemonic memories are plain Markdown files with YAML frontmatter stored in predi
 ~/.claude/mnemonic/{org}/{namespace}/{scope}/*.memory.md
 
 # Project-level memories
-./.claude/mnemonic/{namespace}/{scope}/*.memory.md
+~/.claude/mnemonic/{namespace}/{scope}/*.memory.md
 ```
 
 **Namespaces:** apis, blockers, context, decisions, learnings, patterns, security, testing, episodic
@@ -38,7 +38,7 @@ rg -C3 "api endpoint" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
 rg -l "database" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
 
 # Search in specific namespace
-rg "pattern" ~/.claude/mnemonic/*/decisions ./.claude/mnemonic/decisions/project --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic/*/decisionsdecisions/project --glob "*.memory.md"
 
 # Search project-level only
 rg "bug fix" ./.claude/mnemonic --glob "*.memory.md"
@@ -85,10 +85,10 @@ find ~/.claude/mnemonic -name "*.memory.md" | grep -o '/[^/]*/project\|/[^/]*/us
 
 ```bash
 # Read full memory
-cat ~/.claude/mnemonic/zircote/decisions/project/550e8400-*.memory.md
+cat ~/.claude/mnemonic/zircote/semantic/decisions/550e8400-*.memory.md
 
 # View just the title
-grep "^title:" ~/.claude/mnemonic/zircote/decisions/project/*.memory.md
+grep "^title:" ~/.claude/mnemonic/zircote/semantic/decisions/*.memory.md
 
 # View frontmatter only (between --- markers)
 sed -n '/^---$/,/^---$/p' path/to/memory.memory.md
@@ -122,7 +122,7 @@ UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Create memory file
-cat > ~/.claude/mnemonic/myorg/decisions/project/${UUID}-my-decision.memory.md << EOF
+cat > ~/.claude/mnemonic/myorg/semantic/decisions/${UUID}-my-decision.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -317,7 +317,7 @@ alias mdir='cd ~/.claude/mnemonic && ls'
 
 # Search by namespace
 mns() {
-    rg -i "$1" ~/.claude/mnemonic/*/"$2" ./.claude/mnemonic/"$2"/project --glob "*.memory.md"
+    rg -i "$1" ~/.claude/mnemonic/*/"$2""$2"/project --glob "*.memory.md"
 }
 # Usage: mns "pattern" decisions
 ```

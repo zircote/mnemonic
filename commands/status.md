@@ -42,7 +42,7 @@ else
 fi
 
 if [ -d "./.claude/mnemonic" ]; then
-    echo "  ✓ Project mnemonic: ./.claude/mnemonic/"
+    echo "  ✓ Project mnemonic:"
 else
     echo "  ✗ Project mnemonic: NOT FOUND"
 fi
@@ -86,7 +86,7 @@ echo ""
 echo "Memory Counts (Project-level):"
 TOTAL_PROJECT=0
 for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    count=$(find "./.claude/mnemonic/$ns" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+    count=$(find "~/.claude/mnemonic/$ns" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
     TOTAL_PROJECT=$((TOTAL_PROJECT + count))
     [ "$count" -gt 0 ] && echo "  $ns: $count"
 done
@@ -140,8 +140,8 @@ else
     echo "  Global: NOT FOUND"
 fi
 
-if [ -d "./.claude/mnemonic/.blackboard" ]; then
-    BB_FILES=$(ls "./.claude/mnemonic/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "~/.claude/mnemonic/.blackboard" ]; then
+    BB_FILES=$(ls "~/.claude/mnemonic/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
     echo "  Project: $BB_FILES topic files"
 else
     echo "  Project: NOT FOUND"

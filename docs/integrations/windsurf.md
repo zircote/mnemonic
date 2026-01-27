@@ -27,7 +27,7 @@ Use MIF Level 3 format with YAML frontmatter:
 - tags: array
 
 Before implementing features, search for relevant memories:
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 Capture decisions to decisions/, learnings to learnings/, patterns to patterns/.
 ```

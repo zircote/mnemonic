@@ -43,7 +43,7 @@ All memories stored at `~/.claude/mnemonic/` as `.memory.md` files.
 ### Before Implementing
 Search for relevant memories:
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 ### Capture Triggers
