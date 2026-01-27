@@ -180,9 +180,13 @@ def main():
                 rel_suggestion = get_relationship_suggestions(ontology_data, file_context)
 
                 context_message = (
-                    f"**CODE MODIFIED:** {file_path}\n"
-                    f"Evaluate: Does this represent a pattern or decision?\n"
-                    f"If yes → `/mnemonic:capture {ns_hint}` immediately."
+                    f">>> POST-EDIT CHECKPOINT <<<\n"
+                    f"File: {file_path}\n\n"
+                    f"EVALUATE NOW:\n"
+                    f"□ Does this represent a reusable pattern?\n"
+                    f"□ Does this reflect an architectural decision?\n\n"
+                    f"If YES → Execute: /mnemonic:capture {ns_hint}\n"
+                    f"Do not proceed without evaluating."
                     f"{rel_suggestion}"
                 )
 
@@ -192,16 +196,19 @@ def main():
 
         if "git commit" in command:
             context_message = (
-                "**GIT COMMIT COMPLETED**\n"
-                "Evaluate: Does this commit reflect a decision or pattern?\n"
-                "If yes → `/mnemonic:capture _semantic/decisions` or "
-                "`/mnemonic:capture _procedural/patterns`"
+                ">>> POST-COMMIT CHECKPOINT <<<\n\n"
+                "EVALUATE NOW:\n"
+                "□ Does this commit reflect an architectural decision?\n"
+                "□ Does this establish a reusable pattern?\n\n"
+                "If YES → Execute: /mnemonic:capture _semantic/decisions\n"
+                "         or: /mnemonic:capture _procedural/patterns"
             )
         elif "error" in tool_output.lower() or "failed" in tool_output.lower():
             context_message = (
-                "**ERROR DETECTED**\n"
-                "When resolved → `/mnemonic:capture _semantic/knowledge`\n"
-                "If unresolved → `/mnemonic:capture _episodic/blockers`"
+                ">>> ERROR CHECKPOINT <<<\n\n"
+                "EVALUATE NOW:\n"
+                "□ If resolved: Capture the fix → /mnemonic:capture _semantic/knowledge\n"
+                "□ If blocking: Document blocker → /mnemonic:capture _episodic/blockers"
             )
         elif any(x in command for x in ["install", "build", "deploy", "migrate"]):
             if "error" not in tool_output.lower():
@@ -212,8 +219,10 @@ def main():
                 else:
                     ns_hint = "_procedural/patterns"
                 context_message = (
-                    "**OPERATION COMPLETED**\n"
-                    f"If pattern established → `/mnemonic:capture {ns_hint}`"
+                    ">>> OPERATION CHECKPOINT <<<\n\n"
+                    "EVALUATE NOW:\n"
+                    f"□ Did this establish a reproducible pattern?\n\n"
+                    f"If YES → Execute: /mnemonic:capture {ns_hint}"
                 )
 
     if context_message:

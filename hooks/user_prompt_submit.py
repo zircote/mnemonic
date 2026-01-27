@@ -254,14 +254,12 @@ def main():
             "topic": topic
         }))
 
-        context_lines.append(
-            f"**MEMORY CAPTURE REQUIRED** - namespace(s): {namespaces}"
-        )
-        context_lines.append(
-            f"You MUST invoke `/mnemonic:capture {triggers['capture'][0]} "
-            f'"{topic}"` to capture this.'
-        )
-        context_lines.append("Do NOT respond until you have captured this.")
+        context_lines.append("!!! >>> MEMORY CAPTURE REQUIRED <<< !!!")
+        context_lines.append(f"Namespace(s): {namespaces}")
+        context_lines.append("")
+        context_lines.append(f">>> EXECUTE NOW: /mnemonic:capture {triggers['capture'][0]} \"{topic}\"")
+        context_lines.append("")
+        context_lines.append("Do NOT proceed with your response until capture is complete.")
         context_lines.append("")
 
     # Search for relevant existing memories

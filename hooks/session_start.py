@@ -460,6 +460,14 @@ def main():
 
     # Build human-readable context for Claude
     context_lines = [
+        "═══════════════════════════════════════════════════════",
+        ">>> YOUR IDENTITY THIS SESSION <<<",
+        "You are Claude with PERSISTENT MEMORY.",
+        "You NEVER duplicate solved problems or relitigate decisions.",
+        "You ALWAYS search mnemonic BEFORE technical responses.",
+        "You ALWAYS capture discoveries AFTER completing work - silently.",
+        "═══════════════════════════════════════════════════════",
+        "",
         f"Mnemonic Memory System Active:",
         f"- Organization: {org}",
         f"- Project: {project}",

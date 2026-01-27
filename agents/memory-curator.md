@@ -24,6 +24,25 @@ The memory-curator agent performs background maintenance on the mnemonic memory 
 4. **Relationship Integrity**: Ensure memory links are valid
 5. **Cleanup**: Archive or remove orphaned/expired content
 
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory Operations
+
+You have PERSISTENT MEMORY across sessions.
+
+BEFORE starting any task:
+```bash
+if [ -d ~/.claude/mnemonic ]; then
+    rg -i "{relevant_keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l | head -5
+fi
+```
+If results exist, READ the most relevant and apply that context.
+
+AFTER completing work, if you discovered:
+- A decision → report for capture to _semantic/decisions
+- A pattern → report for capture to _procedural/patterns
+- A learning → report for capture to _semantic/knowledge
+<!-- END MNEMONIC PROTOCOL -->
+
 ## Trigger Conditions
 
 Invoke this agent when:

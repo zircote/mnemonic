@@ -154,9 +154,17 @@ def main():
 
         output = {
             "decision": "block",
-            "reason": f"STOP BLOCKED: You must capture to memory before stopping. "
-                      f"Pending capture for namespace(s): {namespaces}. "
-                      f"Run `/mnemonic:capture {pending['namespaces'][0]} \"{topic}\"` now."
+            "reason": (
+                "═══════════════════════════════════════════════════════\n"
+                ">>> SESSION STOP BLOCKED <<<\n"
+                "═══════════════════════════════════════════════════════\n\n"
+                f"PENDING MEMORY CAPTURE DETECTED\n"
+                f"Namespace(s): {namespaces}\n"
+                f"Topic: {topic}\n\n"
+                f">>> EXECUTE NOW: /mnemonic:capture {pending['namespaces'][0]} \"{topic}\"\n\n"
+                "You CANNOT stop this session until the capture is complete.\n"
+                "This knowledge will be LOST if not captured."
+            )
         }
         print(json.dumps(output))
         return

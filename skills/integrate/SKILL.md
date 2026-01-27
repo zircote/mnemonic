@@ -33,6 +33,70 @@ Both mechanisms work together: Markdown provides explicit workflow guidance, hoo
 
 ---
 
+## Sentinel Markers
+
+All integrations use sentinel markers for clean updates and removal:
+
+```markdown
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory Operations
+...protocol content...
+<!-- END MNEMONIC PROTOCOL -->
+```
+
+**Benefits:**
+- **Updates:** Replace content between markers without affecting rest of file
+- **Removal:** Delete everything between markers cleanly
+- **Detection:** Identify already-integrated files
+- **Migration:** Convert old integrations to marker-wrapped format
+
+**Template Source:** `templates/mnemonic-protocol.md` is the single source of truth.
+
+---
+
+## Command Modes
+
+### Insert/Update Mode (Default)
+
+```
+/mnemonic:integrate {path}
+```
+
+Inserts or updates protocol with markers:
+- If markers exist: Updates content between them
+- If no markers: Inserts after frontmatter with markers
+
+### Remove Mode
+
+```
+/mnemonic:integrate {path} --remove
+```
+
+Cleanly removes protocol:
+- Deletes everything between `<!-- BEGIN MNEMONIC PROTOCOL -->` and `<!-- END MNEMONIC PROTOCOL -->`
+- No residual content left
+
+### Migrate Mode
+
+```
+/mnemonic:integrate {path} --migrate
+```
+
+Converts old marker-less integrations:
+- Detects old patterns: `## Memory Operations`, `## Memory` without markers
+- Content indicators: `rg -i`, `/mnemonic:capture`, `~/.claude/mnemonic/`
+- Replaces with marker-wrapped version from template
+
+### Dry Run Mode
+
+```
+/mnemonic:integrate {path} --dry-run
+```
+
+Shows what would change without making modifications.
+
+---
+
 ## Integration Workflow
 
 ### Phase 1: Analyze Target Plugin
@@ -104,20 +168,42 @@ Check existing `allowed-tools` and add only what's missing.
 ## Integration Patterns
 
 **Key principles:**
+- Use `templates/mnemonic-protocol.md` as single source of truth
+- Always wrap with sentinel markers
 - Insert at **TOP** of file (immediately after frontmatter)
-- Minimal (2-4 lines), imperative language
-- Direct commands, not suggestions or workflows
+- Minimal, imperative language
 
-### Pattern A: Capture After Creation
+### Standard Protocol (From Template)
 
-**Applies to:** Commands/skills that create files (adr-new, doc-create, etc.)
+**Read and insert template content with markers:**
 
-**Add immediately after frontmatter:**
+```bash
+# Read template content
+PROTOCOL=$(cat ~/.claude/plugins/cache/zircote/mnemonic/*/templates/mnemonic-protocol.md)
 
+# Insert after frontmatter with markers
+```
+
+**Template content:**
 ```markdown
-## Memory
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory Operations
 
-After completing: `/mnemonic:capture {namespace} "{title}"`
+You have PERSISTENT MEMORY across sessions.
+
+BEFORE starting any task:
+```bash
+if [ -d ~/.claude/mnemonic ]; then
+    rg -i "{relevant_keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l | head -5
+fi
+```
+If results exist, READ the most relevant and apply that context.
+
+AFTER completing work, if you discovered:
+- A decision → report for capture to _semantic/decisions
+- A pattern → report for capture to _procedural/patterns
+- A learning → report for capture to _semantic/knowledge
+<!-- END MNEMONIC PROTOCOL -->
 ```
 
 **Namespace mapping:**
@@ -126,31 +212,12 @@ After completing: `/mnemonic:capture {namespace} "{title}"`
 - Code patterns → `_procedural/patterns`
 - Issues/bugs → `_episodic/blockers`
 
-### Pattern B: Recall Before Action
+### Graceful Fallthrough
 
-**Applies to:** Agents/skills that make decisions or implement features
-
-**Add immediately after frontmatter:**
-
-```markdown
-## Memory
-
-Before starting: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
-After completing: `/mnemonic:capture {namespace} "{title}"`
-```
-
-### Pattern C: Full Protocol
-
-**Applies to:** Components that both research AND create
-
-**Add immediately after frontmatter:**
-
-```markdown
-## Memory
-
-Search first: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
-Capture after: `/mnemonic:capture {namespace} "{title}"`
-```
+The template includes `if [ -d ~/.claude/mnemonic ]` check which:
+- Allows integrated plugins to work if mnemonic is later uninstalled
+- No errors if mnemonic directory doesn't exist
+- Seamless degradation
 
 ### Pattern D: Event-Driven Hooks (Optional)
 
@@ -233,6 +300,34 @@ Capture after: `/mnemonic:capture patterns "{pattern_name}"`
 ---
 
 ## How to Use This Skill
+
+### Insert/Update Mode (Default)
+
+```
+/mnemonic:integrate {plugin_path}
+```
+
+Inserts or updates mnemonic protocol with sentinel markers. If markers already exist, updates content between them.
+
+### Remove Mode
+
+```
+/mnemonic:integrate {plugin_path} --remove
+```
+
+Cleanly removes mnemonic protocol by deleting everything between sentinel markers.
+
+### Migrate Mode
+
+```
+/mnemonic:integrate {plugin_path} --migrate
+```
+
+Finds old marker-less integrations and replaces them with marker-wrapped version from template.
+
+**Detection patterns for migration:**
+- `## Memory Operations` or `## Memory` section without markers
+- Content containing `rg -i`, `/mnemonic:capture`, `~/.claude/mnemonic/`
 
 ### Analyze Only Mode
 
@@ -374,24 +469,39 @@ git log -1 --oneline
 
 When invoked, this skill:
 
-**Standard Mode:**
-1. **Read plugin manifest** - Parse `.claude-plugin/plugin.json`
-2. **List components** - Find all commands, skills, agents, hooks
-3. **Analyze each component** - Determine integration pattern
-4. **Generate modifications** - Create markdown sections and hook scripts
-5. **Show proposed changes** - Display what will be modified
-6. **Apply modifications** - Use Edit tool to insert integration code
-7. **Update tool access** - Add required tools (Bash, Glob, Grep, Read, Write) to components
-8. **Commit changes** - Create atomic git commit for rollback (see Git Workflow below)
-9. **Report results** - Summarize what was integrated and commit hash
+**Standard Mode (Insert/Update):**
+1. **Read template** - Load `templates/mnemonic-protocol.md` as source of truth
+2. **Read plugin manifest** - Parse `.claude-plugin/plugin.json`
+3. **List components** - Find all commands, skills, agents, hooks
+4. **For each component:**
+   - Check for existing sentinel markers
+   - If markers exist: Update content between them
+   - If no markers: Insert after frontmatter with markers
+5. **Update tool access** - Add required tools (Bash, Glob, Grep, Read, Write)
+6. **Commit changes** - Create atomic git commit for rollback
+7. **Report results** - Summarize what was integrated and commit hash
+
+**Remove Mode (`--remove`):**
+1. **List components** - Find all commands, skills, agents, hooks
+2. **For each component:**
+   - Find sentinel markers (`<!-- BEGIN MNEMONIC PROTOCOL -->` / `<!-- END MNEMONIC PROTOCOL -->`)
+   - Delete everything between markers (inclusive)
+3. **Commit changes** - Create git commit for the removal
+4. **Report results** - Summarize what was removed
+
+**Migrate Mode (`--migrate`):**
+1. **List components** - Find all commands, skills, agents, hooks
+2. **For each component:**
+   - Detect old patterns: `## Memory Operations` or `## Memory` without markers
+   - Detect content indicators: `rg -i`, `/mnemonic:capture`, `~/.claude/mnemonic/`
+   - Replace old section with marker-wrapped version from template
+3. **Commit changes** - Create git commit
+4. **Report results** - Summarize migrated files
 
 **Dry Run Mode (`--dry-run`):**
-1. **Read plugin manifest** - Parse `.claude-plugin/plugin.json`
-2. **List components** - Find all commands, skills, agents, hooks
-3. **Analyze each component** - Determine integration pattern
-4. **Generate modifications** - Create markdown sections and hook scripts
-5. **Display changes** - Show what WOULD be modified (with diffs)
-6. **Exit** - No changes applied
+1. **Perform analysis** - Same as standard/remove/migrate mode
+2. **Display changes** - Show what WOULD be modified (with diffs)
+3. **Exit** - No changes applied
 
 **Rollback Mode (`--rollback`):**
 1. **Check git repository** - Verify plugin has git
