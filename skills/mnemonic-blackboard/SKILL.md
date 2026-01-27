@@ -56,7 +56,7 @@ The blackboard is a shared coordination space for cross-session communication. U
 
 ```
 ~/.claude/mnemonic/.blackboard/     # Global (cross-project)
-./.claude/mnemonic/.blackboard/     # Project-specific
+~/.claude/mnemonic/.blackboard/     # Project-specific
 ```
 
 ### Topic Files
@@ -218,7 +218,7 @@ bb_write "shared-context" "Project uses JWT with RS256 signing"
 cat ~/.claude/mnemonic/.blackboard/active-tasks.md
 
 # Project blackboard
-cat ./.claude/mnemonic/.blackboard/shared-context.md
+cat.blackboard/shared-context.md
 ```
 
 ### Read Recent Entries

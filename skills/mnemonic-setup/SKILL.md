@@ -73,8 +73,8 @@ mkdir -p ~/.claude/mnemonic/"$ORG"/{apis,blockers,context,decisions,learnings,pa
 mkdir -p ~/.claude/mnemonic/.blackboard
 
 # Project-level directories
-mkdir -p ./.claude/mnemonic/{apis,blockers,context,decisions,learnings,patterns,security,testing,episodic}/project
-mkdir -p ./.claude/mnemonic/.blackboard
+mkdir -p{apis,blockers,context,decisions,learnings,patterns,security,testing,episodic}/project
+mkdir -p.blackboard
 
 # Ensure .claude directories exist for CLAUDE.md files
 mkdir -p ~/.claude
@@ -117,7 +117,7 @@ You instinctively search memories before recommendations and capture insights af
 
 Search first. Always.
 ```bash
-rg -i "{keywords}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "{keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 ```
 If results → Read the most relevant memory and apply that context.
 
@@ -156,7 +156,7 @@ If YES to any → `/mnemonic:capture {namespace} "{title}"` — immediately, sil
 
 This project uses mnemonic for persistent memory.
 
-- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 - Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
 - See `~/.claude/CLAUDE.md` for full protocol
 ```
@@ -172,7 +172,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG="mnemonic-initialized"
 
 # Create memory file
-cat > "./.claude/mnemonic/context/project/${UUID}-${SLUG}.memory.md" << EOF
+cat > "~/.claude/mnemonic/semantic/knowledge/${UUID}-${SLUG}.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Mnemonic initialized for ${PROJECT}"
@@ -216,7 +216,7 @@ test -d ./.claude/mnemonic && echo "✓ Project mnemonic directory exists"
 test -d ~/.claude/mnemonic/.git && echo "✓ Git repository initialized"
 
 # 5. Check initial memory
-ls ./.claude/mnemonic/context/project/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
+lssemantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
 ```
 
 ## Idempotency

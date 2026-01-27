@@ -145,7 +145,7 @@ class OntologyRegistry:
     Loads ontologies from multiple paths with precedence:
     1. Base ontologies (built-in)
     2. User ontologies (~/.claude/mnemonic/)
-    3. Project ontologies (./.claude/mnemonic/)
+    3. Project ontologies (~/.claude/mnemonic/)
 
     Later sources override earlier ones for the same namespace.
     """
@@ -466,7 +466,7 @@ def get_registry(
     1. MIF submodule ontologies (mif/ontologies/)
     2. Fallback ontologies (skills/ontology/fallback/)
     3. User ontologies (~/.claude/mnemonic/{org}/{project}/)
-    4. Project ontologies (./.claude/mnemonic/)
+    4. Project ontologies (~/.claude/mnemonic/)
 
     Args:
         base_path: Path to base ontologies (defaults to MIF/fallback)

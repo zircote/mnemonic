@@ -88,17 +88,17 @@ conflicts:
 └── .blackboard/         # Cross-session coordination
 ```
 
-**Project-level** (`./.claude/mnemonic/`):
+**Project-level** (`~/.claude/mnemonic/`):
 ```
-./.claude/mnemonic/
-├── apis/project/
-├── blockers/project/
-├── context/project/
-├── decisions/project/
-├── learnings/project/
-├── patterns/project/
-├── security/project/
-├── testing/project/
-├── episodic/project/
+~/.claude/mnemonic/
+├── semantic/knowledge/
+├── episodic/blockers/
+├── semantic/knowledge/
+├── semantic/decisions/
+├── semantic/knowledge/
+├── procedural/patterns/
+├── semantic/knowledge/
+├── procedural/patterns/
+├── episodic/sessions/
 └── .blackboard/
 ```

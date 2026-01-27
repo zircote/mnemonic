@@ -8,7 +8,7 @@ Complete examples of memory capture and recall.
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat > "./.claude/mnemonic/decisions/project/${UUID}-use-jwt-auth.memory.md" << EOF
+cat > "~/.claude/mnemonic/semantic/decisions/${UUID}-use-jwt-auth.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Use JWT for API authentication"
@@ -80,10 +80,10 @@ EOF
 
 ```bash
 # Search for auth-related decisions
-rg -i "auth" ./.claude/mnemonic/decisions/ --glob "*.memory.md" -l
+rg -i "auth"decisions/ --glob "*.memory.md" -l
 
 # Get full content of matching files
-for f in $(rg -i "auth" ./.claude/mnemonic/decisions/ --glob "*.memory.md" -l); do
+for f in $(rg -i "auth"decisions/ --glob "*.memory.md" -l); do
     echo "=== $f ==="
     cat "$f"
     echo ""
@@ -94,7 +94,7 @@ done
 
 ```bash
 # Find memory to update
-MEMORY_FILE=$(rg -l "Use JWT for API" ./.claude/mnemonic/ --glob "*.memory.md" | head -1)
+MEMORY_FILE=$(rg -l "Use JWT for API" --glob "*.memory.md" | head -1)
 
 # Update modified date
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")

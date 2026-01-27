@@ -54,7 +54,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Determine path
 if [ "$SCOPE" = "project" ]; then
-    MEMORY_DIR="./.claude/mnemonic/${NAMESPACE}/project"
+    MEMORY_DIR="~/.claude/mnemonic/${NAMESPACE}/project"
 else
     ORG="${ORG:-default}"
     MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}/user"

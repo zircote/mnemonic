@@ -74,7 +74,7 @@ Namespaces: `semantic/decisions` | `semantic/knowledge` | `procedural/patterns` 
 ## Recall
 
 ```bash
-rg -i "{keywords}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "{keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 ```
 
 ## Minimal Memory Format

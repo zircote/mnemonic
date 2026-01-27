@@ -135,7 +135,7 @@ After completing: `/mnemonic:capture {namespace} "{title}"`
 ```markdown
 ## Memory
 
-Before starting: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+Before starting: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 After completing: `/mnemonic:capture {namespace} "{title}"`
 ```
 
@@ -148,7 +148,7 @@ After completing: `/mnemonic:capture {namespace} "{title}"`
 ```markdown
 ## Memory
 
-Search first: `rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+Search first: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 Capture after: `/mnemonic:capture {namespace} "{title}"`
 ```
 
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 ```markdown
 ## Memory
 
-Search first: `rg -i "{decision_topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+Search first: `rg -i "{decision_topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 Capture after: `/mnemonic:capture decisions "ADR-{number}: {title}"`
 ```
 
@@ -226,7 +226,7 @@ After completing: `/mnemonic:capture learnings "{doc_title}"`
 ```markdown
 ## Memory
 
-Search first: `rg -i "{feature}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"`
+Search first: `rg -i "{feature}" ~/.claude/mnemonic/ --glob "*.memory.md"`
 Capture after: `/mnemonic:capture patterns "{pattern_name}"`
 ```
 
@@ -417,7 +417,7 @@ After integration, verify by:
 ls -la ~/.claude/mnemonic/*/decisions/*.memory.md | tail -5
 
 # Search for content
-rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md"
+rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 ---

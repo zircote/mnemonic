@@ -109,10 +109,10 @@ Progressive disclosure enables efficient memory recall by surfacing only the det
 
 ```bash
 # Search by topic
-rg -i "{topic}" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 # Search in specific namespace
-rg -i "{topic}" ~/.claude/mnemonic/*/decisions/ ./.claude/mnemonic/decisions/project/ --glob "*.memory.md" -l
+rg -i "{topic}" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md" -l
 ```
 
 ### Step 2: Determine Required Level

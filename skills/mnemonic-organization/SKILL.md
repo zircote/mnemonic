@@ -72,10 +72,10 @@ Location: `~/.claude/mnemonic/{org}/`
 
 ### Project-Level Storage
 
-Location: `./.claude/mnemonic/`
+Location: `~/.claude/mnemonic/`
 
 ```
-./.claude/mnemonic/
+~/.claude/mnemonic/
 ├── apis/
 │   └── project/
 ├── blockers/
@@ -120,7 +120,7 @@ Location: `./.claude/mnemonic/`
 | Scope | Location | Use Case |
 |-------|----------|----------|
 | user | `~/.claude/mnemonic/{org}/{namespace}/` | Personal knowledge, cross-project |
-| project | `./.claude/mnemonic/{namespace}/` | Specific to current codebase |
+| project | `~/.claude/mnemonic/{namespace}/` | Specific to current codebase |
 
 **Scope is implicit from base path** - no `/user/` or `/project/` subdirectories needed.
 
@@ -195,7 +195,7 @@ The blackboard is a shared coordination space for cross-session communication.
 ### Location
 
 - Global: `~/.claude/mnemonic/.blackboard/`
-- Project: `./.claude/mnemonic/.blackboard/`
+- Project: `~/.claude/mnemonic/.blackboard/`
 
 ### Structure
 
@@ -294,7 +294,7 @@ git log --oneline -20
 git log --oneline -- "*/decisions/*auth*.memory.md"
 
 # Show specific version
-git show HEAD~3:zircote/decisions/project/abc123-use-jwt.memory.md
+git show HEAD~3:zircote/semantic/decisions/abc123-use-jwt.memory.md
 ```
 
 ### Restore Previous Version
@@ -303,7 +303,7 @@ git show HEAD~3:zircote/decisions/project/abc123-use-jwt.memory.md
 cd ~/.claude/mnemonic
 
 # Restore specific file from history
-git checkout HEAD~1 -- zircote/decisions/project/abc123-use-jwt.memory.md
+git checkout HEAD~1 -- zircote/semantic/decisions/abc123-use-jwt.memory.md
 
 # Or restore and commit
 git checkout <commit-hash> -- path/to/memory.memory.md
@@ -390,7 +390,7 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime +365 -type f -exec rm -i {} \
 ```bash
 # Search for memories with similar titles
 TITLE="authentication"
-rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 ```
 
 ### Detect Contradictions
@@ -400,7 +400,7 @@ rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory
 # Look for opposite patterns in same namespace
 
 # Example: Find all auth decisions
-AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/ ./.claude/mnemonic/decisions/project/ --glob "*.memory.md")
+AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md")
 
 echo "Review these for potential conflicts:"
 for f in $AUTH_DECISIONS; do
