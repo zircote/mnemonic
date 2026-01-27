@@ -172,7 +172,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG="mnemonic-initialized"
 
 # Create memory file
-cat > "~/.claude/mnemonic/semantic/knowledge/${UUID}-${SLUG}.memory.md" << EOF
+cat > "~/.claude/mnemonic/_semantic/knowledge/${UUID}-${SLUG}.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Mnemonic initialized for ${PROJECT}"
@@ -216,7 +216,7 @@ test -d ./.claude/mnemonic && echo "✓ Project mnemonic directory exists"
 test -d ~/.claude/mnemonic/.git && echo "✓ Git repository initialized"
 
 # 5. Check initial memory
-lssemantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
+ls_semantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
 ```
 
 ## Idempotency

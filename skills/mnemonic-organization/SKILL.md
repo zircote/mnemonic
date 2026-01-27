@@ -294,7 +294,7 @@ git log --oneline -20
 git log --oneline -- "*/decisions/*auth*.memory.md"
 
 # Show specific version
-git show HEAD~3:zircote/semantic/decisions/abc123-use-jwt.memory.md
+git show HEAD~3:zircote/_semantic/decisions/abc123-use-jwt.memory.md
 ```
 
 ### Restore Previous Version
@@ -303,7 +303,7 @@ git show HEAD~3:zircote/semantic/decisions/abc123-use-jwt.memory.md
 cd ~/.claude/mnemonic
 
 # Restore specific file from history
-git checkout HEAD~1 -- zircote/semantic/decisions/abc123-use-jwt.memory.md
+git checkout HEAD~1 -- zircote/_semantic/decisions/abc123-use-jwt.memory.md
 
 # Or restore and commit
 git checkout <commit-hash> -- path/to/memory.memory.md
@@ -400,7 +400,7 @@ rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 # Look for opposite patterns in same namespace
 
 # Example: Find all auth decisions
-AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md")
+AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md")
 
 echo "Review these for potential conflicts:"
 for f in $AUTH_DECISIONS; do

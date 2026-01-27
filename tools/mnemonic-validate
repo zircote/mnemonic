@@ -621,7 +621,7 @@ def capture_as_memory(
     timestamp = now.isoformat().replace("+00:00", "Z")
 
     # Choose namespace based on errors
-    namespace = "blockers/project" if errors_count > 0 else "episodic/project"
+    namespace = "blockers/project" if errors_count > 0 else "_episodic/project"
 
     # Build memory content
     content_lines = [

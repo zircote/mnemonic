@@ -69,7 +69,7 @@ fi
 /mnemonic:query --tag architecture --type semantic
 
 # Find decisions with security tag
-/mnemonic:query --namespace "semantic/decisions" --tag security
+/mnemonic:query --namespace "_semantic/decisions" --tag security
 
 # Exclude episodic memories
 /mnemonic:query --type "!=episodic"
@@ -130,7 +130,7 @@ The real power comes from combining structured queries with content search:
 
 ```bash
 # Find security decisions mentioning passwords
-/mnemonic:query --namespace "semantic/decisions" --tag security | xargs rg "password"
+/mnemonic:query --namespace "_semantic/decisions" --tag security | xargs rg "password"
 
 # Find high-confidence memories about authentication
 /mnemonic:query --confidence ">0.8" | xargs rg -i "auth"

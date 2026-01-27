@@ -83,12 +83,12 @@ def get_fallback_patterns() -> list:
     return [
         {
             "patterns": ["service", "component"],
-            "namespaces": ["semantic/entities"],
+            "namespaces": ["_semantic/entities"],
             "context": "component"
         },
         {
             "patterns": ["test", "spec"],
-            "namespaces": ["procedural/patterns"],
+            "namespaces": ["_procedural/patterns"],
             "context": "testing"
         },
     ]
@@ -173,7 +173,7 @@ def main():
                 # Get namespace suggestion from ontology
                 ns_hint = detect_namespace_for_file(file_path, file_patterns)
                 if not ns_hint:
-                    ns_hint = "semantic/decisions or procedural/patterns"
+                    ns_hint = "_semantic/decisions or _procedural/patterns"
 
                 # Extract context for relationship suggestions
                 file_context = Path(file_path).stem.replace("-", " ").replace("_", " ")
@@ -194,23 +194,23 @@ def main():
             context_message = (
                 "**GIT COMMIT COMPLETED**\n"
                 "Evaluate: Does this commit reflect a decision or pattern?\n"
-                "If yes → `/mnemonic:capture semantic/decisions` or "
-                "`/mnemonic:capture procedural/patterns`"
+                "If yes → `/mnemonic:capture _semantic/decisions` or "
+                "`/mnemonic:capture _procedural/patterns`"
             )
         elif "error" in tool_output.lower() or "failed" in tool_output.lower():
             context_message = (
                 "**ERROR DETECTED**\n"
-                "When resolved → `/mnemonic:capture semantic/knowledge`\n"
-                "If unresolved → `/mnemonic:capture episodic/blockers`"
+                "When resolved → `/mnemonic:capture _semantic/knowledge`\n"
+                "If unresolved → `/mnemonic:capture _episodic/blockers`"
             )
         elif any(x in command for x in ["install", "build", "deploy", "migrate"]):
             if "error" not in tool_output.lower():
                 if "deploy" in command:
-                    ns_hint = "procedural/runbooks"
+                    ns_hint = "_procedural/runbooks"
                 elif "migrate" in command:
-                    ns_hint = "procedural/migrations"
+                    ns_hint = "_procedural/migrations"
                 else:
-                    ns_hint = "procedural/patterns"
+                    ns_hint = "_procedural/patterns"
                 context_message = (
                     "**OPERATION COMPLETED**\n"
                     f"If pattern established → `/mnemonic:capture {ns_hint}`"

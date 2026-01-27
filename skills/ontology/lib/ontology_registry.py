@@ -150,20 +150,20 @@ class OntologyRegistry:
     Later sources override earlier ones for the same namespace.
     """
 
-    # Cognitive triad hierarchy
+    # Cognitive triad hierarchy (prefixed with _ for filesystem disambiguation)
     BASE_NAMESPACES = [
-        "semantic",
-        "semantic/decisions",
-        "semantic/knowledge",
-        "semantic/entities",
-        "episodic",
-        "episodic/incidents",
-        "episodic/sessions",
-        "episodic/blockers",
-        "procedural",
-        "procedural/runbooks",
-        "procedural/patterns",
-        "procedural/migrations",
+        "_semantic",
+        "_semantic/decisions",
+        "_semantic/knowledge",
+        "_semantic/entities",
+        "_episodic",
+        "_episodic/incidents",
+        "_episodic/sessions",
+        "_episodic/blockers",
+        "_procedural",
+        "_procedural/runbooks",
+        "_procedural/patterns",
+        "_procedural/migrations",
     ]
 
     BASE_TYPES = ["semantic", "episodic", "procedural"]

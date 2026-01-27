@@ -20,13 +20,13 @@ Examples:
     # Get memory file path
     resolver = PathResolver()
     path = resolver.get_memory_path(
-        namespace="semantic/decisions",
+        namespace="_semantic/decisions",
         scope="project"
     )
 
     # Get search paths for recall
     paths = resolver.get_search_paths(
-        namespace="semantic/decisions",
+        namespace="_semantic/decisions",
         include_project=True
     )
 """
@@ -100,7 +100,7 @@ class PathResolver:
         Get directory for storing memories.
 
         Args:
-            namespace: Hierarchical namespace (e.g., "semantic/decisions")
+            namespace: Hierarchical namespace (e.g., "_semantic/decisions")
             scope: Memory scope (user, project, or org)
 
         Returns:
@@ -108,15 +108,15 @@ class PathResolver:
 
         Examples:
             # LEGACY scheme, project scope
-            get_memory_dir("semantic/decisions", Scope.PROJECT)
+            get_memory_dir("_semantic/decisions", Scope.PROJECT)
             # => ./.claude/mnemonic/semantic/decisions
 
             # V2 scheme, project scope
-            get_memory_dir("semantic/decisions", Scope.PROJECT)
+            get_memory_dir("_semantic/decisions", Scope.PROJECT)
             # => ~/.claude/mnemonic/{org}/{project}/semantic/decisions
 
             # V2 scheme, org scope
-            get_memory_dir("semantic/decisions", Scope.ORG)
+            get_memory_dir("_semantic/decisions", Scope.ORG)
             # => ~/.claude/mnemonic/{org}/semantic/decisions
         """
         if self.context.scheme == PathScheme.LEGACY:

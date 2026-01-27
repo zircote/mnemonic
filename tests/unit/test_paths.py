@@ -49,27 +49,27 @@ class TestLegacyPathScheme:
     def test_project_memory_dir(self, legacy_context):
         """Test project-scoped memory directory."""
         resolver = PathResolver(legacy_context)
-        path = resolver.get_memory_dir("semantic/decisions", Scope.PROJECT)
-        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/semantic/decisions")
+        path = resolver.get_memory_dir("_semantic/decisions", Scope.PROJECT)
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions")
         assert path == expected
 
     def test_user_memory_dir(self, legacy_context):
         """Test user-scoped memory directory."""
         resolver = PathResolver(legacy_context)
-        path = resolver.get_memory_dir("semantic/decisions", Scope.USER)
-        expected = Path("/home/testuser/.claude/mnemonic/testorg/semantic/decisions")
+        path = resolver.get_memory_dir("_semantic/decisions", Scope.USER)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/_semantic/decisions")
         assert path == expected
 
     def test_memory_path(self, legacy_context):
         """Test full memory file path."""
         resolver = PathResolver(legacy_context)
         path = resolver.get_memory_path(
-            "semantic/decisions",
+            "_semantic/decisions",
             "uuid-test.memory.md",
             Scope.PROJECT
         )
         expected = Path(
-            "/home/testuser/projects/testproject/.claude/mnemonic/semantic/decisions/uuid-test.memory.md"
+            "/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions/uuid-test.memory.md"
         )
         assert path == expected
 
@@ -90,9 +90,9 @@ class TestLegacyPathScheme:
     def test_search_paths_all(self, legacy_context, tmp_path, monkeypatch):
         """Test search paths with all scopes."""
         # Create temporary directories
-        project_dir = tmp_path / "project" / ".claude" / "mnemonic" / "semantic"
-        user_org_dir = tmp_path / "home" / ".claude" / "mnemonic" / "testorg" / "semantic"
-        user_default_dir = tmp_path / "home" / ".claude" / "mnemonic" / "default" / "semantic"
+        project_dir = tmp_path / "project" / ".claude" / "mnemonic" / "_semantic"
+        user_org_dir = tmp_path / "home" / ".claude" / "mnemonic" / "testorg" / "_semantic"
+        user_default_dir = tmp_path / "home" / ".claude" / "mnemonic" / "default" / "_semantic"
 
         project_dir.mkdir(parents=True)
         user_org_dir.mkdir(parents=True)
@@ -108,7 +108,7 @@ class TestLegacyPathScheme:
         )
 
         resolver = PathResolver(context)
-        paths = resolver.get_search_paths("semantic", include_user=True, include_project=True)
+        paths = resolver.get_search_paths("_semantic", include_user=True, include_project=True)
 
         # Should return in priority order: project, org, default
         assert len(paths) == 3
@@ -151,22 +151,22 @@ class TestV2PathScheme:
     def test_project_memory_dir(self, v2_context):
         """Test project-scoped memory directory in V2."""
         resolver = PathResolver(v2_context)
-        path = resolver.get_memory_dir("semantic/decisions", Scope.PROJECT)
-        expected = Path("/home/testuser/.claude/mnemonic/testorg/testproject/semantic/decisions")
+        path = resolver.get_memory_dir("_semantic/decisions", Scope.PROJECT)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/testproject/_semantic/decisions")
         assert path == expected
 
     def test_org_memory_dir(self, v2_context):
         """Test org-scoped memory directory in V2."""
         resolver = PathResolver(v2_context)
-        path = resolver.get_memory_dir("semantic/decisions", Scope.ORG)
-        expected = Path("/home/testuser/.claude/mnemonic/testorg/semantic/decisions")
+        path = resolver.get_memory_dir("_semantic/decisions", Scope.ORG)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/_semantic/decisions")
         assert path == expected
 
     def test_user_memory_dir(self, v2_context):
         """Test user-scoped memory directory in V2 (stored under project)."""
         resolver = PathResolver(v2_context)
-        path = resolver.get_memory_dir("semantic/decisions", Scope.USER)
-        expected = Path("/home/testuser/.claude/mnemonic/testorg/testproject/semantic/decisions")
+        path = resolver.get_memory_dir("_semantic/decisions", Scope.USER)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/testproject/_semantic/decisions")
         assert path == expected
 
     def test_blackboard_project(self, v2_context):
@@ -186,9 +186,9 @@ class TestV2PathScheme:
     def test_search_paths_all(self, v2_context, tmp_path):
         """Test search paths with all scopes in V2."""
         # Create temporary directories
-        project_dir = tmp_path / ".claude" / "mnemonic" / "testorg" / "testproject" / "semantic"
-        org_dir = tmp_path / ".claude" / "mnemonic" / "testorg" / "semantic"
-        default_dir = tmp_path / ".claude" / "mnemonic" / "default" / "semantic"
+        project_dir = tmp_path / ".claude" / "mnemonic" / "testorg" / "testproject" / "_semantic"
+        org_dir = tmp_path / ".claude" / "mnemonic" / "testorg" / "_semantic"
+        default_dir = tmp_path / ".claude" / "mnemonic" / "default" / "_semantic"
 
         project_dir.mkdir(parents=True)
         org_dir.mkdir(parents=True)
@@ -204,7 +204,7 @@ class TestV2PathScheme:
 
         resolver = PathResolver(context)
         paths = resolver.get_search_paths(
-            "semantic",
+            "_semantic",
             include_user=True,
             include_project=True,
             include_org=True
@@ -218,7 +218,7 @@ class TestV2PathScheme:
 
     def test_search_paths_org_only(self, v2_context, tmp_path):
         """Test search paths with org scope only in V2."""
-        org_dir = tmp_path / ".claude" / "mnemonic" / "testorg" / "semantic"
+        org_dir = tmp_path / ".claude" / "mnemonic" / "testorg" / "_semantic"
         org_dir.mkdir(parents=True)
 
         context = PathContext(
@@ -231,7 +231,7 @@ class TestV2PathScheme:
 
         resolver = PathResolver(context)
         paths = resolver.get_search_paths(
-            "semantic",
+            "_semantic",
             include_user=False,
             include_project=False,
             include_org=True
@@ -280,8 +280,8 @@ class TestConvenienceFunctions:
 
         monkeypatch.setattr("lib.paths.get_default_resolver", mock_resolver)
 
-        path = get_memory_dir("semantic/decisions", "project")
-        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/semantic/decisions")
+        path = get_memory_dir("_semantic/decisions", "project")
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions")
         assert path == expected
 
     def test_get_blackboard_dir(self, monkeypatch, legacy_context):
@@ -303,19 +303,19 @@ class TestNamespaceHierarchy:
         """Test deeply nested namespace paths."""
         resolver = PathResolver(legacy_context)
         path = resolver.get_memory_dir(
-            "semantic/decisions/architecture",
+            "_semantic/decisions/architecture",
             Scope.PROJECT
         )
         expected = Path(
-            "/home/testuser/projects/testproject/.claude/mnemonic/semantic/decisions/architecture"
+            "/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions/architecture"
         )
         assert path == expected
 
     def test_root_namespace(self, legacy_context):
-        """Test root-level namespace (semantic, episodic, procedural)."""
+        """Test root-level namespace (_semantic, _episodic, _procedural)."""
         resolver = PathResolver(legacy_context)
-        path = resolver.get_memory_dir("semantic", Scope.USER)
-        expected = Path("/home/testuser/.claude/mnemonic/testorg/semantic")
+        path = resolver.get_memory_dir("_semantic", Scope.USER)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/_semantic")
         assert path == expected
 
 
@@ -370,8 +370,8 @@ class TestEdgeCases:
         )
 
         resolver = PathResolver(context)
-        path = resolver.get_memory_dir("semantic", Scope.USER)
-        expected = Path("/home/testuser/.claude/mnemonic/default/semantic")
+        path = resolver.get_memory_dir("_semantic", Scope.USER)
+        expected = Path("/home/testuser/.claude/mnemonic/default/_semantic")
         assert path == expected
 
     def test_special_characters_in_namespace(self, legacy_context):

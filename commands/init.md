@@ -41,17 +41,17 @@ All memories are stored under `~/.claude/mnemonic/` with the V2 path structure:
 mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"
 mkdir -p ~/.claude/mnemonic/"$ORG"  # For org-wide memories
 
-# Cognitive triad namespaces (project-specific)
-for ns in semantic/decisions semantic/knowledge semantic/entities \
-          episodic/incidents episodic/sessions episodic/blockers \
-          procedural/runbooks procedural/patterns procedural/migrations; do
+# Cognitive triad namespaces (project-specific, prefixed with _ for disambiguation)
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
     mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/"$ns"
 done
 
 # Org-wide namespaces (shared across projects)
-for ns in semantic/decisions semantic/knowledge semantic/entities \
-          episodic/incidents episodic/sessions episodic/blockers \
-          procedural/runbooks procedural/patterns procedural/migrations; do
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
     mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"
 done
 
@@ -101,15 +101,15 @@ echo ""
 echo "Memory path: ~/.claude/mnemonic/$ORG/$PROJECT/"
 echo ""
 echo "Namespaces:"
-echo "  semantic/decisions   - Architectural choices"
-echo "  semantic/knowledge   - APIs, context, learnings"
-echo "  semantic/entities    - Entity definitions"
-echo "  episodic/incidents   - Production issues"
-echo "  episodic/sessions    - Debug sessions"
-echo "  episodic/blockers    - Impediments"
-echo "  procedural/runbooks  - Operational procedures"
-echo "  procedural/patterns  - Code conventions"
-echo "  procedural/migrations - Migration steps"
+echo "  _semantic/decisions   - Architectural choices"
+echo "  _semantic/knowledge   - APIs, context, learnings"
+echo "  _semantic/entities    - Entity definitions"
+echo "  _episodic/incidents   - Production issues"
+echo "  _episodic/sessions    - Debug sessions"
+echo "  _episodic/blockers    - Impediments"
+echo "  _procedural/runbooks  - Operational procedures"
+echo "  _procedural/patterns  - Code conventions"
+echo "  _procedural/migrations - Migration steps"
 ```
 
 ## Output

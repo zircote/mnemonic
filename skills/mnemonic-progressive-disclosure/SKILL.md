@@ -112,7 +112,7 @@ Progressive disclosure enables efficient memory recall by surfacing only the det
 rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 # Search in specific namespace
-rg -i "{topic}" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md" -l
+rg -i "{topic}" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md" -l
 ```
 
 ### Step 2: Determine Required Level
@@ -221,4 +221,4 @@ Expand to higher detail level automatically when:
 2. **Offer expansion** - Let user know more detail is available
 3. **Cite the memory** - Reference the memory file for traceability
 4. **Check for updates** - Note if memory has low confidence or is old
-5. **Search multiple namespaces** - semantic/decisions, procedural/patterns, and semantic/knowledge may all be relevant
+5. **Search multiple namespaces** - _semantic/decisions, _procedural/patterns, and _semantic/knowledge may all be relevant

@@ -51,16 +51,16 @@ mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"
 mkdir -p ~/.claude/mnemonic/"$ORG"  # For org-wide memories
 
 # Cognitive triad namespaces (project-specific)
-for ns in semantic/decisions semantic/knowledge semantic/entities \
-          episodic/incidents episodic/sessions episodic/blockers \
-          procedural/runbooks procedural/patterns procedural/migrations; do
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
     mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/"$ns"
 done
 
 # Org-wide namespaces (shared across projects)
-for ns in semantic/decisions semantic/knowledge semantic/entities \
-          episodic/incidents episodic/sessions episodic/blockers \
-          procedural/runbooks procedural/patterns procedural/migrations; do
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
     mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"
 done
 
@@ -150,7 +150,7 @@ fi
 UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]' || python3 -c "import uuid; print(uuid.uuid4())")
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-MEMORY_DIR="$HOME/.claude/mnemonic/$ORG/$PROJECT/semantic/knowledge"
+MEMORY_DIR="$HOME/.claude/mnemonic/$ORG/$PROJECT/_semantic/knowledge"
 mkdir -p "$MEMORY_DIR"
 
 cat > "$MEMORY_DIR/${UUID}-mnemonic-initialized.memory.md" << EOF
@@ -158,7 +158,7 @@ cat > "$MEMORY_DIR/${UUID}-mnemonic-initialized.memory.md" << EOF
 id: ${UUID}
 title: "Mnemonic initialized for ${PROJECT}"
 type: semantic
-namespace: semantic/knowledge
+namespace: _semantic/knowledge
 created: ${DATE}
 modified: ${DATE}
 tags:
@@ -188,15 +188,15 @@ Project ${PROJECT} has been configured to use mnemonic memory.
 
 All memories stored under \`~/.claude/mnemonic/${ORG}/${PROJECT}/\`:
 
-- \`semantic/decisions/\` - Architectural choices
-- \`semantic/knowledge/\` - APIs, context, learnings
-- \`semantic/entities/\` - Entity definitions
-- \`episodic/incidents/\` - Production issues
-- \`episodic/sessions/\` - Debug sessions
-- \`episodic/blockers/\` - Impediments
-- \`procedural/runbooks/\` - Operational procedures
-- \`procedural/patterns/\` - Code conventions
-- \`procedural/migrations/\` - Migration steps
+- \`_semantic/decisions/\` - Architectural choices
+- \`_semantic/knowledge/\` - APIs, context, learnings
+- \`_semantic/entities/\` - Entity definitions
+- \`_episodic/incidents/\` - Production issues
+- \`_episodic/sessions/\` - Debug sessions
+- \`_episodic/blockers/\` - Impediments
+- \`_procedural/runbooks/\` - Operational procedures
+- \`_procedural/patterns/\` - Code conventions
+- \`_procedural/migrations/\` - Migration steps
 EOF
 ```
 
@@ -213,8 +213,8 @@ After running, verify:
 ```bash
 grep -q "## Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User config"
 test -d ~/.claude/mnemonic/.git && echo "✓ Git initialized"
-test -d ~/.claude/mnemonic/"$ORG"/"$PROJECT"/semantic/decisions && echo "✓ Project directories"
-ls ~/.claude/mnemonic/"$ORG"/"$PROJECT"/semantic/knowledge/*-mnemonic-initialized.memory.md 2>/dev/null && echo "✓ Initial memory"
+test -d ~/.claude/mnemonic/"$ORG"/"$PROJECT"/_semantic/decisions && echo "✓ Project directories"
+ls ~/.claude/mnemonic/"$ORG"/"$PROJECT"/_semantic/knowledge/*-mnemonic-initialized.memory.md 2>/dev/null && echo "✓ Initial memory"
 ```
 
 ## Output

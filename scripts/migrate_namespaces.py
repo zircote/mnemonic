@@ -33,15 +33,15 @@ from typing import Dict, List, Tuple
 
 # Migration mapping: old namespace → new namespace path
 NAMESPACE_MIGRATION = {
-    "apis": "semantic/knowledge",
-    "blockers": "episodic/blockers",
-    "context": "semantic/knowledge",
-    "decisions": "semantic/decisions",
-    "learnings": "semantic/knowledge",
-    "patterns": "procedural/patterns",
-    "security": "semantic/knowledge",
-    "testing": "procedural/patterns",
-    "episodic": "episodic/sessions",
+    "apis": "_semantic/knowledge",
+    "blockers": "_episodic/blockers",
+    "context": "_semantic/knowledge",
+    "decisions": "_semantic/decisions",
+    "learnings": "_semantic/knowledge",
+    "patterns": "_procedural/patterns",
+    "security": "_semantic/knowledge",
+    "testing": "_procedural/patterns",
+    "episodic": "_episodic/sessions",
 }
 
 

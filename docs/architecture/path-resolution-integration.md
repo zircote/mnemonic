@@ -225,11 +225,11 @@ def v2_test_resolver(tmp_path):
 ```python
 def test_memory_capture(test_resolver):
     """Test memory capture with isolated paths."""
-    memory_dir = test_resolver.get_memory_dir("semantic/decisions", Scope.PROJECT)
+    memory_dir = test_resolver.get_memory_dir("_semantic/decisions", Scope.PROJECT)
     memory_dir.mkdir(parents=True)
 
     memory_path = test_resolver.get_memory_path(
-        "semantic/decisions",
+        "_semantic/decisions",
         "test.memory.md",
         Scope.PROJECT
     )
@@ -260,7 +260,7 @@ This enables easy testing:
 ```python
 def test_memory_manager(test_resolver):
     manager = MemoryManager(resolver=test_resolver)
-    manager.save_memory("semantic/decisions", "test content")
+    manager.save_memory("_semantic/decisions", "test content")
     # Assertions...
 ```
 

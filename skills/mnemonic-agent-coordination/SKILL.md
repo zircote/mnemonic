@@ -208,8 +208,8 @@ Execute search iteration 2 for query "authentication"
   "query": "authentication",
   "iteration": 2,
   "previous_findings": 5,
-  "namespaces_searched": ["semantic/decisions"],
-  "namespaces_remaining": ["procedural/patterns", "semantic/knowledge"]
+  "namespaces_searched": ["_semantic/decisions"],
+  "namespaces_remaining": ["_procedural/patterns", "_semantic/knowledge"]
 }
 ```
 
@@ -367,7 +367,7 @@ Subcall agents report progress for monitoring.
 search-auth-20260124
 
 ### Progress
-- Searching namespace: procedural/patterns
+- Searching namespace: _procedural/patterns
 - Files processed: 15/23
 - Matches found: 2
 

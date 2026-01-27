@@ -66,42 +66,42 @@ def get_fallback_file_patterns() -> list:
     return [
         {
             "patterns": ["auth", "login", "session", "jwt", "oauth"],
-            "namespaces": ["semantic/knowledge", "semantic/decisions"],
+            "namespaces": ["_semantic/knowledge", "_semantic/decisions"],
             "context": "authentication"
         },
         {
             "patterns": ["api", "endpoint", "route", "controller"],
-            "namespaces": ["semantic/knowledge", "semantic/decisions"],
+            "namespaces": ["_semantic/knowledge", "_semantic/decisions"],
             "context": "API design"
         },
         {
             "patterns": ["db", "database", "model", "schema", "migration"],
-            "namespaces": ["semantic/decisions", "procedural/migrations"],
+            "namespaces": ["_semantic/decisions", "_procedural/migrations"],
             "context": "database"
         },
         {
             "patterns": ["test", "spec", "mock", "fixture"],
-            "namespaces": ["procedural/patterns"],
+            "namespaces": ["_procedural/patterns"],
             "context": "testing"
         },
         {
             "patterns": ["config", "settings", "env"],
-            "namespaces": ["semantic/decisions", "semantic/knowledge"],
+            "namespaces": ["_semantic/decisions", "_semantic/knowledge"],
             "context": "configuration"
         },
         {
             "patterns": ["deploy", "docker", "kubernetes", "helm"],
-            "namespaces": ["procedural/runbooks", "semantic/decisions"],
+            "namespaces": ["_procedural/runbooks", "_semantic/decisions"],
             "context": "deployment"
         },
         {
             "patterns": ["security", "encrypt", "hash", "sanitize"],
-            "namespaces": ["semantic/knowledge", "semantic/decisions"],
+            "namespaces": ["_semantic/knowledge", "_semantic/decisions"],
             "context": "security"
         },
         {
             "patterns": ["service", "component", "module"],
-            "namespaces": ["semantic/entities", "semantic/decisions"],
+            "namespaces": ["_semantic/entities", "_semantic/decisions"],
             "context": "components"
         },
     ]

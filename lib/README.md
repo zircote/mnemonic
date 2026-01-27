@@ -25,18 +25,18 @@ from lib.paths import PathResolver, Scope
 resolver = PathResolver()
 
 # Get memory directory
-memory_dir = resolver.get_memory_dir("semantic/decisions", Scope.PROJECT)
-# => /path/to/project/.claude/mnemonic/semantic/decisions
+memory_dir = resolver.get_memory_dir("_semantic/decisions", Scope.PROJECT)
+# => /path/to/project/.claude/mnemonic/_semantic/decisions
 
 # Get full memory path
 memory_path = resolver.get_memory_path(
-    "semantic/decisions",
+    "_semantic/decisions",
     "uuid-slug.memory.md",
     Scope.PROJECT
 )
 
 # Get search paths (returns list in priority order)
-search_paths = resolver.get_search_paths("semantic/decisions")
+search_paths = resolver.get_search_paths("_semantic/decisions")
 # => [project_path, org_path, default_path]
 
 # Get blackboard directory
@@ -51,10 +51,10 @@ For simple use cases, use convenience functions:
 from lib.paths import get_memory_dir, get_search_paths, get_blackboard_dir
 
 # Get memory directory (string scope)
-memory_dir = get_memory_dir("semantic/decisions", scope="project")
+memory_dir = get_memory_dir("_semantic/decisions", scope="project")
 
 # Get search paths
-paths = get_search_paths("semantic/decisions", include_user=True, include_project=True)
+paths = get_search_paths("_semantic/decisions", include_user=True, include_project=True)
 
 # Get blackboard
 blackboard = get_blackboard_dir(scope="project")
@@ -130,8 +130,8 @@ Enum defining memory scope:
 
 **Example**:
 ```
-~/.claude/mnemonic/myorg/semantic/decisions/
-./.claude/mnemonic/semantic/decisions/
+~/.claude/mnemonic/myorg/_semantic/decisions/
+./.claude/mnemonic/_semantic/decisions/
 ```
 
 ### V2 Scheme (Target)
@@ -148,8 +148,8 @@ Enum defining memory scope:
 
 **Example**:
 ```
-~/.claude/mnemonic/myorg/myproject/semantic/decisions/
-~/.claude/mnemonic/myorg/semantic/decisions/
+~/.claude/mnemonic/myorg/myproject/_semantic/decisions/
+~/.claude/mnemonic/myorg/_semantic/decisions/
 ```
 
 ## Testing
@@ -177,7 +177,7 @@ def test_resolver(tmp_path):
 
 def test_memory_operations(test_resolver, tmp_path):
     """Test with isolated file system."""
-    memory_dir = test_resolver.get_memory_dir("semantic/decisions", Scope.PROJECT)
+    memory_dir = test_resolver.get_memory_dir("_semantic/decisions", Scope.PROJECT)
     memory_dir.mkdir(parents=True)
 
     # Test operations...
@@ -294,7 +294,7 @@ This enables easy testing:
 def test_memory_manager(test_resolver):
     """Test with isolated paths."""
     manager = MemoryManager(resolver=test_resolver)
-    manager.save_memory("semantic/decisions", "test")
+    manager.save_memory("_semantic/decisions", "test")
     # Assertions...
 ```
 
@@ -411,7 +411,7 @@ class Component:
 ```python
 # Get all search paths in priority order
 search_paths = resolver.get_search_paths(
-    namespace="semantic/decisions",
+    namespace="_semantic/decisions",
     include_user=True,
     include_project=True,
     include_org=True  # V2 only

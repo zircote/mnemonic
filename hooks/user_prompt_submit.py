@@ -103,23 +103,23 @@ def load_ontology_patterns() -> dict:
 def get_fallback_patterns() -> dict:
     """Fallback patterns if ontology loading fails."""
     return {
-        "semantic/decisions": [
+        "_semantic/decisions": [
             r"\blet'?s use\b", r"\bwe'?ll use\b", r"\bdecided to\b",
             r"\bgoing with\b", r"\bdecision:\b", r"\bselected\b",
         ],
-        "semantic/knowledge": [
+        "_semantic/knowledge": [
             r"\blearned that\b", r"\bturns out\b", r"\bthe fix was\b",
         ],
-        "procedural/patterns": [
+        "_procedural/patterns": [
             r"\bshould always\b", r"\balways use\b", r"\bconvention\b",
         ],
-        "episodic/blockers": [
+        "_episodic/blockers": [
             r"\bblocked by\b", r"\bstuck on\b",
         ],
-        "episodic/incidents": [
+        "_episodic/incidents": [
             r"\boutage\b", r"\bincident\b", r"\bpostmortem\b",
         ],
-        "procedural/runbooks": [
+        "_procedural/runbooks": [
             r"\brunbook\b", r"\bplaybook\b", r"\bSOP\b",
         ],
     }

@@ -434,7 +434,7 @@ Migration Command
 
 ```python
 # Resolver just computes - always succeeds
-path = resolver.get_memory_dir("semantic/decisions")
+path = resolver.get_memory_dir("_semantic/decisions")
 
 # Caller handles existence
 if not path.exists():

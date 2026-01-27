@@ -15,7 +15,7 @@ Search and recall memories from the mnemonic filesystem.
 ## Arguments
 
 - `[query]` - Optional search term for full-text search
-- `--namespace` - Filter by namespace (semantic/decisions, semantic/knowledge, semantic/entities, episodic/incidents, episodic/sessions, episodic/blockers, procedural/runbooks, procedural/patterns, procedural/migrations)
+- `--namespace` - Filter by namespace (_semantic/decisions, _semantic/knowledge, _semantic/entities, _episodic/incidents, _episodic/sessions, _episodic/blockers, _procedural/runbooks, _procedural/patterns, _procedural/migrations)
 - `--tags` - Filter by tags (comma-separated)
 - `--since` - Time filter (7d, 30d, 90d, 1y)
 - `--type` - Filter by cognitive type (semantic, episodic, procedural)
@@ -202,10 +202,10 @@ fi
 /mnemonic:recall authentication
 
 # Filter by namespace
-/mnemonic:recall --namespace semantic/decisions
+/mnemonic:recall --namespace _semantic/decisions
 
 # Recent knowledge
-/mnemonic:recall --namespace semantic/knowledge --since 7d
+/mnemonic:recall --namespace _semantic/knowledge --since 7d
 
 # Tagged memories
 /mnemonic:recall --tags architecture,database
@@ -214,7 +214,7 @@ fi
 /mnemonic:recall --type episodic
 
 # Combine filters
-/mnemonic:recall auth --namespace semantic/knowledge --since 30d --type semantic
+/mnemonic:recall auth --namespace _semantic/knowledge --since 30d --type semantic
 ```
 
 ## Output

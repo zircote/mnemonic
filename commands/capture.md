@@ -13,10 +13,10 @@ Capture a new memory to the mnemonic filesystem.
 
 ## Arguments
 
-- `<namespace>` - Required. Hierarchical namespace path using cognitive triad:
-  - **Semantic** (facts/knowledge): `semantic/decisions`, `semantic/knowledge`, `semantic/entities`
-  - **Episodic** (events/experiences): `episodic/incidents`, `episodic/sessions`, `episodic/blockers`
-  - **Procedural** (processes/steps): `procedural/runbooks`, `procedural/patterns`, `procedural/migrations`
+- `<namespace>` - Required. Hierarchical namespace path using cognitive triad (prefixed with _ for filesystem disambiguation):
+  - **Semantic** (facts/knowledge): `_semantic/decisions`, `_semantic/knowledge`, `_semantic/entities`
+  - **Episodic** (events/experiences): `_episodic/incidents`, `_episodic/sessions`, `_episodic/blockers`
+  - **Procedural** (processes/steps): `_procedural/runbooks`, `_procedural/patterns`, `_procedural/migrations`
 - `<title>` - Required. Human-readable title for the memory
 - `--type` - Memory type: semantic (default), episodic, or procedural
 - `--tags` - Comma-separated list of tags
@@ -42,10 +42,10 @@ TAGS="${TAGS:-}"
 ### Step 2: Validate Namespace
 
 ```bash
-# Cognitive triad hierarchical namespaces
-VALID_NS="semantic semantic/decisions semantic/knowledge semantic/entities"
-VALID_NS="$VALID_NS episodic episodic/incidents episodic/sessions episodic/blockers"
-VALID_NS="$VALID_NS procedural procedural/runbooks procedural/patterns procedural/migrations"
+# Cognitive triad hierarchical namespaces (prefixed with _ for filesystem disambiguation)
+VALID_NS="_semantic _semantic/decisions _semantic/knowledge _semantic/entities"
+VALID_NS="$VALID_NS _episodic _episodic/incidents _episodic/sessions _episodic/blockers"
+VALID_NS="$VALID_NS _procedural _procedural/runbooks _procedural/patterns _procedural/migrations"
 
 # Check for custom namespaces from ontology
 ONTOLOGY_FILE=".claude/mnemonic/ontology.yaml"
@@ -230,15 +230,15 @@ echo "  Type: $TYPE"
 ## Example Usage
 
 ```
-/mnemonic:capture semantic/decisions "Use PostgreSQL for data storage" --tags database,architecture
-/mnemonic:capture procedural/patterns "Repository pattern for data access" --tags database,patterns
-/mnemonic:capture episodic/incidents "Database connection timeout issue" --type episodic
+/mnemonic:capture _semantic/decisions "Use PostgreSQL for data storage" --tags database,architecture
+/mnemonic:capture _procedural/patterns "Repository pattern for data access" --tags database,patterns
+/mnemonic:capture _episodic/incidents "Database connection timeout issue" --type episodic
 ```
 
 ### Example with Citations
 
 ```
-/mnemonic:capture semantic/knowledge "PostgreSQL JSON Performance" --tags database,performance --citations '[{"type":"paper","title":"PostgreSQL vs MySQL Performance","url":"https://arxiv.org/abs/2024.12345","author":"Smith et al.","relevance":0.95}]'
+/mnemonic:capture _semantic/knowledge "PostgreSQL JSON Performance" --tags database,performance --citations '[{"type":"paper","title":"PostgreSQL vs MySQL Performance","url":"https://arxiv.org/abs/2024.12345","author":"Smith et al.","relevance":0.95}]'
 ```
 
 ## Output

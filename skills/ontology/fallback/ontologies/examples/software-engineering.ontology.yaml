@@ -451,30 +451,30 @@ discovery:
   confidence_threshold: 0.8
 
   patterns:
-    # Technology patterns - suggest semantic/knowledge namespace
+    # Technology patterns - suggest _semantic/knowledge namespace
     - content_pattern: "\\b(PostgreSQL|MySQL|MongoDB|Redis)\\b"
       suggest_entity: technology
-      suggest_namespace: semantic/entities
+      suggest_namespace: _semantic/entities
     - content_pattern: "\\b(React|Vue|Angular|Next\\.js|Django)\\b"
       suggest_entity: technology
-      suggest_namespace: semantic/entities
+      suggest_namespace: _semantic/entities
     - content_pattern: "\\b(FastAPI|Express|Flask|Spring)\\b"
       suggest_entity: technology
-      suggest_namespace: semantic/entities
+      suggest_namespace: _semantic/entities
     - content_pattern: "\\b(Docker|Kubernetes|Terraform|AWS)\\b"
       suggest_entity: technology
-      suggest_namespace: semantic/entities
+      suggest_namespace: _semantic/entities
 
-    # Pattern patterns - suggest procedural/patterns
+    # Pattern patterns - suggest _procedural/patterns
     - content_pattern: "\\b(Factory|Singleton|Observer)\\s+Pattern\\b"
       suggest_entity: design-pattern
-      suggest_namespace: procedural/patterns
+      suggest_namespace: _procedural/patterns
     - content_pattern: "\\b(Repository|Strategy|Decorator)\\s+Pattern\\b"
       suggest_entity: design-pattern
-      suggest_namespace: procedural/patterns
+      suggest_namespace: _procedural/patterns
     - content_pattern: "\\b(CQRS|Event\\s+Sourcing|Saga)\\b"
       suggest_entity: design-pattern
-      suggest_namespace: procedural/patterns
+      suggest_namespace: _procedural/patterns
 
     # Component patterns from file paths
     - file_pattern: "**/services/**/*.py"
@@ -484,24 +484,24 @@ discovery:
       suggest_entity: component
       suggest_namespace: semantic/components
 
-    # Incident patterns - suggest episodic/incidents
+    # Incident patterns - suggest _episodic/incidents
     - content_pattern: "\\b(outage|incident|postmortem|RCA)\\b"
       suggest_entity: incident-report
-      suggest_namespace: episodic/incidents
+      suggest_namespace: _episodic/incidents
 
     # Procedural patterns
     - content_pattern: "\\b(runbook|playbook|SOP|procedure)\\b"
       suggest_entity: runbook
-      suggest_namespace: procedural/runbooks
+      suggest_namespace: _procedural/runbooks
     - content_pattern: "\\b(deploy|release|rollout)\\s+(steps|procedure)\\b"
       suggest_entity: deployment-procedure
       suggest_namespace: procedural/deployments
     - content_pattern: "\\b(migration|migrate|upgrade)\\s+(guide|plan)\\b"
       suggest_entity: migration-guide
-      suggest_namespace: procedural/migrations
+      suggest_namespace: _procedural/migrations
     - file_pattern: "**/runbooks/**/*.md"
       suggest_entity: runbook
-      suggest_namespace: procedural/runbooks
+      suggest_namespace: _procedural/runbooks
     - file_pattern: "**/docs/procedures/**/*.md"
       suggest_entity: deployment-procedure
       suggest_namespace: procedural/deployments

@@ -44,7 +44,7 @@ def detect_namespace_from_path(file_path: Path) -> str:
         if part in ["decisions", "learnings", "patterns", "blockers", "apis", "context", "security", "testing"]:
             return part
 
-    return "semantic/knowledge"
+    return "_semantic/knowledge"
 
 
 def is_valid_uuid(value: str) -> bool:

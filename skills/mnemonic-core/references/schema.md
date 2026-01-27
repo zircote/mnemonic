@@ -19,7 +19,7 @@ created: 2026-01-23T10:30:00Z
 ---
 id: 550e8400-e29b-41d4-a716-446655440000
 type: semantic|episodic|procedural
-namespace: semantic/decisions/project
+namespace: _semantic/decisions/project
 created: 2026-01-23T10:30:00Z
 modified: 2026-01-23T14:22:00Z
 title: "Human-readable title"
@@ -91,14 +91,14 @@ conflicts:
 **Project-level** (`~/.claude/mnemonic/`):
 ```
 ~/.claude/mnemonic/
-├── semantic/knowledge/
-├── episodic/blockers/
-├── semantic/knowledge/
-├── semantic/decisions/
-├── semantic/knowledge/
-├── procedural/patterns/
-├── semantic/knowledge/
-├── procedural/patterns/
-├── episodic/sessions/
+├── _semantic/knowledge/
+├── _episodic/blockers/
+├── _semantic/knowledge/
+├── _semantic/decisions/
+├── _semantic/knowledge/
+├── _procedural/patterns/
+├── _semantic/knowledge/
+├── _procedural/patterns/
+├── _episodic/sessions/
 └── .blackboard/
 ```

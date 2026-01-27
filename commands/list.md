@@ -51,9 +51,9 @@ fi
 ```
 Loaded ontologies:
   - mif-base v1.0.0
-    Namespaces: semantic/, semantic/decisions, semantic/knowledge, semantic/entities,
-                episodic/, episodic/incidents, episodic/sessions, episodic/blockers,
-                procedural/, procedural/runbooks, procedural/patterns, procedural/migrations
+    Namespaces: semantic/, _semantic/decisions, _semantic/knowledge, _semantic/entities,
+                episodic/, _episodic/incidents, _episodic/sessions, _episodic/blockers,
+                procedural/, _procedural/runbooks, _procedural/patterns, _procedural/migrations
     Traits: timestamped, confidence, provenance
     Relationships: relates_to, supersedes, derived_from
 

@@ -8,7 +8,7 @@ Complete examples of memory capture and recall.
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat > "~/.claude/mnemonic/semantic/decisions/${UUID}-use-jwt-auth.memory.md" << EOF
+cat > "~/.claude/mnemonic/_semantic/decisions/${UUID}-use-jwt-auth.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Use JWT for API authentication"

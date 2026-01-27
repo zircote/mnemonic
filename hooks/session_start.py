@@ -115,11 +115,11 @@ def get_blackboard_path() -> Path:
 
 def load_ontology_namespaces() -> list:
     """Load all namespaces from MIF and custom ontology files."""
-    # Hierarchical namespaces (cognitive triad)
+    # Hierarchical namespaces (cognitive triad, prefixed with _ for filesystem disambiguation)
     base_namespaces = [
-        "semantic", "semantic/decisions", "semantic/knowledge", "semantic/entities",
-        "episodic", "episodic/incidents", "episodic/sessions", "episodic/blockers",
-        "procedural", "procedural/runbooks", "procedural/patterns", "procedural/migrations",
+        "_semantic", "_semantic/decisions", "_semantic/knowledge", "_semantic/entities",
+        "_episodic", "_episodic/incidents", "_episodic/sessions", "_episodic/blockers",
+        "_procedural", "_procedural/runbooks", "_procedural/patterns", "_procedural/migrations",
     ]
 
     custom_namespaces = []
@@ -404,7 +404,7 @@ def find_project_relevant_memories(project: str) -> list:
 
                 if f"/{project}" in header or f"project: {project}" in header.lower():
                     relevant.append(str(memory_file))
-                elif "semantic/decisions" in header or "procedural/patterns" in header:
+                elif "_semantic/decisions" in header or "_procedural/patterns" in header:
                     # Include key decision/pattern memories
                     relevant.append(str(memory_file))
 

@@ -85,10 +85,10 @@ find ~/.claude/mnemonic -name "*.memory.md" | grep -o '/[^/]*/project\|/[^/]*/us
 
 ```bash
 # Read full memory
-cat ~/.claude/mnemonic/zircote/semantic/decisions/550e8400-*.memory.md
+cat ~/.claude/mnemonic/zircote/_semantic/decisions/550e8400-*.memory.md
 
 # View just the title
-grep "^title:" ~/.claude/mnemonic/zircote/semantic/decisions/*.memory.md
+grep "^title:" ~/.claude/mnemonic/zircote/_semantic/decisions/*.memory.md
 
 # View frontmatter only (between --- markers)
 sed -n '/^---$/,/^---$/p' path/to/memory.memory.md
@@ -122,7 +122,7 @@ UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Create memory file
-cat > ~/.claude/mnemonic/myorg/semantic/decisions/${UUID}-my-decision.memory.md << EOF
+cat > ~/.claude/mnemonic/myorg/_semantic/decisions/${UUID}-my-decision.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic

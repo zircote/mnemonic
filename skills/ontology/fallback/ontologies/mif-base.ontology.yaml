@@ -16,16 +16,16 @@ ontology:
 # Cognitive Triad Namespace Hierarchy
 #
 # Three top-level namespaces based on memory types:
-# - semantic: Facts, concepts, relationships (declarative knowledge)
-# - episodic: Events, experiences, timelines (autobiographical memory)
-# - procedural: Step-by-step processes (skill-based knowledge)
+# - _semantic: Facts, concepts, relationships (declarative knowledge)
+# - _episodic: Events, experiences, timelines (autobiographical memory)
+# - _procedural: Step-by-step processes (skill-based knowledge)
 #
 # Each top-level has sub-namespaces for organization.
-# Path format: {top-level}/{sub-namespace}
-# Example: semantic/decisions, episodic/incidents, procedural/runbooks
+# Path format: _{top-level}/{sub-namespace}
+# Example: _semantic/decisions, _episodic/incidents, _procedural/runbooks
 
 namespaces:
-  semantic:
+  _semantic:
     description: "Facts, concepts, relationships - declarative knowledge"
     type_hint: semantic
     children:
@@ -39,7 +39,7 @@ namespaces:
         description: "Entity definitions - technologies, components, systems"
         type_hint: semantic
 
-  episodic:
+  _episodic:
     description: "Events, experiences, timelines - autobiographical memory"
     type_hint: episodic
     children:
@@ -53,7 +53,7 @@ namespaces:
         description: "Impediments, issues preventing progress"
         type_hint: episodic
 
-  procedural:
+  _procedural:
     description: "Step-by-step processes - skill-based knowledge"
     type_hint: procedural
     children:
@@ -133,66 +133,66 @@ discovery:
   # Content patterns - matched against user prompts
   content_patterns:
     - pattern: "\\blet'?s use\\b|\\bdecided to\\b|\\bwe will use\\b"
-      namespace: semantic/decisions
+      namespace: _semantic/decisions
     - pattern: "\\bgoing with\\b|\\bchose\\b|\\bpicked\\b"
-      namespace: semantic/decisions
+      namespace: _semantic/decisions
     - pattern: "\\bthe plan is\\b|\\bour approach\\b"
-      namespace: semantic/decisions
+      namespace: _semantic/decisions
     - pattern: "\\blearned that\\b|\\bturns out\\b|\\bTIL\\b"
-      namespace: semantic/knowledge
+      namespace: _semantic/knowledge
     - pattern: "\\brealized\\b|\\bthe fix was\\b|\\bthe solution\\b"
-      namespace: semantic/knowledge
+      namespace: _semantic/knowledge
     - pattern: "\\bdon'?t forget\\b|\\bremember this\\b"
-      namespace: semantic/knowledge
+      namespace: _semantic/knowledge
     - pattern: "\\bshould always\\b|\\balways use\\b"
-      namespace: procedural/patterns
+      namespace: _procedural/patterns
     - pattern: "\\bconvention\\b|\\bbest practice\\b"
-      namespace: procedural/patterns
+      namespace: _procedural/patterns
     - pattern: "\\bblocked by\\b|\\bstuck on\\b"
-      namespace: episodic/blockers
+      namespace: _episodic/blockers
     - pattern: "\\boutage\\b|\\bincident\\b|\\bpostmortem\\b"
-      namespace: episodic/incidents
+      namespace: _episodic/incidents
     - pattern: "\\brunbook\\b|\\bplaybook\\b|\\bSOP\\b"
-      namespace: procedural/runbooks
+      namespace: _procedural/runbooks
 
   # File patterns - matched against file paths being edited
   file_patterns:
     - pattern: "auth|login|session|jwt|oauth|token"
       namespaces:
-        - semantic/knowledge
-        - semantic/decisions
+        - _semantic/knowledge
+        - _semantic/decisions
       context: authentication
     - pattern: "api|endpoint|route|controller|handler"
       namespaces:
-        - semantic/knowledge
-        - semantic/decisions
+        - _semantic/knowledge
+        - _semantic/decisions
       context: API design
     - pattern: "db|database|model|schema|migration|sql"
       namespaces:
-        - semantic/decisions
-        - procedural/migrations
+        - _semantic/decisions
+        - _procedural/migrations
       context: database
     - pattern: "test|spec|mock|fixture"
       namespaces:
-        - procedural/patterns
+        - _procedural/patterns
       context: testing
     - pattern: "config|settings|env"
       namespaces:
-        - semantic/decisions
-        - semantic/knowledge
+        - _semantic/decisions
+        - _semantic/knowledge
       context: configuration
     - pattern: "deploy|docker|kubernetes|helm|ci|cd"
       namespaces:
-        - procedural/runbooks
-        - semantic/decisions
+        - _procedural/runbooks
+        - _semantic/decisions
       context: deployment
     - pattern: "security|encrypt|hash|sanitize"
       namespaces:
-        - semantic/knowledge
-        - semantic/decisions
+        - _semantic/knowledge
+        - _semantic/decisions
       context: security
     - pattern: "service|component|module"
       namespaces:
-        - semantic/entities
-        - semantic/decisions
+        - _semantic/entities
+        - _semantic/decisions
       context: components

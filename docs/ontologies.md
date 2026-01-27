@@ -72,7 +72,7 @@ cp skills/ontology/fallback/ontologies/examples/software-engineering.ontology.ya
 ### 2. Capture a memory with a hierarchical namespace
 
 ```bash
-/mnemonic:capture semantic/entities "PostgreSQL Database"
+/mnemonic:capture _semantic/entities "PostgreSQL Database"
 ```
 
 When you mention PostgreSQL, Claude will suggest creating a `technology` entity
@@ -91,9 +91,9 @@ The payment service depends on @[[PostgreSQL]] for transaction storage.
 Namespaces use a hierarchical path format: `{top-level}/{sub-namespace}`
 
 **Base namespaces (from MIF):**
-- Semantic: `semantic/decisions`, `semantic/knowledge`, `semantic/entities`
-- Episodic: `episodic/incidents`, `episodic/sessions`, `episodic/blockers`
-- Procedural: `procedural/runbooks`, `procedural/patterns`, `procedural/migrations`
+- Semantic: `_semantic/decisions`, `_semantic/knowledge`, `_semantic/entities`
+- Episodic: `_episodic/incidents`, `_episodic/sessions`, `_episodic/blockers`
+- Procedural: `_procedural/runbooks`, `_procedural/patterns`, `_procedural/migrations`
 
 **Custom namespaces extend the hierarchy:**
 

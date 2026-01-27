@@ -46,8 +46,8 @@ awk '/^---$/{p=!p; print; next} p' /path/to/memory.memory.md
 
 ```bash
 # Find all decisions
-rg "^namespace: semantic/decisions" ~/.claude/mnemonic/ --glob "*.memory.md" -l
-rg "^namespace: semantic/decisions" --glob "*.memory.md" -l
+rg "^namespace: _semantic/decisions" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^namespace: _semantic/decisions" --glob "*.memory.md" -l
 
 # Find project-scoped only
 rg "^namespace: .*/project" --glob "*.memory.md" -l
@@ -201,13 +201,13 @@ rg -c "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 ```bash
 # Decisions about databases
-rg "database" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md"
+rg "database" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md"
 
 # Learnings about testing
-rg "test" ~/.claude/mnemonic/*/learnings/semantic/knowledge/ --glob "*.memory.md"
+rg "test" ~/.claude/mnemonic/*/learnings/_semantic/knowledge/ --glob "*.memory.md"
 
 # Project patterns only
-rg "pattern"procedural/patterns/ --glob "*.memory.md"
+rg "pattern"_procedural/patterns/ --glob "*.memory.md"
 ```
 
 ### Recent + Text
@@ -224,10 +224,10 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime 0 -exec rg -l "pattern" {} \;
 
 ```bash
 # Episodic memories in blockers (incident reports)
-rg -l "^type: episodic" ~/.claude/mnemonic/*/blockers/episodic/blockers/ --glob "*.memory.md"
+rg -l "^type: episodic" ~/.claude/mnemonic/*/blockers/_episodic/blockers/ --glob "*.memory.md"
 
 # Procedural memories in patterns (workflows)
-rg -l "^type: procedural" ~/.claude/mnemonic/*/patterns/procedural/patterns/ --glob "*.memory.md"
+rg -l "^type: procedural" ~/.claude/mnemonic/*/patterns/_procedural/patterns/ --glob "*.memory.md"
 ```
 
 ### Tag + Text
@@ -289,7 +289,7 @@ cat /path/to/memory.memory.md
 find ~/.claude/mnemonic/*/decisions -name "*.memory.md" | xargs rg "pattern"
 
 # Or use directory restriction
-rg "pattern" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md"
 ```
 
 ### Limit Output
@@ -318,8 +318,8 @@ done
 
 ```bash
 # Search multiple namespaces in parallel
-rg "pattern" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md" &
-rg "pattern" ~/.claude/mnemonic/*/learnings/semantic/knowledge/ --glob "*.memory.md" &
+rg "pattern" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md" &
+rg "pattern" ~/.claude/mnemonic/*/learnings/_semantic/knowledge/ --glob "*.memory.md" &
 wait
 ```
 
@@ -331,8 +331,8 @@ wait
 
 ```bash
 echo "=== Auth Decisions ==="
-rg -i "auth" ~/.claude/mnemonic/*/decisions/semantic/decisions/ --glob "*.memory.md" -l
-rg -i "auth"semantic/decisions/ --glob "*.memory.md" -l
+rg -i "auth" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md" -l
+rg -i "auth"_semantic/decisions/ --glob "*.memory.md" -l
 ```
 
 ### Recent Learnings in Current Project
@@ -355,7 +355,7 @@ done
 
 ```bash
 echo "=== Trusted Security Knowledge ==="
-for f in $(rg -l "confidence: 0\.9" ~/.claude/mnemonic/*/security/semantic/knowledge/ --glob "*.memory.md" 2>/dev/null); do
+for f in $(rg -l "confidence: 0\.9" ~/.claude/mnemonic/*/security/_semantic/knowledge/ --glob "*.memory.md" 2>/dev/null); do
     grep "^title:" "$f"
 done
 ```
@@ -383,7 +383,7 @@ rg "\[\[" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 | Goal | Command |
 |------|---------|
-| All decisions | `rg "^namespace: semantic/decisions" ~/.claude/mnemonic/ -l` |
+| All decisions | `rg "^namespace: _semantic/decisions" ~/.claude/mnemonic/ -l` |
 | By tag | `rg -l "^  - tagname" ~/.claude/mnemonic/` |
 | By type | `rg "^type: semantic" ~/.claude/mnemonic/ -l` |
 | Full-text | `rg -i "search term" ~/.claude/mnemonic/` |
@@ -472,7 +472,7 @@ The real power comes from combining structured queries with rg:
 
 ```bash
 # Find security decisions mentioning passwords
-mnemonic-query --namespace "semantic/decisions" --tag security | xargs rg "password"
+mnemonic-query --namespace "_semantic/decisions" --tag security | xargs rg "password"
 
 # Find high-confidence memories about authentication
 mnemonic-query --confidence ">0.8" | xargs rg -i "auth"
