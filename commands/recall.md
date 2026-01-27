@@ -1,12 +1,22 @@
 ---
-description: Recall memories with filtering and search
-argument-hint: "[query] [--namespace ns] [--tags tag1,tag2] [--since 7d] [--type semantic|episodic|procedural] [--scope project|org|all]"
 allowed-tools:
-  - Bash
-  - Read
-  - Grep
-  - Glob
+- Bash
+- Read
+- Grep
+- Glob
+- Write
+argument-hint: '[query] [--namespace ns] [--tags tag1,tag2] [--since 7d] [--type semantic|episodic|procedural]
+  [--scope project|org|all]'
+description: Recall memories with filtering and search
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # /mnemonic:recall
 

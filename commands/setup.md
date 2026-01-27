@@ -1,11 +1,21 @@
 ---
-description: Configure mnemonic for proactive memory operations
-argument-hint: "[--force]"
 allowed-tools:
-  - Bash
-  - Read
-  - Write
+- Bash
+- Read
+- Write
+- Glob
+- Grep
+argument-hint: '[--force]'
+description: Configure mnemonic for proactive memory operations
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # /mnemonic:setup
 

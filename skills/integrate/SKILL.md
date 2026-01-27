@@ -1,12 +1,10 @@
 ---
 name: integrate
-description: Wire mnemonic memory operations into other Claude Code plugins
-user-invocable: true
-triggers:
-  - integrate mnemonic
-  - wire plugin
-  - add memory to plugin
-  - plugin integration
+description: |
+  This skill should be used when the user asks to "integrate mnemonic", "wire plugin",
+  "add memory to plugin", "enable memory capture in plugin", "integrate memory operations",
+  or "add mnemonic protocol". It wires mnemonic memory capture and recall workflows into
+  other Claude Code plugins using sentinel markers.
 allowed-tools:
   - Bash
   - Read
@@ -38,7 +36,7 @@ Both mechanisms work together: Markdown provides explicit workflow guidance, hoo
 
 ---
 
-> **⛔ CRITICAL: DO NOT GENERATE INTEGRATION CODE**
+> **[CRITICAL] DO NOT GENERATE INTEGRATION CODE**
 >
 > You MUST read `templates/mnemonic-protocol.md` and insert it VERBATIM.
 > The template already contains sentinel markers. Never create content without markers.
@@ -52,8 +50,14 @@ All integrations use sentinel markers for clean updates and removal:
 
 ```markdown
 <!-- BEGIN MNEMONIC PROTOCOL -->
-## Memory Operations
-...protocol content...
+
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
 <!-- END MNEMONIC PROTOCOL -->
 ```
 
@@ -64,49 +68,6 @@ All integrations use sentinel markers for clean updates and removal:
 - **Migration:** Convert old integrations to marker-wrapped format
 
 **Template Source:** `templates/mnemonic-protocol.md` is the single source of truth.
-
----
-
-## Command Modes
-
-### Insert/Update Mode (Default)
-
-```
-/mnemonic:integrate {path}
-```
-
-Inserts or updates protocol with markers:
-- If markers exist: Updates content between them
-- If no markers: Inserts after frontmatter with markers
-
-### Remove Mode
-
-```
-/mnemonic:integrate {path} --remove
-```
-
-Cleanly removes protocol:
-- Deletes everything between `<!-- BEGIN MNEMONIC PROTOCOL -->` and `<!-- END MNEMONIC PROTOCOL -->`
-- No residual content left
-
-### Migrate Mode
-
-```
-/mnemonic:integrate {path} --migrate
-```
-
-Converts old marker-less integrations:
-- Detects old patterns: `## Memory Operations`, `## Memory` without markers
-- Content indicators: `rg -i`, `/mnemonic:capture`, `~/.claude/mnemonic/`
-- Replaces with marker-wrapped version from template
-
-### Dry Run Mode
-
-```
-/mnemonic:integrate {path} --dry-run
-```
-
-Shows what would change without making modifications.
 
 ---
 
@@ -146,8 +107,16 @@ cat "${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md"
 ```
 
 The template already contains:
-- `<!-- BEGIN MNEMONIC PROTOCOL -->` marker at start
-- `<!-- END MNEMONIC PROTOCOL -->` marker at end
+- `<!-- BEGIN MNEMONIC PROTOCOL -->
+
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
+<!-- END MNEMONIC PROTOCOL -->` marker at end
 - Complete protocol content between markers
 
 ### Phase 4: Insert Template With Markers
@@ -201,7 +170,16 @@ Check existing `allowed-tools` and add only what's missing.
 **MANDATORY RULES (Non-negotiable):**
 
 1. **NEVER generate integration content** - Read `templates/mnemonic-protocol.md` and use it verbatim
-2. **NEVER insert without markers** - Template already contains `<!-- BEGIN MNEMONIC PROTOCOL -->` and `<!-- END MNEMONIC PROTOCOL -->`
+2. **NEVER insert without markers** - Template already contains `<!-- BEGIN MNEMONIC PROTOCOL -->
+
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
+<!-- END MNEMONIC PROTOCOL -->`
 3. **Insert at TOP** - Immediately after frontmatter, before any other content
 4. **Template is law** - Do not modify, abbreviate, or "improve" the template content
 
@@ -219,12 +197,14 @@ PROTOCOL=$(cat "${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md")
 **Template content:**
 ```markdown
 <!-- BEGIN MNEMONIC PROTOCOL -->
+
 ## Memory
 
 Search first: `/mnemonic:search {relevant_keywords}`
 Capture after: `/mnemonic:capture {namespace} "{title}"`
 
 Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
 <!-- END MNEMONIC PROTOCOL -->
 ```
 
@@ -481,6 +461,8 @@ git log -1 --oneline
 
 ## Workflow Steps
 
+> **Note:** This section describes internal mechanics. For usage instructions, see "How to Use This Skill" above.
+
 When invoked, this skill:
 
 **Standard Mode (Insert/Update):**
@@ -498,7 +480,16 @@ When invoked, this skill:
 **Remove Mode (`--remove`):**
 1. **List components** - Find all commands, skills, agents, hooks
 2. **For each component:**
-   - Find sentinel markers (`<!-- BEGIN MNEMONIC PROTOCOL -->` / `<!-- END MNEMONIC PROTOCOL -->`)
+   - Find sentinel markers (`<!-- BEGIN MNEMONIC PROTOCOL -->
+
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
+<!-- END MNEMONIC PROTOCOL -->`)
    - Delete everything between markers (inclusive)
 3. **Commit changes** - Create git commit for the removal
 4. **Report results** - Summarize what was removed
@@ -582,8 +573,8 @@ If git repository exists, create single atomic commit with all integration chang
 ```bash
 cd {plugin_path}
 
-# Stage modified files
-git add -A
+# Stage only the specific modified files (not git add -A for security)
+git add SKILL.md README.md hooks/*.py  # Example - list actual modified files
 
 # Create descriptive commit
 git commit -m "feat(mnemonic): integrate memory capture and recall" \

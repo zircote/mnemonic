@@ -1,33 +1,47 @@
 ---
-name: mnemonic-search-subcall
-description: Efficient memory search agent for iterative query refinement. Executes targeted ripgrep searches and returns structured findings.
-model: haiku
-tools:
-  - Grep
-  - Read
-  - Bash
-color: cyan
+allowed-tools:
+- Bash
+- Glob
+- Grep
+- Read
+- Write
 arguments:
-  # Arguments are for documentation - passed via Task tool prompt
-  - name: query
-    description: The search query or question from the user
-    required: true
-  - name: iteration
-    description: Iteration number (1-based) for tracking refinement progress
-    required: true
-  - name: search_pattern
-    description: Refined ripgrep pattern for this iteration
-    required: true
-  - name: namespace_filter
-    description: Optional namespace restriction (e.g., "decisions", "learnings")
-    required: false
-  - name: tag_filter
-    description: Optional tag filter
-    required: false
-  - name: scope
-    description: Search scope - "user", "project", or "all" (default)
-    required: false
+- description: The search query or question from the user
+  name: query
+  required: true
+- description: Iteration number (1-based) for tracking refinement progress
+  name: iteration
+  required: true
+- description: Refined ripgrep pattern for this iteration
+  name: search_pattern
+  required: true
+- description: Optional namespace restriction (e.g., "decisions", "learnings")
+  name: namespace_filter
+  required: false
+- description: Optional tag filter
+  name: tag_filter
+  required: false
+- description: Search scope - "user", "project", or "all" (default)
+  name: scope
+  required: false
+color: cyan
+description: Efficient memory search agent for iterative query refinement. Executes
+  targeted ripgrep searches and returns structured findings.
+model: haiku
+name: mnemonic-search-subcall
+tools:
+- Grep
+- Read
+- Bash
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # Mnemonic Search Subcall Agent
 

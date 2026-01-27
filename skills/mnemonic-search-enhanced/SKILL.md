@@ -1,14 +1,24 @@
 ---
-name: mnemonic-search-enhanced
-description: Agent-driven iterative memory search with synthesis. Uses subcall agents for query refinement and produces comprehensive answers.
-user-invocable: true
 allowed-tools:
-  - Task
-  - Bash
-  - Read
-  - Grep
-  - Glob
+- Task
+- Bash
+- Read
+- Grep
+- Glob
+- Write
+description: Agent-driven iterative memory search with synthesis. Uses subcall agents
+  for query refinement and produces comprehensive answers.
+name: mnemonic-search-enhanced
+user-invocable: true
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # Mnemonic Enhanced Search Skill
 

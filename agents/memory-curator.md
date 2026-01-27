@@ -25,22 +25,14 @@ The memory-curator agent performs background maintenance on the mnemonic memory 
 5. **Cleanup**: Archive or remove orphaned/expired content
 
 <!-- BEGIN MNEMONIC PROTOCOL -->
-## Memory Operations
 
-You have PERSISTENT MEMORY across sessions.
+## Memory
 
-BEFORE starting any task:
-```bash
-if [ -d ~/.claude/mnemonic ]; then
-    rg -i "{relevant_keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l | head -5
-fi
-```
-If results exist, READ the most relevant and apply that context.
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
 
-AFTER completing work, if you discovered:
-- A decision → report for capture to _semantic/decisions
-- A pattern → report for capture to _procedural/patterns
-- A learning → report for capture to _semantic/knowledge
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
 <!-- END MNEMONIC PROTOCOL -->
 
 ## Trigger Conditions

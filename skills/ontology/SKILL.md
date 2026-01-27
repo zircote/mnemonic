@@ -1,22 +1,42 @@
 ---
-name: ontology
-description: Custom ontology support for mnemonic memory system
-triggers:
-  - ontology
-  - entity type
-  - namespace
-  - schema validation
 allowed-tools:
-  - Bash(python3 *)
-  - Read
-  - Glob
-  - Grep
+- Bash(python3 *)
+- Read
+- Glob
+- Grep
+- Bash
+- Write
+description: 'This skill should be used when the user asks to "create custom entity
+  types",
+
+  "define namespaces", "validate ontology files", "resolve entity references",
+
+  "extend mnemonic schemas", or "work with typed memories". Also trigger for
+
+  questions about "entity relationships", "traits", "mixins", "discovery patterns",
+
+  or "cognitive memory types" (semantic, episodic, procedural).
+
+  '
+name: ontology
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # Ontology Skill
 
 Provides custom ontology support for extending mnemonic with domain-specific
 knowledge structures.
+
+## Requirements
+
+- **PyYAML** - Optional but recommended for YAML parsing. The library works without it but with limited functionality.
 
 ## Capabilities
 
@@ -66,6 +86,7 @@ python ${SKILL_DIR}/lib/entity_resolver.py --resolve "@[[PostgreSQL]]"
 
 - `lib/ontology_registry.py` - Load and manage ontologies
 - `lib/ontology_validator.py` - Validate ontology YAML
+- `lib/ontology_loader.py` - Centralized loading with MIF submodule support
 - `lib/entity_resolver.py` - Resolve entity references
-- `ontologies/base.ontology.yaml` - Standard mnemonic namespaces
-- `ontologies/schemas/ontology-meta-schema.json` - JSON Schema
+- `fallback/ontologies/mif-base.ontology.yaml` - Standard mnemonic namespaces
+- `fallback/schema/ontology/ontology.schema.json` - JSON Schema

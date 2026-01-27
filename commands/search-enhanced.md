@@ -1,13 +1,22 @@
 ---
-description: Agent-driven iterative search with synthesis
-argument-hint: "<query> [--scope user|project|all] [--max-iterations 1-3]"
 allowed-tools:
-  - Task
-  - Bash
-  - Read
-  - Grep
-  - Glob
+- Task
+- Bash
+- Read
+- Grep
+- Glob
+- Write
+argument-hint: <query> [--scope user|project|all] [--max-iterations 1-3]
+description: Agent-driven iterative search with synthesis
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # /mnemonic:search-enhanced
 

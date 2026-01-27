@@ -1,11 +1,21 @@
 ---
-description: Initialize mnemonic directory structure
-argument-hint: "[--org <name>]"
 allowed-tools:
-  - Bash
-  - Write
-  - Read
+- Bash
+- Write
+- Read
+- Glob
+- Grep
+argument-hint: '[--org <name>]'
+description: Initialize mnemonic directory structure
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # /mnemonic:init
 

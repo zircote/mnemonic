@@ -1,10 +1,21 @@
 ---
-name: validate
-description: Validate an ontology YAML file against the meta-schema
 allowed-tools:
-  - Bash
-  - Read
+- Bash
+- Read
+- Glob
+- Grep
+- Write
+description: Validate an ontology YAML file against the meta-schema
+name: validate
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # Validate Ontology
 

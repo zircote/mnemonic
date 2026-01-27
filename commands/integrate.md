@@ -115,7 +115,14 @@ After integration, the tool reports:
 All integrated content is wrapped in markers:
 ```markdown
 <!-- BEGIN MNEMONIC PROTOCOL -->
-{template content}
+
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
 <!-- END MNEMONIC PROTOCOL -->
 ```
 
@@ -124,12 +131,14 @@ All integrated content is wrapped in markers:
 Located at `${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md`:
 ```markdown
 <!-- BEGIN MNEMONIC PROTOCOL -->
+
 ## Memory
 
 Search first: `/mnemonic:search {relevant_keywords}`
 Capture after: `/mnemonic:capture {namespace} "{title}"`
 
 Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+
 <!-- END MNEMONIC PROTOCOL -->
 ```
 

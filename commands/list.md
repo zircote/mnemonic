@@ -1,9 +1,20 @@
 ---
-description: List loaded ontologies and their namespaces
 allowed-tools:
-  - Bash
-  - Read
+- Bash
+- Read
+- Glob
+- Grep
+- Write
+description: List loaded ontologies and their namespaces
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # List Ontologies
 

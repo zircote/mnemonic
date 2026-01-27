@@ -10,6 +10,16 @@ allowed-tools:
   - Grep
 ---
 
+
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
+
 # Mnemonic Agent Coordination Skill
 
 Multi-agent coordination patterns using the blackboard extension model.

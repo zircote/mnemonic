@@ -1,10 +1,20 @@
 ---
-description: Show mnemonic system status and statistics
 allowed-tools:
-  - Bash
-  - Read
-  - Glob
+- Bash
+- Read
+- Glob
+- Grep
+- Write
+description: Show mnemonic system status and statistics
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # /mnemonic:status
 

@@ -1,10 +1,21 @@
 ---
-description: Structured frontmatter queries using yq
-argument-hint: "[--type TYPE] [--tag TAG] [--confidence VALUE] [--namespace NS]"
 allowed-tools:
-  - Bash
-  - Read
+- Bash
+- Read
+- Glob
+- Grep
+- Write
+argument-hint: '[--type TYPE] [--tag TAG] [--confidence VALUE] [--namespace NS]'
+description: Structured frontmatter queries using yq
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # /mnemonic:query
 

@@ -1,12 +1,22 @@
 ---
-name: mnemonic-progressive-disclosure
-description: Protocol for recalling memories at appropriate detail levels
-user-invocable: true
 allowed-tools:
-  - Read
-  - Glob
-  - Grep
+- Read
+- Glob
+- Grep
+- Bash
+- Write
+description: Protocol for recalling memories at appropriate detail levels
+name: mnemonic-progressive-disclosure
+user-invocable: true
 ---
+<!-- BEGIN MNEMONIC PROTOCOL -->
+## Memory
+
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 
 # Mnemonic Progressive Disclosure Skill
 
