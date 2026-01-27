@@ -1,5 +1,4 @@
 ---
-name: list
 description: List loaded ontologies and their namespaces
 allowed-tools:
   - Bash
@@ -27,23 +26,27 @@ Lists all loaded ontologies with their namespaces and entity types.
 ```bash
 # Find and run the ontology registry from the plugin directory
 PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname $(dirname $0))}"
-python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_registry.py" --list ${ARGS}
+python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_registry.py" ${ARGS}
 ```
 
-If the Python script is not available, parse ontology files directly:
+**Flag mapping:**
+- `/mnemonic:list` → `python3 ... --list`
+- `/mnemonic:list --namespaces` → `python3 ... --namespaces`
+- `/mnemonic:list --types` → `python3 ... --types`
+- `/mnemonic:list --json` → `python3 ... --json`
+
+If the Python script is not available, use the Read tool to display ontology files:
 
 ```bash
-# Check project ontology
-if [ -f ".claude/mnemonic/ontology.yaml" ]; then
-    echo "Project ontology:"
-    grep -E "^  id:|^  version:|^  [a-z]+:" .claude/mnemonic/ontology.yaml | head -20
-fi
+# Read base ontology from MIF
+cat "${PLUGIN_DIR}/mif/ontologies/mif-base.ontology.yaml" 2>/dev/null || \
+cat "${PLUGIN_DIR}/skills/ontology/fallback/ontologies/mif-base.ontology.yaml" 2>/dev/null
 
-# Check user ontology
-if [ -f "$HOME/.claude/mnemonic/ontology.yaml" ]; then
-    echo "User ontology:"
-    grep -E "^  id:|^  version:|^  [a-z]+:" "$HOME/.claude/mnemonic/ontology.yaml" | head -20
-fi
+# Read project ontology
+cat ".claude/mnemonic/ontology.yaml" 2>/dev/null
+
+# Read user ontology
+cat "$HOME/.claude/mnemonic/ontology.yaml" 2>/dev/null
 ```
 
 ## Example Output

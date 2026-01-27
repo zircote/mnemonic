@@ -17,17 +17,18 @@
   ],
   "commands": [
     "./commands/capture.md",
+    "./commands/discover.md",
     "./commands/gc.md",
     "./commands/init.md",
     "./commands/integrate.md",
+    "./commands/list.md",
+    "./commands/query.md",
     "./commands/recall.md",
     "./commands/search.md",
     "./commands/search-enhanced.md",
     "./commands/setup.md",
     "./commands/status.md",
-    "./commands/list.md",
-    "./commands/validate.md",
-    "./commands/discover.md"
+    "./commands/validate.md"
   ],
   "skills": [
     "./skills/mnemonic-agent-coordination/SKILL.md",

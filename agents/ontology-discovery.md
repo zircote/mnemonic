@@ -2,7 +2,7 @@
 name: ontology-discovery
 description: Discovers entities in codebase based on ontology patterns
 model: haiku
-tools:
+allowed-tools:
   - Bash
   - Read
   - Grep

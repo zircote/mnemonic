@@ -42,21 +42,14 @@ TAGS="${TAGS:-}"
 ### Step 2: Validate Namespace
 
 ```bash
-# Cognitive triad hierarchical namespaces (prefixed with _ for filesystem disambiguation)
-VALID_NS="_semantic _semantic/decisions _semantic/knowledge _semantic/entities"
-VALID_NS="$VALID_NS _episodic _episodic/incidents _episodic/sessions _episodic/blockers"
-VALID_NS="$VALID_NS _procedural _procedural/runbooks _procedural/patterns _procedural/migrations"
-
-# Check for custom namespaces from ontology
-ONTOLOGY_FILE=".claude/mnemonic/ontology.yaml"
-if [ -f "$ONTOLOGY_FILE" ]; then
-    CUSTOM_NS=$(grep -E "^  [a-z]" "$ONTOLOGY_FILE" | grep -v "#" | sed 's/:.*//;s/ //g' | tr '\n' ' ')
-    VALID_NS="$VALID_NS $CUSTOM_NS"
-fi
-
-if ! echo "$VALID_NS" | grep -qw "$NAMESPACE"; then
+# Use ontology registry to validate namespace (includes base + user + project ontologies)
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname $(dirname $0))}"
+if python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_registry.py" --validate "$NAMESPACE" >/dev/null 2>&1; then
+    echo "Namespace '$NAMESPACE' validated"
+else
     echo "Error: Invalid namespace '$NAMESPACE'"
-    echo "Valid namespaces: $VALID_NS"
+    echo "Valid namespaces:"
+    python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_registry.py" --namespaces
     exit 1
 fi
 ```

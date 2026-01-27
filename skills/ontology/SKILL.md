@@ -7,7 +7,7 @@ triggers:
   - namespace
   - schema validation
 allowed-tools:
-  - Bash(python:*)
+  - Bash(python3 *)
   - Read
   - Glob
   - Grep

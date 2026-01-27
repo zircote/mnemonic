@@ -370,15 +370,29 @@ class OntologyRegistry:
             source_path=source_path,
         )
 
-        # Parse namespaces
+        # Parse namespaces (including hierarchical children)
         for ns_name, ns_data in data.get("namespaces", {}).items():
             if isinstance(ns_data, str):
                 ns_data = {"description": ns_data}
+
+            # Register the parent namespace
             ontology.namespaces[ns_name] = Namespace(
                 name=ns_name,
                 description=ns_data.get("description", ""),
                 type_hint=ns_data.get("type_hint", "semantic"),
             )
+
+            # Register child namespaces with full paths (e.g., _semantic/decisions)
+            children = ns_data.get("children", {})
+            for child_name, child_data in children.items():
+                if isinstance(child_data, str):
+                    child_data = {"description": child_data}
+                full_path = f"{ns_name}/{child_name}"
+                ontology.namespaces[full_path] = Namespace(
+                    name=full_path,
+                    description=child_data.get("description", ""),
+                    type_hint=child_data.get("type_hint", ns_data.get("type_hint", "semantic")),
+                )
 
         # Parse entity types
         entity_types_data = data.get("entity_types", [])
@@ -526,45 +540,77 @@ def get_registry(
 def main():
     """CLI interface for ontology registry."""
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser(description="Mnemonic Ontology Registry")
     parser.add_argument("--list", action="store_true", help="List all ontologies")
-    parser.add_argument("--list-namespaces", action="store_true", help="List all namespaces")
-    parser.add_argument("--list-types", action="store_true", help="List all types")
+    parser.add_argument("--namespaces", action="store_true", help="List all namespaces")
+    parser.add_argument("--types", action="store_true", help="List all entity types")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
+    parser.add_argument("--validate", metavar="NAMESPACE", help="Validate a namespace")
 
     args = parser.parse_args()
 
     registry = get_registry()
 
-    if args.list:
-        ontologies = registry.list_ontologies()
+    if args.validate:
+        valid = registry.validate_namespace(args.validate)
         if args.json:
-            print(json.dumps(ontologies, indent=2))
+            print(json.dumps({"namespace": args.validate, "valid": valid}))
         else:
-            for ont in ontologies:
-                print(f"- {ont['id']} v{ont['version']}")
-                print(f"  Namespaces: {', '.join(ont['namespaces'])}")
-                if ont['entity_types']:
-                    print(f"  Entity types: {', '.join(ont['entity_types'])}")
+            status = "✓ valid" if valid else "✗ invalid"
+            print(f"{args.validate}: {status}")
+        sys.exit(0 if valid else 1)
 
-    elif args.list_namespaces:
+    if args.namespaces:
         namespaces = registry.get_all_namespaces()
         if args.json:
             print(json.dumps(namespaces))
         else:
+            print("Available namespaces:")
             for ns in namespaces:
-                custom = "(custom)" if registry.is_custom_namespace(ns) else ""
-                print(f"  {ns} {custom}")
+                marker = "(custom)" if registry.is_custom_namespace(ns) else "(base)"
+                print(f"  {ns} {marker}")
 
-    elif args.list_types:
+    elif args.types:
         types = registry.get_all_types()
         if args.json:
             print(json.dumps(types))
         else:
+            print("Available entity types:")
             for t in types:
-                custom = "(custom)" if registry.is_custom_type(t) else ""
-                print(f"  {t} {custom}")
+                marker = "(custom)" if registry.is_custom_type(t) else "(base)"
+                print(f"  {t} {marker}")
+
+    elif args.list:
+        ontologies = registry.list_ontologies()
+        if args.json:
+            print(json.dumps(ontologies, indent=2))
+        else:
+            print("Loaded ontologies:")
+            for ont in ontologies:
+                print(f"  - {ont['id']} v{ont['version']}")
+                if ont['namespaces']:
+                    print(f"    Namespaces: {', '.join(ont['namespaces'])}")
+                if ont['entity_types']:
+                    print(f"    Entity types: {', '.join(ont['entity_types'])}")
+
+    else:
+        # Default: show summary
+        ontologies = registry.list_ontologies()
+        namespaces = registry.get_all_namespaces()
+        types = registry.get_all_types()
+        if args.json:
+            print(json.dumps({
+                "ontologies": len(ontologies),
+                "namespaces": namespaces,
+                "types": types
+            }, indent=2))
+        else:
+            print(f"Ontologies: {len(ontologies)}")
+            print(f"Namespaces: {len(namespaces)}")
+            print(f"Entity types: {len(types)}")
+            print("\nUse --namespaces, --types, or --list for details")
 
 
 if __name__ == "__main__":

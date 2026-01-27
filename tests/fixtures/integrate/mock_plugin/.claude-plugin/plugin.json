@@ -1,0 +1,7 @@
+{
+  "name": "mock-plugin",
+  "version": "1.0.0",
+  "description": "Mock plugin for testing integration",
+  "commands": ["./commands/test-cmd.md"],
+  "skills": ["./skills/test-skill/SKILL.md"]
+}

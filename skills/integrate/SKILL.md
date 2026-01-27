@@ -2,6 +2,11 @@
 name: integrate
 description: Wire mnemonic memory operations into other Claude Code plugins
 user-invocable: true
+triggers:
+  - integrate mnemonic
+  - wire plugin
+  - add memory to plugin
+  - plugin integration
 allowed-tools:
   - Bash
   - Read
@@ -30,6 +35,14 @@ This skill enables integrating mnemonic memory capture and recall into other Cla
 2. **Event-Driven Hooks** - Add hooks that detect events and inject memory context
 
 Both mechanisms work together: Markdown provides explicit workflow guidance, hooks provide automatic event detection.
+
+---
+
+> **⛔ CRITICAL: DO NOT GENERATE INTEGRATION CODE**
+>
+> You MUST read `templates/mnemonic-protocol.md` and insert it VERBATIM.
+> The template already contains sentinel markers. Never create content without markers.
+> Never abbreviate, modify, or "improve" the template.
 
 ---
 
@@ -123,16 +136,34 @@ For each component, determine:
 | Skill with workflows | Add memory search step |
 | Hook on tool use | Add capture trigger |
 
-### Phase 3: Generate Integration Code
+### Phase 3: Read Template (MANDATORY)
 
-For each integration point:
-1. Read the original file
-2. Generate mnemonic integration code
-3. Determine insertion point (usually end of workflow)
+**CRITICAL: Do NOT generate integration code. Use the template.**
 
-### Phase 4: Apply Modifications
+```bash
+# Read the template - this is the ONLY content to insert
+cat "${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md"
+```
 
-Use Edit tool to insert integration code into target files.
+The template already contains:
+- `<!-- BEGIN MNEMONIC PROTOCOL -->` marker at start
+- `<!-- END MNEMONIC PROTOCOL -->` marker at end
+- Complete protocol content between markers
+
+### Phase 4: Insert Template With Markers
+
+For each target file:
+
+1. **Check for existing markers:**
+   ```bash
+   grep -l "BEGIN MNEMONIC PROTOCOL" {file}
+   ```
+
+2. **If markers exist:** Replace content BETWEEN markers with template content
+
+3. **If no markers:** Insert the COMPLETE template (including markers) after frontmatter
+
+**NEVER insert content without the sentinel markers.**
 
 ### Phase 5: Update Tool Access
 
@@ -167,11 +198,12 @@ Check existing `allowed-tools` and add only what's missing.
 
 ## Integration Patterns
 
-**Key principles:**
-- Use `templates/mnemonic-protocol.md` as single source of truth
-- Always wrap with sentinel markers
-- Insert at **TOP** of file (immediately after frontmatter)
-- Minimal, imperative language
+**MANDATORY RULES (Non-negotiable):**
+
+1. **NEVER generate integration content** - Read `templates/mnemonic-protocol.md` and use it verbatim
+2. **NEVER insert without markers** - Template already contains `<!-- BEGIN MNEMONIC PROTOCOL -->` and `<!-- END MNEMONIC PROTOCOL -->`
+3. **Insert at TOP** - Immediately after frontmatter, before any other content
+4. **Template is law** - Do not modify, abbreviate, or "improve" the template content
 
 ### Standard Protocol (From Template)
 
@@ -179,7 +211,7 @@ Check existing `allowed-tools` and add only what's missing.
 
 ```bash
 # Read template content
-PROTOCOL=$(cat ~/.claude/plugins/cache/zircote/mnemonic/*/templates/mnemonic-protocol.md)
+PROTOCOL=$(cat "${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md")
 
 # Insert after frontmatter with markers
 ```
@@ -187,37 +219,40 @@ PROTOCOL=$(cat ~/.claude/plugins/cache/zircote/mnemonic/*/templates/mnemonic-pro
 **Template content:**
 ```markdown
 <!-- BEGIN MNEMONIC PROTOCOL -->
-## Memory Operations
+## Memory
 
-You have PERSISTENT MEMORY across sessions.
+Search first: `/mnemonic:search {relevant_keywords}`
+Capture after: `/mnemonic:capture {namespace} "{title}"`
 
-BEFORE starting any task:
-```bash
-if [ -d ~/.claude/mnemonic ]; then
-    rg -i "{relevant_keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l | head -5
-fi
-```
-If results exist, READ the most relevant and apply that context.
-
-AFTER completing work, if you discovered:
-- A decision → report for capture to _semantic/decisions
-- A pattern → report for capture to _procedural/patterns
-- A learning → report for capture to _semantic/knowledge
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
 <!-- END MNEMONIC PROTOCOL -->
 ```
 
-**Namespace mapping:**
-- ADRs → `_semantic/decisions`
-- Documentation → `_semantic/knowledge`
-- Code patterns → `_procedural/patterns`
-- Issues/bugs → `_episodic/blockers`
+**Base namespaces (from mif-base ontology):**
+
+| Namespace | Type | Use For |
+|-----------|------|---------|
+| `_semantic` | semantic | General semantic memories |
+| `_semantic/decisions` | semantic | ADRs, technology choices |
+| `_semantic/knowledge` | semantic | Documentation, learnings |
+| `_semantic/entities` | semantic | Named entities, concepts |
+| `_episodic` | episodic | General episodic memories |
+| `_episodic/incidents` | episodic | Production incidents |
+| `_episodic/sessions` | episodic | Session summaries |
+| `_episodic/blockers` | episodic | Issues, bugs, blockers |
+| `_procedural` | procedural | General procedural memories |
+| `_procedural/runbooks` | procedural | Operational procedures |
+| `_procedural/patterns` | procedural | Code patterns, conventions |
+| `_procedural/migrations` | procedural | Migration procedures |
+
+**Note:** Projects may define additional namespaces via custom ontologies. Use `/mnemonic:list --namespaces` to discover all available namespaces.
 
 ### Graceful Fallthrough
 
-The template includes `if [ -d ~/.claude/mnemonic ]` check which:
-- Allows integrated plugins to work if mnemonic is later uninstalled
-- No errors if mnemonic directory doesn't exist
-- Seamless degradation
+The template uses `/mnemonic:search` and `/mnemonic:capture` skills which:
+- Fail gracefully if mnemonic plugin is uninstalled (skills simply won't be available)
+- No errors or crashes in integrated plugins
+- Seamless degradation - agent continues without memory operations
 
 ### Pattern D: Event-Driven Hooks (Optional)
 
@@ -259,43 +294,22 @@ if __name__ == "__main__":
 
 ## Target Plugin Examples
 
-### ADR Plugin
+All integrations use the standard template from `templates/mnemonic-protocol.md` with sentinel markers.
 
+### ADR Plugin
 **Files to modify:** `commands/adr-new.md`, `agents/adr-author.md`
 
-**Add after frontmatter:**
-
-```markdown
-## Memory
-
-Search first: `rg -i "{decision_topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
-Capture after: `/mnemonic:capture decisions "ADR-{number}: {title}"`
-```
+Insert template after frontmatter. Replace `{relevant_keywords}` with `{decision_topic}` if needed.
 
 ### Documentation Review Plugin
-
 **Files to modify:** `commands/doc-create.md`, `commands/doc-review.md`
 
-**Add after frontmatter:**
-
-```markdown
-## Memory
-
-After completing: `/mnemonic:capture learnings "{doc_title}"`
-```
+Insert template after frontmatter. Use generic keywords.
 
 ### Feature Dev Plugin
-
 **Files to modify:** `agents/*.md`, `skills/*.md`
 
-**Add after frontmatter:**
-
-```markdown
-## Memory
-
-Search first: `rg -i "{feature}" ~/.claude/mnemonic/ --glob "*.memory.md"`
-Capture after: `/mnemonic:capture patterns "{pattern_name}"`
-```
+Insert template after frontmatter. Replace `{relevant_keywords}` with `{feature}` if needed.
 
 ---
 
@@ -522,12 +536,12 @@ After integration, verify by:
 3. **Create a memory** - Confirm memory is created correctly
 4. **Test recall** - Search for the new memory
 
-```bash
+```
 # Verify memory was created
-ls -la ~/.claude/mnemonic/*/decisions/*.memory.md | tail -5
+/mnemonic:status
 
 # Search for content
-rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"
+/mnemonic:search {topic}
 ```
 
 ---
@@ -640,3 +654,79 @@ git log -1 --stat
 # Show what changed
 git diff HEAD~1
 ```
+
+---
+
+## Implementation Library
+
+The integrate skill is backed by a Python library located at `skills/integrate/lib/`.
+
+### Library Components
+
+| Module | Purpose |
+|--------|---------|
+| `integrator.py` | Main orchestrator - handles full integration workflow |
+| `marker_parser.py` | Sentinel marker detection, extraction, replacement |
+| `template_validator.py` | Template validation and content verification |
+| `frontmatter_updater.py` | YAML frontmatter manipulation for tools |
+
+### Using the Library
+
+The library can be invoked directly via command line:
+
+```bash
+# Integrate a plugin
+python3 skills/integrate/lib/integrator.py /path/to/plugin --mode integrate
+
+# Verify integration
+python3 skills/integrate/lib/integrator.py /path/to/plugin --mode verify
+
+# Remove integration
+python3 skills/integrate/lib/integrator.py /path/to/plugin --mode remove
+
+# Dry run (preview changes)
+python3 skills/integrate/lib/integrator.py /path/to/plugin --mode integrate --dry-run
+
+# JSON output
+python3 skills/integrate/lib/integrator.py /path/to/plugin --json
+```
+
+### Individual Tool Usage
+
+```bash
+# Check for markers
+python3 skills/integrate/lib/marker_parser.py /path/to/file.md --check
+
+# Extract content between markers
+python3 skills/integrate/lib/marker_parser.py /path/to/file.md --extract
+
+# Validate template
+python3 skills/integrate/lib/template_validator.py /path/to/template.md
+
+# List tools in frontmatter
+python3 skills/integrate/lib/frontmatter_updater.py /path/to/file.md --list
+```
+
+### Integration Manifest
+
+After successful integration, a `.mnemonic-integration-manifest.json` file is created in the plugin root:
+
+```json
+{
+  "version": "1.0.0",
+  "integrated_at": "2026-01-27T10:30:00Z",
+  "template_path": "templates/mnemonic-protocol.md",
+  "files": [
+    {"path": "commands/example.md", "action": "inserted", "success": true}
+  ],
+  "tools_required": ["Bash", "Glob", "Grep", "Read", "Write"]
+}
+```
+
+### Security Features
+
+The library includes several security measures:
+- **Path validation** - All file paths are validated to be within plugin root
+- **Symlink protection** - Symlinks pointing outside plugin root are rejected
+- **Rollback support** - Failed integrations can be automatically rolled back
+- **Template validation** - Templates are checked for executable code patterns

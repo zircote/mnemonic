@@ -1,6 +1,6 @@
 ---
 description: Wire mnemonic memory operations into other Claude Code plugins
-argument-hint: "<plugin_path> [--analyze|--dry-run|--rollback]"
+argument-hint: "<plugin_path> [--analyze|--dry-run|--remove|--migrate|--verify|--rollback]"
 allowed-tools:
   - Bash
   - Read
@@ -19,21 +19,30 @@ Integrate mnemonic memory capture and recall into another Claude Code plugin.
 - `<plugin_path>` - Required. Path to target plugin directory
 - `--analyze` - Show proposed changes without applying
 - `--dry-run` - Show detailed diff of what would change
+- `--remove` - Remove mnemonic protocol (delete content between sentinel markers)
+- `--migrate` - Convert old marker-less integrations to marker-wrapped format
+- `--verify` - Verify integration integrity matches template
 - `--rollback` - Revert the last mnemonic integration commit
 
 ## Procedure
 
-### Step 1: Parse Arguments
+### Step 1: Call Python Implementation
+
+The integration is handled by the Python library in `skills/integrate/lib/`.
 
 ```bash
 PLUGIN_PATH="${1:?Error: Plugin path required}"
-MODE="apply"  # default
+PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname $(dirname $0))}"
 
-# Parse flags
+# Parse mode from arguments
+MODE="integrate"
+DRY_RUN=""
 for arg in "$@"; do
     case "$arg" in
-        --analyze) MODE="analyze" ;;
-        --dry-run) MODE="dry-run" ;;
+        --analyze|--dry-run) DRY_RUN="--dry-run" ;;
+        --remove) MODE="remove" ;;
+        --migrate) MODE="migrate" ;;
+        --verify) MODE="verify" ;;
         --rollback) MODE="rollback" ;;
     esac
 done
@@ -43,109 +52,96 @@ if [ ! -f "${PLUGIN_PATH}/.claude-plugin/plugin.json" ]; then
     echo "Error: Not a valid plugin directory (missing .claude-plugin/plugin.json)"
     exit 1
 fi
-```
 
-### Step 2: Read Plugin Manifest
+# Handle rollback separately
+if [ "$MODE" = "rollback" ]; then
+    cd "${PLUGIN_PATH}"
+    if [ ! -d .git ]; then
+        echo "Error: No git repository for rollback"
+        exit 1
+    fi
 
-```bash
-cat "${PLUGIN_PATH}/.claude-plugin/plugin.json"
-```
+    # Find the mnemonic integration commit (not just any commit)
+    COMMIT=$(git log --oneline --grep="feat(mnemonic)" --grep="chore(mnemonic)" -1 | cut -d' ' -f1)
 
-### Step 3: List Components
+    if [ -z "$COMMIT" ]; then
+        echo "Error: No mnemonic integration commit found"
+        echo "Looking for commits with 'feat(mnemonic)' or 'chore(mnemonic)' in message"
+        exit 1
+    fi
 
-```bash
-ls -la "${PLUGIN_PATH}/commands/" "${PLUGIN_PATH}/skills/" "${PLUGIN_PATH}/agents/" 2>/dev/null
-```
-
-### Step 4: Analyze Integration Points
-
-For each component, determine integration pattern:
-- Creates files → Add capture section (Pattern A)
-- Makes decisions → Add recall before, capture after (Pattern B)
-- Needs auto-detection → Add event hooks (Pattern C)
-
-### Step 5: Apply Based on Mode
-
-- If `--analyze`: Show proposed changes without applying
-- If `--dry-run`: Display detailed diff of what would change and exit
-- If `--rollback`: Find and revert the mnemonic integration commit
-- Otherwise: Apply modifications using Edit tool
-
-### Step 6: Update Tool Access
-
-Update component `allowed-tools` to include: Bash, Glob, Grep, Read, Write
-
-### Step 7: Git Commit (if applicable)
-
-```bash
-cd "${PLUGIN_PATH}"
-if [ -d .git ]; then
-    git add -A
-    git commit -m "feat(mnemonic): integrate memory capture and recall"
-    echo "Committed: $(git log -1 --oneline)"
-else
-    echo "Warning: No git repository - changes not committed"
+    echo "Found mnemonic integration commit: $COMMIT"
+    git show --stat "$COMMIT"
+    echo ""
+    echo "Reverting this commit..."
+    git revert "$COMMIT" --no-edit
+    echo "Rollback complete: $(git log -1 --oneline)"
+    exit 0
 fi
+
+# Run Python integrator
+python3 "$PLUGIN_DIR/skills/integrate/lib/integrator.py" \
+    "${PLUGIN_PATH}" \
+    --mode "$MODE" \
+    $DRY_RUN \
+    --git-commit
 ```
 
-### Step 8: Report Results
+### Step 2: Verify Results
 
-Report results with commit hash (if applicable) and list of modified files
+After integration, the tool reports:
+- Number of files processed
+- Actions taken per file (inserted, updated, migrated, removed)
+- Any errors or warnings
+- Git commit hash (if committed)
 
-## Integration Patterns
+## What the Integrator Does
 
-**Key principles:**
-- Insert at TOP of file (after frontmatter), not end
-- Minimal (2-4 lines), imperative language
-- Direct commands, not suggestions
+1. **Discovers components** from plugin manifest (`plugin.json`)
+2. **Reads template** from `templates/mnemonic-protocol.md`
+3. **For each component file:**
+   - If markers exist: Updates content between markers
+   - If legacy pattern found: Migrates to marker-wrapped format
+   - If no markers: Inserts template after frontmatter
+4. **Adds required tools** to each file's `allowed-tools` frontmatter
+5. **Commits changes** to git (if available)
 
-### Pattern A: Capture After Creation
+## Integration Protocol
 
-Add to commands/skills that **create files** (adr-new, doc-create, etc.):
+**CRITICAL: The Python integrator ALWAYS uses the template. Never generate content.**
 
+### Sentinel Markers
+
+All integrated content is wrapped in markers:
 ```markdown
-## Memory
-
-After completing: `/mnemonic:capture {namespace} "{title}"`
+<!-- BEGIN MNEMONIC PROTOCOL -->
+{template content}
+<!-- END MNEMONIC PROTOCOL -->
 ```
 
-### Pattern B: Recall Before Action
+### Template Content
 
-Add to agents/skills that **make decisions or research**:
-
+Located at `${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md`:
 ```markdown
+<!-- BEGIN MNEMONIC PROTOCOL -->
 ## Memory
 
-Before starting: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
-After completing: `/mnemonic:capture {namespace} "{title}"`
-```
-
-### Pattern C: Both (Full Protocol)
-
-For components that both research AND create:
-
-```markdown
-## Memory
-
-Search first: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
+Search first: `/mnemonic:search {relevant_keywords}`
 Capture after: `/mnemonic:capture {namespace} "{title}"`
+
+Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
+<!-- END MNEMONIC PROTOCOL -->
 ```
 
-## Git Workflow
+## Verify Mode
 
-If target plugin has git:
-- Stage all changes: `git add -A`
-- Commit: `git commit -m "feat(mnemonic): integrate memory capture and recall"`
-
-If no git:
-- Warn user but proceed
-- List modified files for manual review
-
-## Rollback
+Use `--verify` to check integration integrity:
+- Confirms markers are present and properly paired
+- Validates content between markers matches template
+- Checks required tools are in frontmatter
 
 ```bash
-cd {plugin_path}
-git revert HEAD  # Reverts the integration commit
+/mnemonic:integrate ~/.claude/plugins/cache/zircote/adr/ --verify
 ```
 
 ## Examples
@@ -159,6 +155,15 @@ git revert HEAD  # Reverts the integration commit
 
 # Apply integration
 /mnemonic:integrate ~/.claude/plugins/cache/zircote/adr/
+
+# Verify integration
+/mnemonic:integrate ~/.claude/plugins/cache/zircote/adr/ --verify
+
+# Remove integration
+/mnemonic:integrate ~/.claude/plugins/cache/zircote/adr/ --remove
+
+# Migrate legacy patterns
+/mnemonic:integrate ~/.claude/plugins/cache/zircote/adr/ --migrate
 
 # Undo integration
 /mnemonic:integrate ~/.claude/plugins/cache/zircote/adr/ --rollback
