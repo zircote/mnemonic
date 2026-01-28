@@ -689,16 +689,16 @@ Tests:
 ## Related Documents
 
 ### Core Implementation
-- [lib/paths.py](/Users/AllenR1_1/Projects/zircote/mnemonic/lib/paths.py) - Path resolution library
-- [tests/unit/test_paths.py](/Users/AllenR1_1/Projects/zircote/mnemonic/tests/unit/test_paths.py) - Unit tests
-- [lib/README.md](/Users/AllenR1_1/Projects/zircote/mnemonic/lib/README.md) - Library documentation
+- [lib/paths.py](../../lib/paths.py) - Path resolution library
+- [tests/unit/test_paths.py](../../tests/unit/test_paths.py) - Unit tests
+- [lib/README.md](../../lib/README.md) - Library documentation
 
 ### Architecture & Planning
-- [ADR-009](/Users/AllenR1_1/Projects/zircote/mnemonic/docs/adrs/adr-009-unified-path-resolution.md) - Architecture decision record
-- [Integration Guide](/Users/AllenR1_1/Projects/zircote/mnemonic/docs/architecture/path-resolution-integration.md) - Component integration guide
+- [ADR-009](../adrs/adr-009-unified-path-resolution.md) - Architecture decision record
+- [Integration Guide](./path-resolution-integration.md) - Component integration guide
 
 ### Migration
-- [migrate_to_v2_paths.py](/Users/AllenR1_1/Projects/zircote/mnemonic/scripts/migrate_to_v2_paths.py) - Migration script
+- [migrate_to_v2_paths.py](../../scripts/migrate_to_v2_paths.py) - Migration script
 
 ---
 

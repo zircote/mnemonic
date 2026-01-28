@@ -407,7 +407,7 @@ Convert Bash commands to Python:
 - [lib/paths.py](../../lib/paths.py) - Implementation
 - [tests/unit/test_paths.py](../../tests/unit/test_paths.py) - Tests
 - [docs/architecture/path-resolution-integration.md](../architecture/path-resolution-integration.md) - Integration guide
-- [ADR-004: MIF Level 3 Namespace Hierarchy](adr-004-mif-level-3-namespaces.md) - Related namespace decision
+- [ADR-004: MIF Schema Validation](adr-004-mif-schema-validation.md) - Related MIF schema decision
 
 ## References
 

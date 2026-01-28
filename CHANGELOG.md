@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **[Ontology Discovery]**: Enhanced pattern-based entity discovery (`f642fde`)
+  - Improved schema validation for custom ontologies
+  - Discovery patterns for automatic entity detection
+
+- **[Integration Skill]**: Python-based memory integration with test suite (`1681803`)
+  - Migrate memories between organizations/projects
+  - Batch operations with progress tracking
+  - Comprehensive test coverage
+
+- **[Memory Protocol]**: Stronger prompt engineering for compliance (`ba39754`)
+  - Commitment-based framing (vs command-based)
+  - Identity reinforcement for persistent memory
+  - Stop hook blocks until captures complete
+
+- **[Social Graphics]**: PNG versions for README badges (`cfa77af`)
+  - Cognitive namespace visualizations
+  - Ontology structure diagrams
+
 - **[Path Resolution Library]**: Centralized path management in `lib/paths.py`
   - `PathResolver` class with V2 unified path scheme
   - `PathContext` dataclass for context detection (org, project, home, scheme)
@@ -32,6 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Org-wide: `{org}/{namespace}/` for memories shared across projects
   - Fallback: `default/{namespace}/` when org detection fails
   - Single git repository for all memories
+
+- **[Cognitive Namespace Prefix]**: All cognitive triad namespaces now prefixed with `_` (`40752d1`)
+  - `_semantic/`, `_episodic/`, `_procedural/` distinguish system namespaces
+  - Prevents collision with user-defined namespaces
+
+- **[Documentation]**: Migrated to cognitive namespace structure (`bcfe79f`)
+  - All docs updated for unified path structure
+  - Social graphics reflect new ontology model
 
 - **[Hooks]**: Updated to use PathResolver
   - `session_start.py`: Uses PathResolver for path resolution with LEGACY fallback
@@ -59,6 +85,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use specific exception types (`yaml.YAMLError`, `OSError`, `subprocess.SubprocessError`)
 
 ### Fixed
+
+- **[Hooks]**: Read tool data from stdin instead of environment variables (`39cf67a`)
+  - Fixes hook data passing in Claude Code environment
+  - All hooks now properly receive tool context
+
+- **[Plugin]**: Removed duplicate hooks reference from manifest (`b2deea3`)
+  - Hooks now loaded exclusively from `hooks/hooks.json`
+  - Added `.fastembed_cache/` to gitignore
+
+- **[Security]**: Hardened ontology and integrate skills (`a3dcc4a`)
+  - Improved input validation
+  - Better error handling for edge cases
 
 - **[Git History]**: Purged `.fastembed_cache/` directories from repository history
 

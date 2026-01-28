@@ -984,7 +984,7 @@ discovery:
 
 - [ ] Custom namespaces work in capture command
 - [ ] Entity types with traits validate correctly
-- [ ] Entity linking syntax (@[[entity]]) resolves
+- [ ] Entity linking syntax (`@[[entity]]`) resolves
 - [ ] Discovery agent suggests entities from code/docs
 - [ ] URL-referenced ontologies load and cache
 - [ ] Existing memories continue to validate

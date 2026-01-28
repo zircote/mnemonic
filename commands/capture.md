@@ -210,7 +210,7 @@ When capturing with an entity type:
 1. Look up entity type schema from loaded ontology
 2. Prompt user for required fields
 3. Include entity block in frontmatter
-4. Claude suggests entity references in content using @[[Name]] syntax
+4. Claude suggests entity references in content using `@[[Name]]` syntax
 
 ### Step 8: Commit to Git
 

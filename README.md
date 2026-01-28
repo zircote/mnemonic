@@ -314,7 +314,7 @@ After running `/mnemonic:setup`, Claude will:
 rg -i "authentication" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 # By namespace
-rg "pattern" ~/.claude/mnemonic/*/decisions/__semantic/decisions/ --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic/*/_semantic/decisions/ --glob "*.memory.md"
 
 # By tag
 rg -l "^  - security" ~/.claude/mnemonic/ --glob "*.memory.md"
