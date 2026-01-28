@@ -41,102 +41,88 @@ This skill covers the organizational structure of mnemonic, including directory 
 
 ## Directory Structure
 
-### User-Level Storage
+All memories are stored under `~/.claude/mnemonic/` with a unified path structure.
 
-Location: `~/.claude/mnemonic/{org}/`
-
-```
-~/.claude/mnemonic/
-├── {org}/                    # Organization (from git remote)
-│   ├── apis/
-│   │   ├── user/             # Personal API knowledge
-│   │   └── project/          # Synced from projects
-│   ├── blockers/
-│   │   ├── user/
-│   │   └── project/
-│   ├── context/
-│   │   ├── user/
-│   │   └── project/
-│   ├── decisions/
-│   │   ├── user/
-│   │   └── project/
-│   ├── learnings/
-│   │   ├── user/
-│   │   └── project/
-│   ├── patterns/
-│   │   ├── user/
-│   │   └── project/
-│   ├── security/
-│   │   ├── user/
-│   │   └── project/
-│   ├── testing/
-│   │   ├── user/
-│   │   └── project/
-│   └── episodic/
-│       ├── user/
-│       └── project/
-├── .blackboard/              # Global cross-session coordination
-├── .git/                     # Version control
-└── .gitignore
-```
-
-### Project-Level Storage
-
-Location: `~/.claude/mnemonic/`
+### Unified Storage Layout
 
 ```
 ~/.claude/mnemonic/
-├── apis/
-│   └── project/
-├── blockers/
-│   └── project/
-├── context/
-│   └── project/
-├── decisions/
-│   └── project/
-├── learnings/
-│   └── project/
-├── patterns/
-│   └── project/
-├── security/
-│   └── project/
-├── testing/
-│   └── project/
-├── episodic/
-│   └── project/
-└── .blackboard/              # Project-specific coordination
+├── default/                           # Fallback when org detection fails
+│   └── {namespace}/                   # Cognitive namespaces
+├── {org}/                             # Organization-level
+│   ├── _semantic/                     # Org-wide facts/knowledge
+│   │   ├── decisions/
+│   │   ├── knowledge/
+│   │   └── entities/
+│   ├── _episodic/                     # Org-wide events
+│   │   ├── incidents/
+│   │   ├── sessions/
+│   │   └── blockers/
+│   ├── _procedural/                   # Org-wide procedures
+│   │   ├── runbooks/
+│   │   ├── patterns/
+│   │   └── migrations/
+│   └── {project}/                     # Project-specific memories
+│       ├── _semantic/
+│       │   ├── decisions/
+│       │   ├── knowledge/
+│       │   └── entities/
+│       ├── _episodic/
+│       │   ├── incidents/
+│       │   ├── sessions/
+│       │   └── blockers/
+│       ├── _procedural/
+│       │   ├── runbooks/
+│       │   ├── patterns/
+│       │   └── migrations/
+│       └── .blackboard/               # Project session coordination
+└── .git/                              # Version control
 ```
+
+### Memory Scope Hierarchy
+
+| Scope | Path | Use Case |
+|-------|------|----------|
+| Project | `{org}/{project}/{namespace}/` | Project-specific memories (default) |
+| Organization | `{org}/{namespace}/` | Shared across projects in org |
+| Default | `default/{namespace}/` | Fallback when org detection fails |
 
 ---
 
 ## Namespace Reference
 
+### Cognitive Memory Types
+
+| Type | Purpose | Examples |
+|------|---------|----------|
+| **Semantic** | Facts, concepts, specifications | API docs, decisions, config values |
+| **Episodic** | Events, experiences, incidents | Debug sessions, deployments |
+| **Procedural** | Processes, workflows, how-tos | Deployment steps, runbooks |
+
 ### Core Namespaces
 
-| Namespace | Purpose | Examples |
-|-----------|---------|----------|
-| `apis/` | API documentation, contracts, endpoints | REST specs, GraphQL schemas |
-| `blockers/` | Issues, impediments, incidents | Bug reports, outages, blockers |
-| `context/` | Background information, environment state | Project setup, configurations |
-| `decisions/` | Architectural choices with rationale | "We chose X because Y" |
-| `learnings/` | Insights, discoveries, TILs | "Learned that X works better" |
-| `patterns/` | Code conventions, best practices | "Always use factory pattern for..." |
-| `security/` | Security policies, vulnerabilities | Auth requirements, CVEs |
-| `testing/` | Test strategies, edge cases | Test plans, coverage notes |
-| `episodic/` | General events, experiences | Debug sessions, meetings |
+| Namespace | Purpose | Memory Type |
+|-----------|---------|-------------|
+| `_semantic/decisions/` | Architectural choices with rationale | Semantic |
+| `_semantic/knowledge/` | APIs, context, learnings, security | Semantic |
+| `_semantic/entities/` | Entity definitions (technologies, components) | Semantic |
+| `_episodic/incidents/` | Production issues, postmortems | Episodic |
+| `_episodic/sessions/` | Debug sessions, work sessions | Episodic |
+| `_episodic/blockers/` | Impediments, issues | Episodic |
+| `_procedural/runbooks/` | Operational procedures | Procedural |
+| `_procedural/patterns/` | Code conventions, testing strategies | Procedural |
+| `_procedural/migrations/` | Migration steps, upgrade procedures | Procedural |
 
 ### Scope Selection
 
-| Scope | Location | Use Case |
-|-------|----------|----------|
-| user | `~/.claude/mnemonic/{org}/{namespace}/` | Personal knowledge, cross-project |
-| project | `~/.claude/mnemonic/{namespace}/` | Specific to current codebase |
-
-**Scope is implicit from base path** - no `/user/` or `/project/` subdirectories needed.
+| Scope | Path | Use Case |
+|-------|------|----------|
+| project | `{org}/{project}/{namespace}/` | Project-specific (default) |
+| org | `{org}/{namespace}/` | Shared across all projects in organization |
 
 **Guidelines:**
-- Use `user` scope for reusable knowledge (personal patterns, general learnings)
 - Use `project` scope for codebase-specific information (architecture decisions, local patterns)
+- Use `org` scope for reusable knowledge (org-wide standards, shared patterns)
 
 ---
 
@@ -204,8 +190,8 @@ The blackboard is a shared coordination space for cross-session communication.
 
 ### Location
 
-- Global: `~/.claude/mnemonic/.blackboard/`
-- Project: `~/.claude/mnemonic/.blackboard/`
+- Project: `~/.claude/mnemonic/{org}/{project}/.blackboard/`
+- Organization: `~/.claude/mnemonic/{org}/.blackboard/`
 
 ### Structure
 
@@ -301,7 +287,7 @@ cd ~/.claude/mnemonic
 git log --oneline -20
 
 # Changes to specific memory
-git log --oneline -- "*/decisions/*auth*.memory.md"
+git log --oneline -- "*/_semantic/decisions/*auth*.memory.md"
 
 # Show specific version
 git show HEAD~3:zircote/_semantic/decisions/abc123-use-jwt.memory.md
@@ -410,7 +396,7 @@ rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 # Look for opposite patterns in same namespace
 
 # Example: Find all auth decisions
-AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md")
+AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md" 2>/dev/null)
 
 echo "Review these for potential conflicts:"
 for f in $AUTH_DECISIONS; do
@@ -447,19 +433,30 @@ echo "=== Mnemonic Health Check ==="
 
 # Directory exists
 test -d ~/.claude/mnemonic && echo "✓ User mnemonic exists" || echo "✗ User mnemonic missing"
-test -d ./.claude/mnemonic && echo "✓ Project mnemonic exists" || echo "✗ Project mnemonic missing"
 
 # Git status
 cd ~/.claude/mnemonic
 git status --short 2>/dev/null || echo "✗ Git not initialized"
 cd - > /dev/null
 
-# Memory counts
+# Memory counts by cognitive type
 echo ""
-echo "=== Memory Counts ==="
-for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    count=$(find ~/.claude/mnemonic/*/$ns -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-    echo "$ns: $count"
+echo "=== Memory Counts by Type ==="
+SEMANTIC=$(find ~/.claude/mnemonic -path "*/_semantic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+EPISODIC=$(find ~/.claude/mnemonic -path "*/_episodic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+PROCEDURAL=$(find ~/.claude/mnemonic -path "*/_procedural/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+echo "_semantic: $SEMANTIC"
+echo "_episodic: $EPISODIC"
+echo "_procedural: $PROCEDURAL"
+
+# Memory counts by namespace
+echo ""
+echo "=== Memory Counts by Namespace ==="
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
+    count=$(find ~/.claude/mnemonic -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+    [ "$count" -gt 0 ] && echo "$ns: $count"
 done
 
 # Recent activity

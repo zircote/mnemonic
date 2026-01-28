@@ -51,11 +51,11 @@ Find memories with similar titles or contradictory content:
 
 ```bash
 # Find memories with similar titles in same namespace
-for ns in decisions learnings patterns; do
+for ns in _semantic/decisions _semantic/knowledge _procedural/patterns; do
     echo "=== Checking $ns for conflicts ==="
 
     # Get all titles
-    titles=$(rg "^title:" ~/.claude/mnemonic/*/$ns$ns/project --glob "*.memory.md" -o | \
+    titles=$(rg "^title:" ~/.claude/mnemonic --path "*/$ns/" --glob "*.memory.md" -o 2>/dev/null | \
              sed 's/.*title: "//' | sed 's/"$//' | sort)
 
     # Find near-duplicates (simplified)

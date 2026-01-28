@@ -78,13 +78,26 @@ echo "Project: $PROJECT"
 ### Step 2: Create Directory Structure
 
 ```bash
-# User-level directories
-mkdir -p ~/.claude/mnemonic/"$ORG"/{apis,blockers,context,decisions,learnings,patterns,security,testing,episodic}/{user,project}
-mkdir -p ~/.claude/mnemonic/.blackboard
+# Base directories
+mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"
+mkdir -p ~/.claude/mnemonic/"$ORG"  # For org-wide memories
 
-# Project-level directories
-mkdir -p{apis,blockers,context,decisions,learnings,patterns,security,testing,episodic}/project
-mkdir -p.blackboard
+# Cognitive namespaces (project-specific)
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
+    mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/"$ns"
+done
+
+# Org-wide namespaces (shared across projects)
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
+    mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"
+done
+
+# Blackboard for session coordination (per-project)
+mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard
 
 # Ensure .claude directories exist for CLAUDE.md files
 mkdir -p ~/.claude
@@ -136,15 +149,15 @@ If results → Read the most relevant memory and apply that context.
 Evaluate immediately:
 
 <capture_eval>
-┌─────────────────────────────────┬─────────────┐
-│ This occurred?                  │ Action      │
-├─────────────────────────────────┼─────────────┤
-│ Bug fixed / root cause found    │ learnings   │
-│ Technology/approach chosen      │ decisions   │
-│ Reusable pattern established    │ patterns    │
-│ Blocker encountered             │ blockers    │
-│ Important context discussed     │ context     │
-└─────────────────────────────────┴─────────────┘
+┌─────────────────────────────────┬──────────────────────────┐
+│ This occurred?                  │ Namespace                │
+├─────────────────────────────────┼──────────────────────────┤
+│ Bug fixed / root cause found    │ _semantic/knowledge      │
+│ Technology/approach chosen      │ _semantic/decisions      │
+│ Reusable pattern established    │ _procedural/patterns     │
+│ Blocker encountered             │ _episodic/blockers       │
+│ Important context discussed     │ _semantic/knowledge      │
+└─────────────────────────────────┴──────────────────────────┘
 </capture_eval>
 
 If YES to any → `/mnemonic:capture {namespace} "{title}"` — immediately, silently.
@@ -226,7 +239,7 @@ test -d ./.claude/mnemonic && echo "✓ Project mnemonic directory exists"
 test -d ~/.claude/mnemonic/.git && echo "✓ Git repository initialized"
 
 # 5. Check initial memory
-ls_semantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
+ls ~/.claude/mnemonic/"$ORG"/"$PROJECT"/_semantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
 ```
 
 ## Idempotency

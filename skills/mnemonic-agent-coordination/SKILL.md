@@ -301,9 +301,9 @@ search-auth-20260124
 ```
 
 ### Findings Accumulated
-- decisions/project: 3 memories
-- patterns/project: 2 memories
-- learnings/project: 2 memories
+- _semantic/decisions: 3 memories
+- _procedural/patterns: 2 memories
+- _semantic/knowledge: 2 memories
 
 ---
 ```

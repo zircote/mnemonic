@@ -73,30 +73,36 @@ conflicts:
 
 ## Directory Structure
 
-**User-level** (`~/.claude/mnemonic/{org}/`):
-```
-~/.claude/mnemonic/{org}/
-├── apis/user/           # API documentation, contracts
-├── blockers/user/       # Issues, impediments
-├── context/user/        # Background, state
-├── decisions/user/      # Architectural choices
-├── learnings/user/      # Insights, discoveries
-├── patterns/user/       # Coding conventions
-├── security/user/       # Policies, findings
-├── testing/user/        # Strategies, edge cases
-├── episodic/user/       # Events, experiences
-└── .blackboard/         # Cross-session coordination
-```
-
-**Project-level** (`~/.claude/mnemonic/`):
+**Unified structure** (`~/.claude/mnemonic/`):
 ```
 ~/.claude/mnemonic/
-├── _semantic/knowledge/
-├── _episodic/blockers/
-├── _semantic/knowledge/
-├── _semantic/decisions/
-├── _semantic/knowledge/
-├── _procedural/patterns/
+├── {org}/                     # Organization-level
+│   ├── _semantic/             # Org-wide facts/knowledge
+│   │   ├── decisions/
+│   │   ├── knowledge/
+│   │   └── entities/
+│   ├── _episodic/             # Org-wide events
+│   │   ├── incidents/
+│   │   ├── sessions/
+│   │   └── blockers/
+│   ├── _procedural/           # Org-wide procedures
+│   │   ├── runbooks/
+│   │   ├── patterns/
+│   │   └── migrations/
+│   └── {project}/             # Project-specific memories
+│       ├── _semantic/
+│       │   ├── decisions/
+│       │   ├── knowledge/
+│       │   └── entities/
+│       ├── _episodic/
+│       │   ├── incidents/
+│       │   ├── sessions/
+│       │   └── blockers/
+│       ├── _procedural/
+│       │   ├── runbooks/
+│       │   ├── patterns/
+│       │   └── migrations/
+│       └── .blackboard/
 ├── _semantic/knowledge/
 ├── _procedural/patterns/
 ├── _episodic/sessions/

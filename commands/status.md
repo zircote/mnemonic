@@ -83,24 +83,25 @@ echo ""
 ### Step 4: Memory Counts
 
 ```bash
-echo "Memory Counts (User-level):"
-TOTAL_USER=0
-for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    count=$(find "$HOME/.claude/mnemonic/$ORG/$ns" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-    TOTAL_USER=$((TOTAL_USER + count))
-    [ "$count" -gt 0 ] && echo "  $ns: $count"
-done
-echo "  TOTAL: $TOTAL_USER"
+echo "Memory Counts by Cognitive Type:"
+SEMANTIC=$(find "$HOME/.claude/mnemonic" -path "*/_semantic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+EPISODIC=$(find "$HOME/.claude/mnemonic" -path "*/_episodic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+PROCEDURAL=$(find "$HOME/.claude/mnemonic" -path "*/_procedural/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+echo "  _semantic: $SEMANTIC"
+echo "  _episodic: $EPISODIC"
+echo "  _procedural: $PROCEDURAL"
+echo "  TOTAL: $((SEMANTIC + EPISODIC + PROCEDURAL))"
 echo ""
 
-echo "Memory Counts (Project-level):"
-TOTAL_PROJECT=0
-for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    count=$(find "~/.claude/mnemonic/$ns" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-    TOTAL_PROJECT=$((TOTAL_PROJECT + count))
+echo "Memory Counts by Namespace:"
+TOTAL=0
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
+    count=$(find "$HOME/.claude/mnemonic" -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+    TOTAL=$((TOTAL + count))
     [ "$count" -gt 0 ] && echo "  $ns: $count"
 done
-echo "  TOTAL: $TOTAL_PROJECT"
 echo ""
 ```
 
@@ -150,8 +151,8 @@ else
     echo "  Global: NOT FOUND"
 fi
 
-if [ -d "~/.claude/mnemonic/.blackboard" ]; then
-    BB_FILES=$(ls "~/.claude/mnemonic/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "$HOME/.claude/mnemonic/$ORG/$PROJECT/.blackboard" ]; then
+    BB_FILES=$(ls "$HOME/.claude/mnemonic/$ORG/$PROJECT/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
     echo "  Project: $BB_FILES topic files"
 else
     echo "  Project: NOT FOUND"

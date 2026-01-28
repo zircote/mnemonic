@@ -45,7 +45,7 @@ EOF
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat > "$HOME/.claude/mnemonic/default/learnings/user/${UUID}-async-wiring-fix.memory.md" << EOF
+cat > "$HOME/.claude/mnemonic/default/_semantic/knowledge/${UUID}-async-wiring-fix.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Async actor wiring must happen after config load"
@@ -110,8 +110,10 @@ cd ~/.claude/mnemonic && git add -A && git commit -m "Update: JWT auth decision"
 echo "=== Mnemonic Status ==="
 
 # Count by namespace
-for ns in apis blockers context decisions learnings patterns security testing episodic; do
-    count=$(find ~/.claude/mnemonic/*/$ns -name "*.memory.md" 2>/dev/null | wc -l)
+for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
+          _episodic/incidents _episodic/sessions _episodic/blockers \
+          _procedural/runbooks _procedural/patterns _procedural/migrations; do
+    count=$(find ~/.claude/mnemonic -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l)
     echo "$ns: $count memories"
 done
 

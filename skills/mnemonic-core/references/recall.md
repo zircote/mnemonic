@@ -6,11 +6,10 @@ Complete workflow for searching and retrieving memories.
 
 ```bash
 # List memories in a namespace
-ls -la ~/.claude/mnemonic/*/decisions/user/*.memory.md 2>/dev/null
-ls -la_semantic/decisions/*.memory.md 2>/dev/null
+ls -la ~/.claude/mnemonic/*/_semantic/decisions/*.memory.md 2>/dev/null
 
 # Get titles from frontmatter
-for f in ~/.claude/mnemonic/*/decisions/**/*.memory.md; do
+for f in ~/.claude/mnemonic/*/_semantic/decisions/**/*.memory.md; do
     grep "^title:" "$f" 2>/dev/null | head -1
 done
 ```

@@ -405,22 +405,22 @@ npm run db:rollback
 
 ## Namespace Reference
 
-| Namespace | Purpose | Typical Type |
-|-----------|---------|--------------|
-| `apis/` | API documentation, contracts | semantic |
-| `blockers/` | Issues, impediments, incidents | episodic |
-| `context/` | Background information, state | semantic |
-| `decisions/` | Architectural choices, rationale | semantic |
-| `learnings/` | Insights, discoveries, TILs | semantic/episodic |
-| `patterns/` | Coding conventions, best practices | procedural |
-| `security/` | Security policies, vulnerabilities | semantic |
-| `testing/` | Test strategies, edge cases | procedural |
-| `episodic/` | General events, experiences | episodic |
+| Namespace | Purpose | Memory Type |
+|-----------|---------|-------------|
+| `_semantic/decisions/` | Architectural choices, rationale | semantic |
+| `_semantic/knowledge/` | APIs, context, learnings, security | semantic |
+| `_semantic/entities/` | Entity definitions (technologies, components) | semantic |
+| `_episodic/incidents/` | Production issues, postmortems | episodic |
+| `_episodic/sessions/` | Debug sessions, work sessions | episodic |
+| `_episodic/blockers/` | Impediments, issues | episodic |
+| `_procedural/runbooks/` | Operational procedures | procedural |
+| `_procedural/patterns/` | Code conventions, testing strategies | procedural |
+| `_procedural/migrations/` | Migration steps, upgrade procedures | procedural |
 
-### Scope Subdirectories
+### Memory Scope
 
-- `user/` - Personal knowledge, applies across projects
-- `project/` - Specific to current codebase
+- **Project**: `{org}/{project}/{namespace}/` - Specific to current codebase
+- **Organization**: `{org}/{namespace}/` - Shared across projects in org
 
 ---
 

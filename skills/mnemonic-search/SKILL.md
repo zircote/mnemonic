@@ -210,13 +210,13 @@ rg -c "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 ```bash
 # Decisions about databases
-rg "database" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md"
+rg "database" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md"
 
-# Learnings about testing
-rg "test" ~/.claude/mnemonic/*/learnings/_semantic/knowledge/ --glob "*.memory.md"
+# Knowledge about testing
+rg "test" ~/.claude/mnemonic --path "*/_semantic/knowledge/" --glob "*.memory.md"
 
 # Project patterns only
-rg "pattern"_procedural/patterns/ --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic --path "*/_procedural/patterns/" --glob "*.memory.md"
 ```
 
 ### Recent + Text
@@ -233,10 +233,10 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime 0 -exec rg -l "pattern" {} \;
 
 ```bash
 # Episodic memories in blockers (incident reports)
-rg -l "^type: episodic" ~/.claude/mnemonic/*/blockers/_episodic/blockers/ --glob "*.memory.md"
+rg -l "^type: episodic" ~/.claude/mnemonic --path "*/_episodic/blockers/" --glob "*.memory.md"
 
 # Procedural memories in patterns (workflows)
-rg -l "^type: procedural" ~/.claude/mnemonic/*/patterns/_procedural/patterns/ --glob "*.memory.md"
+rg -l "^type: procedural" ~/.claude/mnemonic --path "*/_procedural/patterns/" --glob "*.memory.md"
 ```
 
 ### Tag + Text
@@ -295,10 +295,10 @@ cat /path/to/memory.memory.md
 
 ```bash
 # Use find to limit scope, then search
-find ~/.claude/mnemonic/*/decisions -name "*.memory.md" | xargs rg "pattern"
+find ~/.claude/mnemonic -path "*/_semantic/decisions/*" -name "*.memory.md" | xargs rg "pattern"
 
 # Or use directory restriction
-rg "pattern" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md"
+rg "pattern" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md"
 ```
 
 ### Limit Output
@@ -327,8 +327,8 @@ done
 
 ```bash
 # Search multiple namespaces in parallel
-rg "pattern" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md" &
-rg "pattern" ~/.claude/mnemonic/*/learnings/_semantic/knowledge/ --glob "*.memory.md" &
+rg "pattern" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md" &
+rg "pattern" ~/.claude/mnemonic --path "*/_semantic/knowledge/" --glob "*.memory.md" &
 wait
 ```
 
@@ -340,31 +340,30 @@ wait
 
 ```bash
 echo "=== Auth Decisions ==="
-rg -i "auth" ~/.claude/mnemonic/*/decisions/_semantic/decisions/ --glob "*.memory.md" -l
-rg -i "auth"_semantic/decisions/ --glob "*.memory.md" -l
+rg -i "auth" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md" -l
 ```
 
-### Recent Learnings in Current Project
+### Recent Knowledge in Current Project
 
 ```bash
-echo "=== Recent Project Learnings ==="
-findlearnings/project -name "*.memory.md" -mtime -7 -exec basename {} \;
+echo "=== Recent Project Knowledge ==="
+find ~/.claude/mnemonic -path "*/_semantic/knowledge/*" -name "*.memory.md" -mtime -7 -exec basename {} \;
 ```
 
 ### Episodic Memories From Last Week
 
 ```bash
 echo "=== Last Week's Events ==="
-for f in $(find ~/.claude/mnemonic/*/episodic -name "*.memory.md" -mtime -7 2>/dev/null); do
+for f in $(find ~/.claude/mnemonic -path "*/_episodic/*" -name "*.memory.md" -mtime -7 2>/dev/null); do
     grep "^title:" "$f" | sed 's/^title: "//' | sed 's/"$//'
 done
 ```
 
-### High-Confidence Security Memories
+### High-Confidence Security Knowledge
 
 ```bash
 echo "=== Trusted Security Knowledge ==="
-for f in $(rg -l "confidence: 0\.9" ~/.claude/mnemonic/*/security/_semantic/knowledge/ --glob "*.memory.md" 2>/dev/null); do
+for f in $(rg -l "confidence: 0\.9" ~/.claude/mnemonic --path "*/_semantic/knowledge/" --glob "*.memory.md" 2>/dev/null); do
     grep "^title:" "$f"
 done
 ```
