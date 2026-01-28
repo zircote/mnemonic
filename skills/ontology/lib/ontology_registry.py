@@ -79,11 +79,31 @@ class Relationship:
 
 @dataclass
 class DiscoveryPattern:
-    """A pattern for discovering entities in content."""
+    """A pattern for discovering entities in content or files."""
 
-    pattern_type: str  # content_pattern | file_pattern
-    pattern: str  # Regex pattern
+    pattern_type: str  # "content" or "file"
+    pattern: str  # Regex or glob pattern
     suggest_entity: str  # Entity type to suggest
+    suggest_namespace: Optional[str] = None  # Namespace path suggestion
+    compiled_regex: Any = field(default=None, repr=False)
+
+    def matches_content(self, content: str) -> bool:
+        """Check if pattern matches content (for content_pattern)."""
+        if self.pattern_type != "content":
+            return False
+        if self.compiled_regex is None:
+            try:
+                self.compiled_regex = re.compile(self.pattern, re.IGNORECASE)
+            except re.error:
+                return False
+        return bool(self.compiled_regex.search(content))
+
+    def matches_file(self, file_path: str) -> bool:
+        """Check if pattern matches file path (for file_pattern)."""
+        if self.pattern_type != "file":
+            return False
+        from fnmatch import fnmatch
+        return fnmatch(file_path, self.pattern)
 
 
 @dataclass
@@ -194,9 +214,14 @@ class OntologyRegistry:
         self._loaded = True
         logger.info(f"Loaded {len(self._ontologies)} ontologies with {len(self._namespace_map)} custom namespaces")
 
+    # URL loading retry configuration
+    URL_MAX_RETRIES = 3
+    URL_INITIAL_DELAY = 1.0  # seconds
+    URL_BACKOFF_FACTOR = 2.0
+
     def load_from_url(self, url: str, cache_dir: Optional[Path] = None) -> Optional[Ontology]:
         """
-        Load an ontology from a URL.
+        Load an ontology from a URL with retry logic.
 
         Args:
             url: URL to fetch ontology YAML from
@@ -205,34 +230,64 @@ class OntologyRegistry:
         Returns:
             Parsed Ontology or None if loading fails
         """
-        try:
-            import urllib.request
+        import time
+        import urllib.error
+        import urllib.request
 
-            # Create cache directory
-            if cache_dir:
-                cache_dir.mkdir(parents=True, exist_ok=True)
-                cache_file = cache_dir / f"{self._url_hash(url)}.yaml"
+        # Create cache directory
+        cache_file: Optional[Path] = None
+        if cache_dir:
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            cache_file = cache_dir / f"{self._url_hash(url)}.yaml"
 
-                # Check cache first
-                if cache_file.exists():
+            # Check cache first
+            if cache_file.exists():
+                try:
                     with open(cache_file) as f:
                         data = yaml.safe_load(f)
                     return self._parse_ontology(data, source_path=cache_file)
+                except (OSError, yaml.YAMLError) as e:
+                    logger.warning(f"Cache read failed, fetching from URL: {e}")
 
-            # Fetch from URL
-            with urllib.request.urlopen(url, timeout=10) as response:
-                content = response.read().decode("utf-8")
-
-            # Cache if directory provided
-            if cache_dir:
-                cache_file.write_text(content)
-
-            data = yaml.safe_load(content)
-            return self._parse_ontology(data)
-
-        except Exception as e:
-            logger.error(f"Failed to load ontology from URL {url}: {e}")
+        # Validate URL scheme (prevent SSRF via file://, etc.)
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            logger.error(f"Invalid URL scheme: {parsed.scheme}. Only http/https allowed.")
             return None
+
+        # Fetch from URL with retry logic
+        last_error = None
+        delay = self.URL_INITIAL_DELAY
+
+        for attempt in range(1, self.URL_MAX_RETRIES + 1):
+            try:
+                with urllib.request.urlopen(url, timeout=10) as response:
+                    content = response.read().decode("utf-8")
+
+                # Cache if directory provided and cache_file was defined
+                if cache_dir and cache_file:
+                    try:
+                        cache_file.write_text(content)
+                    except OSError as e:
+                        logger.warning(f"Failed to cache ontology: {e}")
+
+                data = yaml.safe_load(content)
+                return self._parse_ontology(data)
+
+            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+                last_error = e
+                if attempt < self.URL_MAX_RETRIES:
+                    logger.warning(f"URL fetch attempt {attempt} failed: {e}. Retrying in {delay:.1f}s...")
+                    time.sleep(delay)
+                    delay *= self.URL_BACKOFF_FACTOR
+
+            except (yaml.YAMLError, ValueError) as e:
+                # Non-retryable errors (bad content)
+                logger.error(f"Failed to parse ontology from URL {url}: {e}")
+                return None
+
+        logger.error(f"Failed to load ontology from URL {url} after {self.URL_MAX_RETRIES} attempts: {last_error}")
+        return None
 
     def get_ontology(self, ontology_id: str) -> Optional[Ontology]:
         """Get ontology by ID."""
@@ -330,15 +385,31 @@ class OntologyRegistry:
             # Also check for .yaml variants in ontologies subdirectory
             ontologies_dir = path / "ontologies"
             if ontologies_dir.exists():
+                resolved_dir = ontologies_dir.resolve()
                 for yaml_file in ontologies_dir.glob("*.yaml"):
+                    # Security: Validate file is within the expected directory
+                    try:
+                        yaml_file.resolve().relative_to(resolved_dir)
+                    except ValueError:
+                        logger.warning(f"Skipping file outside ontologies directory: {yaml_file}")
+                        continue
                     self._load_ontology_file(yaml_file)
             return
 
         self._load_ontology_file(ontology_file)
 
+    # Maximum file size for YAML files (10MB) to prevent DoS attacks
+    MAX_YAML_SIZE = 10 * 1024 * 1024
+
     def _load_ontology_file(self, file_path: Path) -> None:
         """Load a single ontology file."""
         try:
+            # Security: Validate file size before parsing to prevent DoS
+            file_size = file_path.stat().st_size
+            if file_size > self.MAX_YAML_SIZE:
+                logger.error(f"YAML file too large ({file_size} bytes): {file_path}")
+                return
+
             with open(file_path) as f:
                 data = yaml.safe_load(f)
 
@@ -351,7 +422,7 @@ class OntologyRegistry:
 
         except yaml.YAMLError as e:
             logger.error(f"Invalid YAML in {file_path}: {e}")
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Failed to load ontology from {file_path}: {e}")
 
     def _parse_ontology(self, data: Dict[str, Any], source_path: Optional[Path] = None) -> Optional[Ontology]:

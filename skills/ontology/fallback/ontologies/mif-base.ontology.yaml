@@ -11,7 +11,7 @@ ontology:
   id: mif-base
   version: "1.0.0"
   description: "MIF base ontology with cognitive triad namespace hierarchy"
-  schema_url: "https://github.com/zircote/MIF/schema/ontology/v1"
+  schema_url: "https://github.com/zircote/MIF/schema/ontology/v2"
 
 # Cognitive Triad Namespace Hierarchy
 #

@@ -479,10 +479,10 @@ discovery:
     # Component patterns from file paths
     - file_pattern: "**/services/**/*.py"
       suggest_entity: component
-      suggest_namespace: semantic/components
+      suggest_namespace: _semantic/components
     - file_pattern: "**/components/**/*.tsx"
       suggest_entity: component
-      suggest_namespace: semantic/components
+      suggest_namespace: _semantic/components
 
     # Incident patterns - suggest _episodic/incidents
     - content_pattern: "\\b(outage|incident|postmortem|RCA)\\b"
@@ -495,7 +495,7 @@ discovery:
       suggest_namespace: _procedural/runbooks
     - content_pattern: "\\b(deploy|release|rollout)\\s+(steps|procedure)\\b"
       suggest_entity: deployment-procedure
-      suggest_namespace: procedural/deployments
+      suggest_namespace: _procedural/deployments
     - content_pattern: "\\b(migration|migrate|upgrade)\\s+(guide|plan)\\b"
       suggest_entity: migration-guide
       suggest_namespace: _procedural/migrations
@@ -504,4 +504,4 @@ discovery:
       suggest_namespace: _procedural/runbooks
     - file_pattern: "**/docs/procedures/**/*.md"
       suggest_entity: deployment-procedure
-      suggest_namespace: procedural/deployments
+      suggest_namespace: _procedural/deployments

@@ -20,8 +20,8 @@ class TestOntologyValidator(unittest.TestCase):
 
     def setUp(self):
         self.validator = OntologyValidator()
-        self.base_ontology = Path(__file__).parent.parent.parent / "skills" / "ontology" / "ontologies" / "base.ontology.yaml"
-        self.example_ontology = Path(__file__).parent.parent.parent / "skills" / "ontology" / "ontologies" / "examples" / "software-engineering.ontology.yaml"
+        self.base_ontology = Path(__file__).parent.parent.parent / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml"
+        self.example_ontology = Path(__file__).parent.parent.parent / "skills" / "ontology" / "fallback" / "ontologies" / "examples" / "software-engineering.ontology.yaml"
 
     def test_validate_base_ontology(self):
         """Base ontology should be valid."""
@@ -118,7 +118,7 @@ class TestOntologyRegistry(unittest.TestCase):
 
     def test_load_ontologies(self):
         """Should load ontologies from path."""
-        ontology_dir = Path(__file__).parent.parent.parent / "skills" / "ontology" / "ontologies"
+        ontology_dir = Path(__file__).parent.parent.parent / "skills" / "ontology" / "fallback" / "ontologies"
         if not ontology_dir.exists():
             self.skipTest("Ontology directory not found")
         self.registry.load_ontologies([ontology_dir])

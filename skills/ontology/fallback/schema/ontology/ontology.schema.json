@@ -70,9 +70,23 @@
         },
         "patterns": {
           "type": "array",
-          "description": "Discovery patterns",
+          "description": "Discovery patterns for entity suggestion (domain ontologies)",
           "items": {
             "$ref": "#/$defs/discoveryPattern"
+          }
+        },
+        "content_patterns": {
+          "type": "array",
+          "description": "Content patterns for namespace suggestion (base ontology)",
+          "items": {
+            "$ref": "#/$defs/contentPattern"
+          }
+        },
+        "file_patterns": {
+          "type": "array",
+          "description": "File patterns for namespace suggestion (base ontology)",
+          "items": {
+            "$ref": "#/$defs/filePattern"
           }
         },
         "confidence_threshold": {
@@ -211,8 +225,7 @@
     },
     "discoveryPattern": {
       "type": "object",
-      "description": "Pattern for discovering entities",
-      "required": ["suggest_entity"],
+      "description": "Pattern for discovering entities (domain ontologies)",
       "properties": {
         "content_pattern": {
           "type": "string",
@@ -228,7 +241,44 @@
         },
         "suggest_namespace": {
           "type": "string",
-          "description": "Namespace to suggest (hierarchical path like semantic/decisions)"
+          "description": "Namespace to suggest (hierarchical path like _semantic/decisions)"
+        }
+      }
+    },
+    "contentPattern": {
+      "type": "object",
+      "description": "Content pattern for namespace suggestion (base ontology)",
+      "required": ["pattern", "namespace"],
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Regex pattern to match in user prompts or content"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Namespace to suggest (hierarchical path like _semantic/decisions)"
+        }
+      }
+    },
+    "filePattern": {
+      "type": "object",
+      "description": "File pattern for namespace suggestion (base ontology)",
+      "required": ["pattern"],
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Regex or glob pattern to match file paths"
+        },
+        "namespaces": {
+          "type": "array",
+          "description": "Namespaces to suggest when pattern matches",
+          "items": {
+            "type": "string"
+          }
+        },
+        "context": {
+          "type": "string",
+          "description": "Context hint for the match (e.g., 'authentication', 'database')"
         }
       }
     },

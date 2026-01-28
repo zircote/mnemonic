@@ -110,7 +110,7 @@ class OntologyValidator:
     VALID_BASE_TYPES = {"semantic", "episodic", "procedural"}
     VALID_TYPE_HINTS = {"semantic", "episodic", "procedural"}
 
-    ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*$")
+    ID_PATTERN = re.compile(r"^_?[a-z][a-z0-9-]*$")  # Allow underscore prefix for cognitive triad
     VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+.*$")
 
     def __init__(self):
