@@ -1,6 +1,6 @@
 # Mnemonic local data
 .claude/mnemonic/
-
+.fastembed_cache/
 # Python
 __pycache__/
 *.py[cod]

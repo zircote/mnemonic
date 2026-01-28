@@ -48,6 +48,5 @@
     "./agents/mnemonic-search-subcall.md",
     "./agents/compression-worker.md",
     "./agents/ontology-discovery.md"
-  ],
-  "hooks": "./hooks/hooks.json"
+  ]
 }
