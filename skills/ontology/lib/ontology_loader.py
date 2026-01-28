@@ -11,43 +11,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import logging
-import re
 
 try:
     import yaml
 except ImportError:
     yaml = None
 
+from .ontology_registry import DiscoveryPattern
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class DiscoveryPattern:
-    """A pattern for discovering entities in content or files."""
-
-    pattern_type: str  # "content" or "file"
-    pattern: str
-    suggest_entity: str
-    suggest_namespace: Optional[str] = None
-    compiled_regex: Any = field(default=None, repr=False)
-
-    def matches_content(self, content: str) -> bool:
-        """Check if pattern matches content (for content_pattern)."""
-        if self.pattern_type != "content":
-            return False
-        if self.compiled_regex is None:
-            try:
-                self.compiled_regex = re.compile(self.pattern, re.IGNORECASE)
-            except re.error:
-                return False
-        return bool(self.compiled_regex.search(content))
-
-    def matches_file(self, file_path: str) -> bool:
-        """Check if pattern matches file path (for file_pattern)."""
-        if self.pattern_type != "file":
-            return False
-        from fnmatch import fnmatch
-        return fnmatch(file_path, self.pattern)
 
 
 @dataclass
@@ -110,7 +82,7 @@ class OntologyLoader:
         if mif_base.exists():
             return mif_base
 
-        fallback_base = self.fallback_path / "ontologies" / "mif-base.yaml"
+        fallback_base = self.fallback_path / "ontologies" / "mif-base.ontology.yaml"
         if fallback_base.exists():
             return fallback_base
 
@@ -166,6 +138,16 @@ class OntologyLoader:
         project: Optional[str] = None,
     ) -> Optional[LoadedOntology]:
         """Load project-specific ontology if available."""
+        import re
+
+        # Security: Validate org and project contain only safe characters
+        if not re.match(r'^[a-zA-Z0-9_-]+$', org):
+            logger.warning(f"Invalid org name contains unsafe characters: {org}")
+            return None
+        if project and not re.match(r'^[a-zA-Z0-9_-]+$', project):
+            logger.warning(f"Invalid project name contains unsafe characters: {project}")
+            return None
+
         # Project-level ontology
         project_path = Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml"
         if project_path.exists():
@@ -290,7 +272,7 @@ class OntologyLoader:
         try:
             with open(path) as f:
                 data = yaml.safe_load(f)
-        except Exception as e:
+        except (OSError, yaml.YAMLError) as e:
             logger.error(f"Failed to load ontology {path}: {e}")
             return None
 
@@ -356,11 +338,35 @@ _loader: Optional[OntologyLoader] = None
 
 
 def get_loader(plugin_root: Optional[Path] = None) -> OntologyLoader:
-    """Get or create the global ontology loader."""
+    """Get or create the global ontology loader.
+
+    Args:
+        plugin_root: Optional root path. Ignored if loader already exists
+                     (use reset_loader() first to change roots).
+
+    Returns:
+        The global OntologyLoader instance.
+    """
     global _loader
     if _loader is None:
         _loader = OntologyLoader(plugin_root)
     return _loader
+
+
+def reset_loader() -> None:
+    """Reset the global ontology loader.
+
+    Use this when:
+    - Plugin root has changed
+    - Ontology files have been modified on disk
+    - Tests need fresh state
+
+    After calling this, the next get_loader() call will create a new instance.
+    """
+    global _loader
+    if _loader is not None:
+        _loader.clear_cache()
+    _loader = None
 
 
 def get_discovery_patterns(

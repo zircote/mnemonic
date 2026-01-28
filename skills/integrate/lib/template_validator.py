@@ -87,7 +87,7 @@ class TemplateValidator:
         content_outside_blocks = self._remove_code_blocks(content)
         for pattern, description in self.EXECUTABLE_PATTERNS:
             if pattern in content_outside_blocks:
-                warnings.append(f"Possible executable code: {description}")
+                warnings.append(f"Possible executable code detected: {description}. Pattern: '{pattern}'")
 
         # Check template is reasonably sized
         if len(content) > 10000:

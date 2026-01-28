@@ -194,20 +194,12 @@ python3 frontmatter_updater.py /path/to/file.md [--check|--add|--list]
 
 ## Protocol Format
 
-The integration protocol uses sentinel markers:
+The integration protocol uses sentinel markers to wrap the injected content:
 
-```markdown
-<!-- BEGIN MNEMONIC PROTOCOL -->
-## Memory
+- `<!-- BEGIN MNEMONIC PROTOCOL -->` - Start marker
+- `<!-- END MNEMONIC PROTOCOL -->` - End marker
 
-Search first: `/mnemonic:search {relevant_keywords}`
-Capture after: `/mnemonic:capture {namespace} "{title}"`
-
-Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
-<!-- END MNEMONIC PROTOCOL -->
-```
-
-The template is located at `templates/mnemonic-protocol.md`.
+View the complete template at `templates/mnemonic-protocol.md`.
 
 ## Testing
 

@@ -250,9 +250,9 @@ done
 
 ---
 
-## Compressed Recall
+## Progressive Disclosure Levels
 
-### Snippet (Minimal - Titles Only)
+### Level 1: Quick Answer (Titles Only)
 
 ```bash
 # List all memory titles
@@ -262,14 +262,14 @@ for f in ~/.claude/mnemonic/**/*.memory.md; do
 done
 ```
 
-### Summary (Frontmatter + First Section)
+### Level 2: Context (Frontmatter + First Section)
 
 ```bash
 # Get frontmatter plus first 10 content lines
 head -50 /path/to/memory.memory.md
 ```
 
-### Structured Summary
+### Structured Summary (Key Fields)
 
 ```bash
 # Extract key fields for quick review
@@ -280,7 +280,7 @@ for f in ~/.claude/mnemonic/**/*.memory.md; do
 done
 ```
 
-### Full Recall
+### Level 3: Full Detail
 
 ```bash
 # Complete memory content

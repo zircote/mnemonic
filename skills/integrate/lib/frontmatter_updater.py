@@ -21,6 +21,15 @@ try:
 except ImportError:
     HAS_PYYAML = False
 
+# Build tuple of YAML error types for specific exception handling
+_yaml_errors = []
+if HAS_RUAMEL:
+    from ruamel.yaml import YAMLError as RuamelYAMLError
+    _yaml_errors.append(RuamelYAMLError)
+if HAS_PYYAML:
+    _yaml_errors.append(pyyaml.YAMLError)
+YAML_ERRORS = tuple(_yaml_errors) if _yaml_errors else (Exception,)
+
 
 class FrontmatterUpdater:
     """Updates YAML frontmatter in markdown files."""
@@ -99,7 +108,7 @@ class FrontmatterUpdater:
 
             if data and "allowed-tools" in data:
                 return list(data["allowed-tools"])
-        except Exception:
+        except YAML_ERRORS:
             pass
 
         return []
@@ -179,6 +188,12 @@ class FrontmatterUpdater:
                 data["allowed-tools"] = []
 
             current_tools = data["allowed-tools"]
+
+            # Handle case where allowed-tools is a string instead of a list
+            if isinstance(current_tools, str):
+                current_tools = [current_tools] if current_tools else []
+                data["allowed-tools"] = current_tools
+
             if HAS_RUAMEL and not isinstance(current_tools, CommentedSeq):
                 current_tools = CommentedSeq(current_tools)
                 data["allowed-tools"] = current_tools
@@ -199,7 +214,7 @@ class FrontmatterUpdater:
 
             return f"---\n{new_fm}---\n{rest}"
 
-        except Exception as e:
+        except YAML_ERRORS:
             # Fallback to regex-based update
             return self._add_tools_regex(content, tools)
 
@@ -269,6 +284,7 @@ def main():
             content = f.read()
     except FileNotFoundError:
         print(f"Error: File not found: {args.file}", file=sys.stderr)
+        print("Suggestion: Check the file path or ensure the file exists.", file=sys.stderr)
         sys.exit(1)
 
     updater = FrontmatterUpdater()

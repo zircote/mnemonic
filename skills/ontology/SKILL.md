@@ -1,24 +1,19 @@
 ---
-allowed-tools:
-- Bash(python3 *)
-- Read
-- Glob
-- Grep
-- Bash
-- Write
-description: 'This skill should be used when the user asks to "create custom entity
-  types",
-
-  "define namespaces", "validate ontology files", "resolve entity references",
-
-  "extend mnemonic schemas", or "work with typed memories". Also trigger for
-
-  questions about "entity relationships", "traits", "mixins", "discovery patterns",
-
-  or "cognitive memory types" (semantic, episodic, procedural).
-
-  '
 name: ontology
+description: |
+  Ontology-based entity discovery and validation for mnemonic memories.
+  Define custom namespaces, entity types, traits, and relationships.
+
+  Triggers: "entity discovery", "validate ontology", "define namespaces",
+  "resolve entity references", "list ontologies", "show namespaces", "entity types",
+  "entity relationships", "traits", "discovery patterns", "cognitive memory types"
+allowed-tools:
+  - Bash(python3 *)
+  - Bash
+  - Read
+  - Write
+  - Glob
+  - Grep
 ---
 <!-- BEGIN MNEMONIC PROTOCOL -->
 ## Memory
@@ -59,28 +54,95 @@ All entity types inherit from one of three base memory types:
 
 ## Usage
 
-### Validate an ontology file
+### ontology_validator.py
+
+Validate ontology YAML files against the schema.
 
 ```bash
-python ${SKILL_DIR}/lib/ontology_validator.py path/to/ontology.yaml
+python ${SKILL_DIR}/lib/ontology_validator.py <file> [--json]
 ```
 
-### List loaded ontologies
+| Option | Description |
+|--------|-------------|
+| `<file>` | Ontology YAML file to validate (required) |
+| `--json` | Output validation results as JSON |
+
+### ontology_registry.py
+
+Load and query ontologies.
 
 ```bash
-python ${SKILL_DIR}/lib/ontology_registry.py --list
+python ${SKILL_DIR}/lib/ontology_registry.py [OPTIONS]
 ```
 
-### Resolve entity references
+| Option | Description |
+|--------|-------------|
+| `--list` | List all loaded ontologies |
+| `--namespaces` | List all available namespaces |
+| `--types` | List all entity types |
+| `--validate <NS>` | Validate a specific namespace |
+| `--json` | Output as JSON |
+
+### entity_resolver.py
+
+Resolve and search entity references across memories.
 
 ```bash
-python ${SKILL_DIR}/lib/entity_resolver.py --resolve "@[[PostgreSQL]]"
+python ${SKILL_DIR}/lib/entity_resolver.py [OPTIONS]
 ```
+
+| Option | Description |
+|--------|-------------|
+| `--build-index` | Build complete entity index from memory files |
+| `--search <query>` | Search for entities by name or content |
+| `--resolve <ref>` | Resolve entity reference (e.g., `@[[Name]]`) |
+| `--json` | Output results as JSON |
 
 ## Entity Reference Syntax
 
 - Simple: `@[[Entity Name]]` - Resolves by name
 - Typed: `[[technology:postgres-id]]` - Resolves by type and ID
+
+## Discovery Patterns
+
+Ontologies can define patterns for automatic namespace suggestion during memory capture.
+
+### Content Patterns
+
+Match text content to suggest appropriate namespaces:
+
+```yaml
+discovery:
+  content_patterns:
+    - pattern: "\\bdecided to\\b|\\bwe will use\\b"
+      namespace: _semantic/decisions
+    - pattern: "\\blearned that\\b|\\bthe fix was\\b"
+      namespace: _semantic/knowledge
+```
+
+### File Patterns
+
+Match file paths for contextual namespace hints:
+
+```yaml
+discovery:
+  file_patterns:
+    - pattern: "auth|login|session"
+      namespaces:
+        - _semantic/knowledge
+        - _semantic/decisions
+      context: authentication
+```
+
+### Configuration
+
+```yaml
+discovery:
+  enabled: true
+  confidence_threshold: 0.8  # Minimum confidence to suggest
+```
+
+See `fallback/ontologies/mif-base.ontology.yaml` for complete examples.
 
 ## Files
 

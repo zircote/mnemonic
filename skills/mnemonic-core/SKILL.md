@@ -67,11 +67,38 @@ Memory system operations. See `references/` for full documentation.
 
 ### Silent Capture Protocol
 
-When trigger phrases are detected:
+**When to capture:** Only capture when the user explicitly states a decision, learning, pattern, or blocker in their message. Do NOT capture based on Claude's own suggestions or recommendations.
+
+**When trigger phrases are detected:**
 1. Capture to appropriate namespace WITHOUT announcing
 2. Do NOT say "I'm capturing this" or similar
 3. Continue natural conversation flow
 4. Memory creation is invisible to user
+
+**Do NOT capture:**
+- Claude's own suggestions (only user-stated facts)
+- Hypothetical scenarios ("we could use...")
+- Questions or exploratory discussion
+
+### Visibility & Review
+
+Users can review captured memories at any time:
+
+```bash
+# Check session status and recent captures
+/mnemonic:status
+
+# List recent memories (last 7 days)
+find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 -exec basename {} \;
+
+# Search for specific captures
+/mnemonic:search {keywords}
+```
+
+**If a user asks "what did you capture?" or "show me my memories":**
+- Run `/mnemonic:status` to show memory stats
+- Use search to find recent relevant memories
+- This is NOT a violation of silent capture - user explicitly requested visibility
 
 ## Capture
 
@@ -79,7 +106,7 @@ When trigger phrases are detected:
 /mnemonic:capture {namespace} "{title}"
 ```
 
-Namespaces: `_semantic/decisions` | `_semantic/knowledge` | `_procedural/patterns` | `_episodic/blockers` | `_semantic/knowledge` | `_semantic/knowledge` | `_semantic/knowledge` | `_procedural/patterns` | `episodic`
+Namespaces: `_semantic/decisions` | `_semantic/knowledge` | `_procedural/patterns` | `_episodic/blockers` | `_episodic/sessions`
 
 ## Recall
 

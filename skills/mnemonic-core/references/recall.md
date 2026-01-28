@@ -53,21 +53,21 @@ rg -i "postgresql" --glob "*.memory.md"
 rg -i -C3 "postgresql" ~/.claude/mnemonic/ --glob "*.memory.md"
 ```
 
-## Tiered Recall
+## Tiered Recall (Progressive Disclosure)
 
-**Snippet (minimal context):**
+**Level 1: Quick Answer (frontmatter only):**
 ```bash
 # Just frontmatter
 head -20 /path/to/memory.memory.md | sed -n '/^---$/,/^---$/p'
 ```
 
-**Summary (frontmatter + first section):**
+**Level 2: Context (frontmatter + context section):**
 ```bash
 # First 50 lines
 head -50 /path/to/memory.memory.md
 ```
 
-**Full (complete memory):**
+**Level 3: Full Detail (complete memory):**
 ```bash
 # Entire file
 cat /path/to/memory.memory.md

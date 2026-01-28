@@ -202,7 +202,16 @@ class EntityResolver:
 
         try:
             content = memory_path.read_text()
-        except Exception as e:
+        except FileNotFoundError:
+            # File disappeared between discovery and read (TOCTOU race)
+            logger.debug(f"File removed during indexing: {memory_path}")
+            self._indexed_memories.add(memory_path)  # Mark to avoid retry
+            return []
+        except PermissionError as e:
+            logger.warning(f"Permission denied reading {memory_path}: {e}")
+            self._indexed_memories.add(memory_path)
+            return []
+        except OSError as e:
             logger.error(f"Failed to read {memory_path}: {e}")
             return []
 
@@ -210,6 +219,12 @@ class EntityResolver:
 
         # Parse frontmatter
         frontmatter, body = self._parse_frontmatter(content)
+
+        # Handle YAML parse errors (frontmatter contains _parse_error marker)
+        if frontmatter and "_parse_error" in frontmatter:
+            logger.warning(f"Skipping entity extraction for {memory_path}: corrupt frontmatter")
+            self._indexed_memories.add(memory_path)
+            return []
 
         # Check for entity definition in frontmatter
         if frontmatter and "ontology" in frontmatter:
@@ -300,6 +315,17 @@ class EntityResolver:
                 Path.cwd() / ".claude" / "mnemonic",
             ]
 
+        # Security: Validate query length and character safety
+        MAX_QUERY_LENGTH = 256
+        if len(query) > MAX_QUERY_LENGTH:
+            logger.warning(f"Search query too long ({len(query)} chars, max {MAX_QUERY_LENGTH})")
+            return []
+        # Allow: alphanumeric, underscore, dash, dot, space, colon, slash, quotes, brackets
+        # Block: shell metacharacters (;$`|&<>), excessive whitespace
+        if not re.match(r'^[a-zA-Z0-9_\-./: "\'@\[\]]+$', query) or re.search(r'\s{3,}', query):
+            logger.warning(f"Invalid search query contains unsafe characters: {query}")
+            return []
+
         entities = []
 
         for mnemonic_dir in mnemonic_dirs:
@@ -307,24 +333,29 @@ class EntityResolver:
                 continue
 
             try:
+                # Resolve directory path for use in subprocess
+                resolved_dir = mnemonic_dir.resolve()
+
+                # Use fixed-string matching (-F) for safer search
                 result = subprocess.run(
                     [
                         "rg",
                         "-i",
                         "-l",
-                        f"entity_id:.*{query}|title:.*{query}",
+                        "-F",  # Fixed strings - no regex interpretation
+                        query,
                         "--glob",
                         "*.memory.md",
                     ],
                     capture_output=True,
                     text=True,
-                    cwd=str(mnemonic_dir),
+                    cwd=str(resolved_dir),
                     timeout=5,
                 )
 
                 if result.returncode == 0 and result.stdout.strip():
                     for file_path in result.stdout.strip().split("\n"):
-                        full_path = mnemonic_dir / file_path
+                        full_path = resolved_dir / file_path
                         found = self.index_memory(full_path)
                         entities.extend(found)
 
@@ -332,10 +363,14 @@ class EntityResolver:
                 logger.warning("ripgrep not found, falling back to manual search")
             except subprocess.TimeoutExpired:
                 logger.warning("Search timed out")
-            except Exception as e:
+            except (subprocess.SubprocessError, OSError) as e:
                 logger.error(f"Search failed: {e}")
 
         return entities
+
+    # Resource limits for build_index to prevent memory exhaustion
+    MAX_INDEX_FILES = 10000
+    MAX_INDEX_SIZE = 100 * 1024 * 1024  # 100MB total
 
     def build_index(self, mnemonic_dirs: Optional[List[Path]] = None) -> EntityIndexStats:
         """
@@ -353,11 +388,30 @@ class EntityResolver:
                 Path.cwd() / ".claude" / "mnemonic",
             ]
 
+        files_processed = 0
+        total_size = 0
+
         for mnemonic_dir in mnemonic_dirs:
             if not mnemonic_dir.exists():
                 continue
 
             for memory_path in mnemonic_dir.rglob("*.memory.md"):
+                # Check file count limit
+                files_processed += 1
+                if files_processed > self.MAX_INDEX_FILES:
+                    logger.warning(f"Hit file limit ({self.MAX_INDEX_FILES}), stopping index build")
+                    return self.get_stats()
+
+                # Check total size limit
+                try:
+                    file_size = memory_path.stat().st_size
+                    total_size += file_size
+                    if total_size > self.MAX_INDEX_SIZE:
+                        logger.warning(f"Hit size limit ({self.MAX_INDEX_SIZE} bytes), stopping index build")
+                        return self.get_stats()
+                except OSError:
+                    continue  # Skip files we can't stat
+
                 self.index_memory(memory_path)
 
         return self.get_stats()
@@ -433,8 +487,10 @@ class EntityResolver:
             return frontmatter, body
 
         except yaml.YAMLError as e:
-            logger.warning(f"Failed to parse frontmatter: {e}")
-            return None, content
+            # Log as error (not warning) since this indicates corrupt data
+            logger.error(f"Corrupt YAML frontmatter, skipping entity extraction: {e}")
+            # Return special marker dict to distinguish from "no frontmatter"
+            return {"_parse_error": str(e)}, content
 
 
 def main():

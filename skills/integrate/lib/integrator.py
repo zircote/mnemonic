@@ -7,12 +7,15 @@ This is the single source of truth for integration operations.
 """
 
 import json
+import logging
 import os
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set
+
+logger = logging.getLogger(__name__)
 
 try:
     from .frontmatter_updater import FrontmatterUpdater
@@ -85,6 +88,7 @@ class Integrator:
         self.frontmatter_updater = FrontmatterUpdater()
 
         self._template_content: Optional[str] = None
+        self._template_warnings: List[str] = []  # Store validation warnings
 
     def _find_template(self) -> Path:
         """Find the mnemonic protocol template.
@@ -124,7 +128,8 @@ class Integrator:
                 return resolved
 
         raise FileNotFoundError(
-            f"Mnemonic protocol template not found. Searched: {[str(c) for c in candidates]}"
+            f"Mnemonic protocol template not found. Searched: {[str(c) for c in candidates]}. "
+            f"Suggestion: Create templates/mnemonic-protocol.md or set CLAUDE_PLUGIN_ROOT environment variable."
         )
 
     def _is_path_within(self, path: Path, root: Path) -> bool:
@@ -143,6 +148,39 @@ class Integrator:
         except ValueError:
             return False
 
+    def _atomic_write(self, file_path: Path, content: str) -> None:
+        """Write content atomically using temp file + rename.
+
+        This ensures writes are atomic - either complete or not at all.
+        Prevents corruption from power loss or crashes during write.
+
+        Args:
+            file_path: Target file path
+            content: Content to write
+
+        Raises:
+            OSError: If write or rename fails
+        """
+        dir_path = file_path.parent
+        # Create temp file in same directory (ensures same filesystem for atomic rename)
+        with tempfile.NamedTemporaryFile(
+            mode='w',
+            dir=dir_path,
+            delete=False,
+            suffix='.tmp',
+            encoding='utf-8'
+        ) as tmp:
+            tmp.write(content)
+            tmp_path = Path(tmp.name)
+
+        try:
+            # Atomic rename (POSIX guarantees this is atomic on same filesystem)
+            os.replace(tmp_path, file_path)
+        except OSError:
+            # Clean up temp file on failure
+            tmp_path.unlink(missing_ok=True)
+            raise
+
     def _load_template(self) -> str:
         """Load and cache template content.
 
@@ -159,8 +197,14 @@ class Integrator:
         if not result.valid:
             raise ValueError(f"Invalid template: {'; '.join(result.errors)}")
 
+        # Store warnings for surfacing in report
+        self._template_warnings = result.warnings
+
         self._template_content = self.template_path.read_text()
         return self._template_content
+
+    # Maximum size for JSON manifest files (1MB) to prevent DoS
+    MAX_MANIFEST_SIZE = 1 * 1024 * 1024
 
     def _get_manifest(self) -> Optional[Dict]:
         """Load plugin manifest if it exists.
@@ -173,12 +217,25 @@ class Integrator:
             return None
 
         try:
+            # Security: Validate file size before parsing to prevent DoS
+            file_size = manifest_path.stat().st_size
+            if file_size > self.MAX_MANIFEST_SIZE:
+                logger.warning(f"Manifest file too large ({file_size} bytes): {manifest_path}")
+                return None
+
             return json.loads(manifest_path.read_text())
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            logger.warning(f"Invalid JSON in manifest {manifest_path}: {e}")
+            return None
+        except (OSError, IOError) as e:
+            logger.warning(f"Failed to read manifest {manifest_path}: {e}")
             return None
 
     def discover_components(self) -> Dict[str, List[Path]]:
         """Discover all integrable components in the plugin.
+
+        Checks root-level directories first (standard plugin structure),
+        then falls back to .claude-plugin/ for legacy plugins.
 
         Returns:
             Dict mapping component type to list of file paths
@@ -190,35 +247,75 @@ class Integrator:
         if manifest:
             for comp_type in self.COMPONENT_TYPES:
                 if comp_type in manifest:
-                    for rel_path in manifest[comp_type]:
-                        full_path = self.plugin_root / ".claude-plugin" / rel_path
+                    # Handle case where manifest entry is a string instead of a list
+                    manifest_entries = manifest[comp_type]
+                    if isinstance(manifest_entries, str):
+                        manifest_entries = [manifest_entries]
+                    elif not isinstance(manifest_entries, list):
+                        continue  # Skip invalid entries
+                    for rel_path in manifest_entries:
+                        # Check root-level first (standard structure)
+                        full_path = self.plugin_root / rel_path
+                        if not full_path.exists():
+                            # Fallback to .claude-plugin/ (legacy structure)
+                            full_path = self.plugin_root / ".claude-plugin" / rel_path
                         if full_path.exists() and full_path.suffix in self.VALID_EXTENSIONS:
                             components[comp_type].append(full_path)
 
-        # Also scan directories for any missed files
+        # Scan directories for any missed files
         for comp_type in self.COMPONENT_TYPES:
-            comp_dir = self.plugin_root / ".claude-plugin" / comp_type
-            if comp_dir.exists():
-                for file_path in comp_dir.rglob("*.md"):
-                    if file_path not in components[comp_type]:
-                        # Skip symlinks or files that resolve outside plugin root
-                        if file_path.is_symlink():
+            # Check root-level first (standard structure)
+            for comp_dir in [
+                self.plugin_root / comp_type,
+                self.plugin_root / ".claude-plugin" / comp_type,  # Legacy fallback
+            ]:
+                if comp_dir.exists():
+                    # Use appropriate pattern based on component type
+                    if comp_type == "skills":
+                        # Skills use SKILL.md in subdirectories: skills/*/SKILL.md
+                        file_paths = list(comp_dir.glob("*/SKILL.md"))
+                    else:
+                        # Commands and agents use top-level .md files (non-recursive)
+                        file_paths = list(comp_dir.glob("*.md"))
+
+                    for file_path in file_paths:
+                        if file_path not in components[comp_type]:
+                            # Security: Validate file and all parent directories
+                            # Check that no path component is a symlink pointing outside
+                            safe_path = True
                             try:
-                                file_path.resolve().relative_to(self.plugin_root)
+                                resolved = file_path.resolve()
+                                resolved.relative_to(self.plugin_root.resolve())
+                                # Check each parent for symlinks escaping plugin root
+                                for parent in file_path.parents:
+                                    if parent.is_symlink():
+                                        try:
+                                            parent.resolve().relative_to(self.plugin_root.resolve())
+                                        except ValueError:
+                                            safe_path = False
+                                            break
+                                    if parent == self.plugin_root:
+                                        break
                             except ValueError:
-                                continue  # Symlink points outside, skip
-                        components[comp_type].append(file_path)
+                                safe_path = False  # Path escapes plugin root
+                            except (OSError, RuntimeError):
+                                safe_path = False  # Broken symlink or loop
+
+                            if safe_path:
+                                components[comp_type].append(file_path)
 
         return components
 
-    def _validate_path(self, file_path: Path) -> Optional[str]:
+    def _validate_path(self, file_path: Path) -> tuple[Optional[str], Optional[Path]]:
         """Validate that a file path is safe to operate on.
 
         Args:
             file_path: Path to validate
 
         Returns:
-            Error message if invalid, None if valid
+            Tuple of (error_message, resolved_path).
+            If error_message is not None, resolved_path will be None.
+            If valid, error_message is None and resolved_path is the validated path.
         """
         # Resolve to absolute path
         resolved = file_path.resolve()
@@ -227,7 +324,7 @@ class Integrator:
         try:
             resolved.relative_to(self.plugin_root)
         except ValueError:
-            return f"Path {resolved} is outside plugin root {self.plugin_root}"
+            return (f"Path {resolved} is outside plugin root {self.plugin_root}", None)
 
         # Check for symlink attacks
         if file_path.is_symlink():
@@ -235,9 +332,9 @@ class Integrator:
             try:
                 target.relative_to(self.plugin_root)
             except ValueError:
-                return f"Symlink {file_path} points outside plugin root"
+                return (f"Symlink {file_path} points outside plugin root", None)
 
-        return None
+        return (None, resolved)
 
     def integrate_file(
         self,
@@ -255,30 +352,33 @@ class Integrator:
         Returns:
             IntegrationResult with details of operation
         """
-        file_path = Path(file_path).resolve()
-
-        # Validate path security
-        path_error = self._validate_path(file_path)
+        # Validate path security and get resolved path
+        path_error, resolved_path = self._validate_path(Path(file_path))
         if path_error:
             return IntegrationResult(
-                file_path=file_path,
+                file_path=Path(file_path),
                 success=False,
                 action="skipped",
                 message=f"Security error: {path_error}",
             )
 
-        if not file_path.exists():
+        # Use the validated resolved path for all subsequent operations
+        assert resolved_path is not None  # Guaranteed by validation passing
+        file_path = resolved_path
+
+        # Security: Atomic check-and-read to prevent TOCTOU race condition
+        # The exists check and read are combined in one try block
+        try:
+            content = file_path.read_text()
+            template = self._load_template()
+        except FileNotFoundError:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
                 action="skipped",
                 message=f"File not found: {file_path}",
             )
-
-        try:
-            content = file_path.read_text()
-            template = self._load_template()
-        except Exception as e:
+        except (OSError, IOError) as e:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
@@ -325,9 +425,9 @@ class Integrator:
                 new_content = self.frontmatter_updater.add_tools(new_content, missing)
                 tools_added = missing
 
-        # Write if not dry run
+        # Write if not dry run (atomic write for crash safety)
         if not dry_run:
-            file_path.write_text(new_content)
+            self._atomic_write(file_path, new_content)
 
         return IntegrationResult(
             file_path=file_path,
@@ -349,29 +449,31 @@ class Integrator:
         Returns:
             IntegrationResult with details
         """
-        file_path = Path(file_path).resolve()
-
-        # Validate path security
-        path_error = self._validate_path(file_path)
+        # Validate path security and get resolved path
+        path_error, resolved_path = self._validate_path(Path(file_path))
         if path_error:
             return IntegrationResult(
-                file_path=file_path,
+                file_path=Path(file_path),
                 success=False,
                 action="skipped",
                 message=f"Security error: {path_error}",
             )
 
-        if not file_path.exists():
+        # Use the validated resolved path for all subsequent operations
+        assert resolved_path is not None  # Guaranteed by validation passing
+        file_path = resolved_path
+
+        # Security: Atomic check-and-read to prevent TOCTOU race condition
+        try:
+            content = file_path.read_text()
+        except FileNotFoundError:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
                 action="skipped",
                 message=f"File not found: {file_path}",
             )
-
-        try:
-            content = file_path.read_text()
-        except Exception as e:
+        except OSError as e:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
@@ -390,7 +492,7 @@ class Integrator:
         new_content = self.marker_parser.remove_markers(content)
 
         if not dry_run:
-            file_path.write_text(new_content)
+            self._atomic_write(file_path, new_content)
 
         return IntegrationResult(
             file_path=file_path,
@@ -408,30 +510,32 @@ class Integrator:
         Returns:
             IntegrationResult with verification status
         """
-        file_path = Path(file_path).resolve()
-
-        # Validate path security
-        path_error = self._validate_path(file_path)
+        # Validate path security and get resolved path
+        path_error, resolved_path = self._validate_path(Path(file_path))
         if path_error:
             return IntegrationResult(
-                file_path=file_path,
+                file_path=Path(file_path),
                 success=False,
                 action="skipped",
                 message=f"Security error: {path_error}",
             )
 
-        if not file_path.exists():
+        # Use the validated resolved path for all subsequent operations
+        assert resolved_path is not None  # Guaranteed by validation passing
+        file_path = resolved_path
+
+        # Security: Atomic check-and-read to prevent TOCTOU race condition
+        try:
+            content = file_path.read_text()
+            template = self._load_template()
+        except FileNotFoundError:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
                 action="skipped",
                 message=f"File not found: {file_path}",
             )
-
-        try:
-            content = file_path.read_text()
-            template = self._load_template()
-        except Exception as e:
+        except (OSError, IOError) as e:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
@@ -518,6 +622,18 @@ class Integrator:
         # Validate template first
         try:
             self._load_template()
+            # Surface template validation warnings
+            for warning in self._template_warnings:
+                report.warnings.append(f"Template warning: {warning}")
+        except FileNotFoundError:
+            report.errors.append(
+                "Template not found. Suggestion: Check that templates/mnemonic-protocol.md "
+                "exists or set CLAUDE_PLUGIN_ROOT environment variable."
+            )
+            return report
+        except ValueError as e:
+            report.errors.append(f"Invalid template: {e}. Suggestion: Validate template structure.")
+            return report
         except Exception as e:
             report.errors.append(f"Template error: {e}")
             return report
@@ -538,6 +654,7 @@ class Integrator:
         # Track original file contents for rollback (using temp files for crash safety)
         backup_dir: Optional[Path] = None
         backups: Dict[Path, Path] = {}  # Maps original path to backup path
+        backup_failures: List[str] = []  # Track backup failures for reporting
         if rollback_on_failure and not dry_run and mode != "verify":
             backup_dir = Path(tempfile.mkdtemp(prefix="mnemonic_backup_"))
             for file_path in target_files:
@@ -546,8 +663,25 @@ class Integrator:
                         backup_file = backup_dir / f"{file_path.name}.{id(file_path)}.bak"
                         backup_file.write_text(file_path.read_text())
                         backups[file_path] = backup_file
-                    except Exception:
-                        pass  # If we can't backup, we can't rollback
+                    except (OSError, IOError) as e:
+                        # Security: Never silently ignore backup failures - warn user
+                        backup_failures.append(f"{file_path}: {e}")
+
+            # Security: Abort if any backups failed - continuing could cause data loss
+            if backup_failures:
+                import shutil
+                report.errors.append(
+                    f"Backup failed for {len(backup_failures)} file(s), aborting to prevent data loss: "
+                    + "; ".join(backup_failures[:3])
+                    + ("..." if len(backup_failures) > 3 else "")
+                )
+                # Clean up any successful backups before aborting
+                if backup_dir and backup_dir.exists():
+                    try:
+                        shutil.rmtree(backup_dir)
+                    except OSError:
+                        pass  # Best effort cleanup
+                return report
 
         # Process each file
         for file_path in target_files:
@@ -561,7 +695,9 @@ class Integrator:
                 # Migrate is just integrate with legacy awareness
                 result = self.integrate_file(file_path, dry_run=dry_run, force=False)
             else:
-                report.errors.append(f"Unknown mode: {mode}")
+                report.errors.append(
+                    f"Unknown mode: {mode}. Valid modes: integrate, remove, verify, migrate"
+                )
                 return report
 
             report.results.append(result)
@@ -587,8 +723,8 @@ class Integrator:
             import shutil
             try:
                 shutil.rmtree(backup_dir)
-            except Exception:
-                pass  # Best effort cleanup
+            except OSError as e:
+                report.warnings.append(f"Failed to cleanup backup directory {backup_dir}: {e}")
 
         return report
 
@@ -611,10 +747,13 @@ class Integrator:
         for file_path, backup_path in backups.items():
             try:
                 if backup_path.exists():
-                    file_path.write_text(backup_path.read_text())
+                    self._atomic_write(file_path, backup_path.read_text())
                     rolled_back += 1
-            except Exception as e:
-                report.errors.append(f"Rollback failed for {file_path}: {e}")
+            except (OSError, IOError) as e:
+                report.errors.append(
+                    f"Rollback failed for {file_path}: {e}. "
+                    f"Manual recovery: check backup at {backup_path}"
+                )
 
         if rolled_back > 0:
             report.warnings.append(f"Rolled back {rolled_back} file(s) due to failure")
@@ -623,8 +762,8 @@ class Integrator:
         if backup_dir and backup_dir.exists():
             try:
                 shutil.rmtree(backup_dir)
-            except Exception:
-                pass  # Best effort cleanup
+            except OSError as e:
+                report.warnings.append(f"Failed to cleanup backup directory {backup_dir}: {e}")
 
     def _git_commit(self, report: IntegrationReport) -> None:
         """Commit integration changes to git.
@@ -644,12 +783,14 @@ class Integrator:
                 report.warnings.append("Not a git repository, skipping commit")
                 return
 
-            # Stage changes
-            subprocess.run(
-                ["git", "add", "-A"],
-                cwd=self.plugin_root,
-                check=True,
-            )
+            # Stage only the specific files that were modified
+            modified_files = [str(r.file_path) for r in report.results if r.action != "skipped"]
+            if modified_files:
+                subprocess.run(
+                    ["git", "add", "--"] + modified_files,
+                    cwd=self.plugin_root,
+                    check=True,
+                )
 
             # Build commit message
             actions = {}
@@ -664,6 +805,35 @@ class Integrator:
                 cwd=self.plugin_root,
                 check=True,
             )
+
+            # Verify commit was created with expected files
+            verify_result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.plugin_root,
+                capture_output=True,
+                text=True,
+            )
+            if verify_result.returncode == 0:
+                commit_hash = verify_result.stdout.strip()
+                files_result = subprocess.run(
+                    ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", commit_hash],
+                    cwd=self.plugin_root,
+                    capture_output=True,
+                    text=True,
+                )
+                committed_files = files_result.stdout.strip().split("\n") if files_result.stdout else []
+                # Compare relative paths, not just basenames (basenames could match wrong files)
+                modified_relative = set()
+                for f in modified_files:
+                    try:
+                        modified_relative.add(str(Path(f).relative_to(self.plugin_root)))
+                    except ValueError:
+                        modified_relative.add(Path(f).name)  # Fallback to basename if not relative
+                committed_set = set(committed_files)
+                if not modified_relative & committed_set:
+                    report.warnings.append(
+                        "Git commit verification: expected files not found in commit"
+                    )
 
         except subprocess.CalledProcessError as e:
             report.warnings.append(f"Git commit failed: {e}")
@@ -701,7 +871,7 @@ class Integrator:
             "tools_required": FrontmatterUpdater.REQUIRED_TOOLS,
         }
 
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+        self._atomic_write(manifest_path, json.dumps(manifest, indent=2) + "\n")
 
 
 def main():

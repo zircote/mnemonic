@@ -3,8 +3,9 @@ name: integrate
 description: |
   This skill should be used when the user asks to "integrate mnemonic", "wire plugin",
   "add memory to plugin", "enable memory capture in plugin", "integrate memory operations",
-  or "add mnemonic protocol". It wires mnemonic memory capture and recall workflows into
-  other Claude Code plugins using sentinel markers.
+  "add mnemonic protocol", "remove mnemonic integration", "rollback plugin integration",
+  or "migrate legacy memory sections". It wires mnemonic memory capture and recall
+  workflows into other Claude Code plugins using sentinel markers.
 allowed-tools:
   - Bash
   - Read
@@ -18,12 +19,17 @@ allowed-tools:
 
 Wire mnemonic memory operations into other Claude Code plugins.
 
-## Trigger Phrases
+## When to Use
 
-- "integrate mnemonic"
-- "wire plugin"
-- "add memory to plugin"
-- "plugin integration"
+Use this skill when you want to:
+- **Add memory to an existing plugin** - Make any plugin mnemonic-aware
+- **Enable cross-session learning** - Let plugins recall past decisions and learnings
+- **Automate capture triggers** - Set up hooks that suggest memory capture at the right time
+- **Migrate legacy integrations** - Convert old marker-less integrations to the new format
+
+**Don't use this skill if:**
+- You're building a new plugin from scratch (use mnemonic-core directly)
+- You only need to search/capture memories (use `/mnemonic:search` and `/mnemonic:capture`)
 
 ## Overview
 
@@ -34,13 +40,34 @@ This skill enables integrating mnemonic memory capture and recall into other Cla
 
 Both mechanisms work together: Markdown provides explicit workflow guidance, hooks provide automatic event detection.
 
+## Quick Start
+
+```bash
+# Integrate a plugin (adds mnemonic protocol to all components)
+/mnemonic:integrate {plugin_path}
+
+# Preview changes without applying
+/mnemonic:integrate {plugin_path} --dry-run
+
+# Remove integration
+/mnemonic:integrate {plugin_path} --remove
+
+# Rollback last integration (git required)
+/mnemonic:integrate {plugin_path} --rollback
+```
+
+For detailed options, see "How to Use This Skill" below.
+
 ---
 
-> **[CRITICAL] DO NOT GENERATE INTEGRATION CODE**
+> **[CRITICAL] PROTOCOL CONTENT MUST BE VERBATIM**
 >
-> You MUST read `templates/mnemonic-protocol.md` and insert it VERBATIM.
-> The template already contains sentinel markers. Never create content without markers.
-> Never abbreviate, modify, or "improve" the template.
+> For the mnemonic protocol section (## Memory), you MUST:
+> 1. Read `templates/mnemonic-protocol.md` - this is the single source of truth
+> 2. Insert its content EXACTLY as-is, including sentinel markers
+> 3. Never abbreviate, modify, or "improve" the protocol text
+>
+> **Exception:** Event-driven hooks (Pattern D) are optional and use the provided template code.
 
 ---
 
@@ -73,6 +100,8 @@ Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontolo
 
 ## Integration Workflow
 
+> **For most users:** Skip to "How to Use This Skill" below for command-line usage. This section details the internal steps the skill performs.
+
 ### Phase 1: Analyze Target Plugin
 
 ```bash
@@ -99,7 +128,7 @@ For each component, determine:
 
 ### Phase 3: Read Template (MANDATORY)
 
-**CRITICAL: Do NOT generate integration code. Use the template.**
+**Use the template verbatim - do not modify the protocol content.**
 
 ```bash
 # Read the template - this is the ONLY content to insert
@@ -107,17 +136,9 @@ cat "${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md"
 ```
 
 The template already contains:
-- `<!-- BEGIN MNEMONIC PROTOCOL -->
-
-## Memory
-
-Search first: `/mnemonic:search {relevant_keywords}`
-Capture after: `/mnemonic:capture {namespace} "{title}"`
-
-Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
-
-<!-- END MNEMONIC PROTOCOL -->` marker at end
-- Complete protocol content between markers
+- `<!-- BEGIN MNEMONIC PROTOCOL -->` start marker
+- `<!-- END MNEMONIC PROTOCOL -->` end marker
+- Complete protocol content between markers (see "Sentinel Markers" section above)
 
 ### Phase 4: Insert Template With Markers
 
@@ -169,19 +190,10 @@ Check existing `allowed-tools` and add only what's missing.
 
 **MANDATORY RULES (Non-negotiable):**
 
-1. **NEVER generate integration content** - Read `templates/mnemonic-protocol.md` and use it verbatim
-2. **NEVER insert without markers** - Template already contains `<!-- BEGIN MNEMONIC PROTOCOL -->
-
-## Memory
-
-Search first: `/mnemonic:search {relevant_keywords}`
-Capture after: `/mnemonic:capture {namespace} "{title}"`
-
-Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
-
-<!-- END MNEMONIC PROTOCOL -->`
+1. **Use template verbatim** - Read `templates/mnemonic-protocol.md` and insert exactly as-is
+2. **Keep sentinel markers** - Template content must stay within `<!-- BEGIN/END MNEMONIC PROTOCOL -->` markers
 3. **Insert at TOP** - Immediately after frontmatter, before any other content
-4. **Template is law** - Do not modify, abbreviate, or "improve" the template content
+4. **Don't modify protocol** - The protocol text is standardized; only hooks (Pattern D) may be customized
 
 ### Standard Protocol (From Template)
 
@@ -194,38 +206,9 @@ PROTOCOL=$(cat "${CLAUDE_PLUGIN_ROOT}/templates/mnemonic-protocol.md")
 # Insert after frontmatter with markers
 ```
 
-**Template content:**
-```markdown
-<!-- BEGIN MNEMONIC PROTOCOL -->
+See template content in "Sentinel Markers" section above.
 
-## Memory
-
-Search first: `/mnemonic:search {relevant_keywords}`
-Capture after: `/mnemonic:capture {namespace} "{title}"`
-
-Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
-
-<!-- END MNEMONIC PROTOCOL -->
-```
-
-**Base namespaces (from mif-base ontology):**
-
-| Namespace | Type | Use For |
-|-----------|------|---------|
-| `_semantic` | semantic | General semantic memories |
-| `_semantic/decisions` | semantic | ADRs, technology choices |
-| `_semantic/knowledge` | semantic | Documentation, learnings |
-| `_semantic/entities` | semantic | Named entities, concepts |
-| `_episodic` | episodic | General episodic memories |
-| `_episodic/incidents` | episodic | Production incidents |
-| `_episodic/sessions` | episodic | Session summaries |
-| `_episodic/blockers` | episodic | Issues, bugs, blockers |
-| `_procedural` | procedural | General procedural memories |
-| `_procedural/runbooks` | procedural | Operational procedures |
-| `_procedural/patterns` | procedural | Code patterns, conventions |
-| `_procedural/migrations` | procedural | Migration procedures |
-
-**Note:** Projects may define additional namespaces via custom ontologies. Use `/mnemonic:list --namespaces` to discover all available namespaces.
+**Namespaces:** Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies. Base namespaces include `_semantic/*`, `_episodic/*`, and `_procedural/*` from mif-base ontology.
 
 ### Graceful Fallthrough
 
@@ -457,6 +440,13 @@ git log -1 --oneline
 
 **Note:** Rollback creates a new revert commit, preserving history. To completely remove the integration commit, use `git reset --hard HEAD~1` instead (destructive).
 
+**Safety Considerations:**
+- ⚠️ Rollback only works if plugin has git (non-git plugins warn at integration time)
+- ⚠️ If you've made manual changes since integration, rollback will revert those too
+- ⚠️ Failed rollbacks leave partial state - check `git status` and resolve manually
+- ✅ Rollback is non-destructive by default (creates revert commit)
+- ✅ Original integration is preserved in git history for reference
+
 ---
 
 ## Workflow Steps
@@ -480,16 +470,7 @@ When invoked, this skill:
 **Remove Mode (`--remove`):**
 1. **List components** - Find all commands, skills, agents, hooks
 2. **For each component:**
-   - Find sentinel markers (`<!-- BEGIN MNEMONIC PROTOCOL -->
-
-## Memory
-
-Search first: `/mnemonic:search {relevant_keywords}`
-Capture after: `/mnemonic:capture {namespace} "{title}"`
-
-Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
-
-<!-- END MNEMONIC PROTOCOL -->`)
+   - Find sentinel markers (`<!-- BEGIN/END MNEMONIC PROTOCOL -->`)
    - Delete everything between markers (inclusive)
 3. **Commit changes** - Create git commit for the removal
 4. **Report results** - Summarize what was removed
