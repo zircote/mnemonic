@@ -1,5 +1,6 @@
 # Mnemonic local data
 .claude/mnemonic/
+.claude/.mnemonic-integration-manifest.json
 .fastembed_cache/
 # Python
 __pycache__/
