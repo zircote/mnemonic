@@ -21,6 +21,23 @@ def get_pending_file() -> Path:
     return Path("/tmp") / f"mnemonic-pending-{session_id}.json"
 
 
+def get_all_pending_files() -> list:
+    """Get all pending capture files for this session (from multiple sources)."""
+    session_id = os.environ.get("CLAUDE_SESSION_ID", "default")
+    pending_files = []
+
+    # Check for prompt-submit pending file
+    prompt_file = Path("/tmp") / f"mnemonic-pending-{session_id}.json"
+    if prompt_file.exists():
+        pending_files.append(prompt_file)
+
+    # Check for post-tool-use pending files (could be multiple)
+    for f in Path("/tmp").glob(f"mnemonic-pending-{session_id}-*.json"):
+        pending_files.append(f)
+
+    return pending_files
+
+
 def check_pending_captures() -> dict | None:
     """Check if there are pending captures that weren't completed."""
     pending_file = get_pending_file()
@@ -30,6 +47,25 @@ def check_pending_captures() -> dict | None:
         except Exception:
             pass
     return None
+
+
+def aggregate_all_pending() -> list:
+    """Aggregate all pending captures from all sources."""
+    pending_items = []
+    seen_topics = set()
+
+    for pending_file in get_all_pending_files():
+        try:
+            data = json.loads(pending_file.read_text())
+            topic = data.get("topic", "unknown")
+            # Deduplicate by topic
+            if topic not in seen_topics:
+                seen_topics.add(topic)
+                pending_items.append(data)
+        except Exception:
+            continue
+
+    return pending_items
 
 
 def clear_pending_captures():
@@ -144,26 +180,43 @@ def main():
         print(json.dumps({"continue": True}))
         return
 
-    # Check for pending captures
-    pending = check_pending_captures()
+    # Check for pending captures from all sources
+    all_pending = aggregate_all_pending()
 
-    if pending and not stop_hook_active:
+    # Also check single pending file for backwards compatibility
+    if not all_pending:
+        single_pending = check_pending_captures()
+        if single_pending:
+            all_pending = [single_pending]
+
+    if all_pending and not stop_hook_active:
         # Block stopping - Claude needs to capture first
-        namespaces = ", ".join(pending.get("namespaces", []))
-        topic = pending.get("topic", "this item")
+        # Build list of all pending items
+        pending_list = []
+        for item in all_pending:
+            namespaces = ", ".join(item.get("namespaces", []))
+            topic = item.get("topic", "unknown")
+            pending_list.append(f"  • {topic} → {namespaces}")
+
+        pending_display = "\n".join(pending_list)
+        first_item = all_pending[0]
+        first_ns = first_item.get("namespaces", ["_semantic/knowledge"])[0]
+        first_topic = first_item.get("topic", "this item")
 
         output = {
             "decision": "block",
             "reason": (
                 "═══════════════════════════════════════════════════════\n"
-                ">>> SESSION STOP BLOCKED <<<\n"
+                ">>> YOUR WORK IS NOT YET COMPLETE <<<\n"
                 "═══════════════════════════════════════════════════════\n\n"
-                f"PENDING MEMORY CAPTURE DETECTED\n"
-                f"Namespace(s): {namespaces}\n"
-                f"Topic: {topic}\n\n"
-                f">>> EXECUTE NOW: /mnemonic:capture {pending['namespaces'][0]} \"{topic}\"\n\n"
-                "You CANNOT stop this session until the capture is complete.\n"
-                "This knowledge will be LOST if not captured."
+                f"As Claude with persistent memory, you committed to\n"
+                f"preserving knowledge. {len(all_pending)} capture(s) pending:\n\n"
+                f"{pending_display}\n\n"
+                f"Complete your work now:\n"
+                f"  /mnemonic:capture {first_ns} \"{first_topic}\"\n\n"
+                "The user trusts you to preserve valuable knowledge.\n"
+                "Future sessions depend on what you capture today.\n\n"
+                "This session cannot end until captures are complete."
             )
         }
         print(json.dumps(output))

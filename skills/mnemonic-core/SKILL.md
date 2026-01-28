@@ -1,12 +1,11 @@
 ---
 name: mnemonic-core
 description: >
-  Capture decisions, learnings, patterns, and blockers to persistent memory.
-  Use AUTOMATICALLY when user says: "I've decided", "let's use", "we're going with",
+  This skill should be used when the user says "capture memory", "save to memory",
+  "remember this", or trigger phrases like: "I've decided", "let's use", "we're going with",
   "I learned", "turns out", "TIL", "discovered", "I'm stuck", "blocked by",
-  "always use", "never do", "convention is".
-  Also use for recall when user asks: "what did we decide", "how do we handle",
-  "remind me", "what patterns", "search memories".
+  "always use", "never do", "convention is". Also triggers on recall phrases:
+  "what did we decide", "how do we handle", "remind me", "search memories".
 user-invocable: true
 allowed-tools:
   - Bash

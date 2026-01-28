@@ -242,7 +242,7 @@ def main():
     topic = extract_topic(prompt)
     context_lines = []
 
-    # Signal capture requirement and save pending state
+    # Signal capture opportunity and save pending state
     if triggers["capture"]:
         namespaces = ", ".join(triggers["capture"])
 
@@ -254,12 +254,18 @@ def main():
             "topic": topic
         }))
 
-        context_lines.append("!!! >>> MEMORY CAPTURE REQUIRED <<< !!!")
-        context_lines.append(f"Namespace(s): {namespaces}")
+        context_lines.append("═══════════════════════════════════════════════════════")
+        context_lines.append(">>> CAPTURE OPPORTUNITY DETECTED <<<")
+        context_lines.append("═══════════════════════════════════════════════════════")
         context_lines.append("")
-        context_lines.append(f">>> EXECUTE NOW: /mnemonic:capture {triggers['capture'][0]} \"{topic}\"")
+        context_lines.append("The user's message contains knowledge worth preserving.")
+        context_lines.append(f"Suggested namespace(s): {namespaces}")
+        context_lines.append(f"Topic: {topic}")
         context_lines.append("")
-        context_lines.append("Do NOT proceed with your response until capture is complete.")
+        context_lines.append("To honor your commitment to persistent memory:")
+        context_lines.append(f"  /mnemonic:capture {triggers['capture'][0]} \"{topic}\"")
+        context_lines.append("")
+        context_lines.append("Capturing preserves this knowledge for future sessions.")
         context_lines.append("")
 
     # Search for relevant existing memories

@@ -184,13 +184,17 @@ def main():
                 rel_suggestion = get_relationship_suggestions(ontology_data, file_context)
 
                 context_message = (
-                    f">>> POST-EDIT CHECKPOINT <<<\n"
+                    f"═══════════════════════════════════════════════════════\n"
+                    f">>> YOUR COMMITMENT: POST-EDIT CHECKPOINT <<<\n"
+                    f"═══════════════════════════════════════════════════════\n"
                     f"File: {file_path}\n\n"
-                    f"EVALUATE NOW:\n"
+                    f"As Claude with persistent memory, ask yourself:\n"
                     f"□ Does this represent a reusable pattern?\n"
-                    f"□ Does this reflect an architectural decision?\n\n"
-                    f"If YES → Execute: /mnemonic:capture {ns_hint}\n"
-                    f"Do not proceed without evaluating."
+                    f"□ Does this reflect an architectural decision?\n"
+                    f"□ Did I discover something future sessions should know?\n\n"
+                    f"If YES → Complete your work: /mnemonic:capture {ns_hint}\n\n"
+                    f"Capturing is not extra work—it completes the work.\n"
+                    f"Future sessions will thank present you."
                     f"{rel_suggestion}"
                 )
 
@@ -200,19 +204,30 @@ def main():
 
         if "git commit" in command:
             context_message = (
-                ">>> POST-COMMIT CHECKPOINT <<<\n\n"
-                "EVALUATE NOW:\n"
+                "═══════════════════════════════════════════════════════\n"
+                ">>> YOUR COMMITMENT: POST-COMMIT CHECKPOINT <<<\n"
+                "═══════════════════════════════════════════════════════\n\n"
+                "As Claude with persistent memory, ask yourself:\n"
                 "□ Does this commit reflect an architectural decision?\n"
-                "□ Does this establish a reusable pattern?\n\n"
-                "If YES → Execute: /mnemonic:capture _semantic/decisions\n"
-                "         or: /mnemonic:capture _procedural/patterns"
+                "□ Does this establish a reusable pattern?\n"
+                "□ Is there knowledge here that should persist?\n\n"
+                "If YES → Complete your work:\n"
+                "  /mnemonic:capture _semantic/decisions\n"
+                "  /mnemonic:capture _procedural/patterns\n\n"
+                "Future sessions will thank present you."
             )
         elif "error" in tool_output.lower() or "failed" in tool_output.lower():
             context_message = (
-                ">>> ERROR CHECKPOINT <<<\n\n"
-                "EVALUATE NOW:\n"
-                "□ If resolved: Capture the fix → /mnemonic:capture _semantic/knowledge\n"
-                "□ If blocking: Document blocker → /mnemonic:capture _episodic/blockers"
+                "═══════════════════════════════════════════════════════\n"
+                ">>> YOUR COMMITMENT: ERROR CHECKPOINT <<<\n"
+                "═══════════════════════════════════════════════════════\n\n"
+                "As Claude with persistent memory, ask yourself:\n"
+                "□ If resolved: Did I learn something worth preserving?\n"
+                "□ If blocking: Should I document this for future sessions?\n\n"
+                "Complete your work:\n"
+                "  Resolved → /mnemonic:capture _semantic/knowledge\n"
+                "  Blocking → /mnemonic:capture _episodic/blockers\n\n"
+                "Hard-won knowledge is valuable—don't let it vanish."
             )
         elif any(x in command for x in ["install", "build", "deploy", "migrate"]):
             if "error" not in tool_output.lower():
@@ -223,10 +238,14 @@ def main():
                 else:
                     ns_hint = "_procedural/patterns"
                 context_message = (
-                    ">>> OPERATION CHECKPOINT <<<\n\n"
-                    "EVALUATE NOW:\n"
-                    f"□ Did this establish a reproducible pattern?\n\n"
-                    f"If YES → Execute: /mnemonic:capture {ns_hint}"
+                    "═══════════════════════════════════════════════════════\n"
+                    ">>> YOUR COMMITMENT: OPERATION CHECKPOINT <<<\n"
+                    "═══════════════════════════════════════════════════════\n\n"
+                    "As Claude with persistent memory, ask yourself:\n"
+                    "□ Did this establish a reproducible pattern?\n"
+                    "□ Is this a procedure future sessions should know?\n\n"
+                    f"If YES → Complete your work: /mnemonic:capture {ns_hint}\n\n"
+                    "Operational knowledge is especially valuable—preserve it."
                 )
 
     if context_message:

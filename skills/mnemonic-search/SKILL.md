@@ -5,7 +5,11 @@ allowed-tools:
 - Glob
 - Grep
 - Write
-description: Advanced search and filtering techniques for mnemonic memories
+description: >
+  This skill should be used when the user says "search memories", "find in memories",
+  "grep mnemonic", "look for memory", or asks questions like "what do we know about X".
+  Provides progressive disclosure: Level 1 (titles), Level 2 (frontmatter + summary),
+  Level 3 (full content). Start at Level 1 and expand only if needed.
 name: mnemonic-search
 user-invocable: true
 ---
@@ -406,102 +410,37 @@ rg "\[\[" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 ---
 
-## Structured Queries with mnemonic-query
+## Progressive Disclosure Protocol
 
-For complex frontmatter queries, use `mnemonic-query` which leverages `yq` for proper YAML parsing.
+When searching memories, use progressive disclosure to minimize context usage:
 
-### Basic Structured Queries
-
-```bash
-# Find all semantic memories
-mnemonic-query --type semantic
-
-# Find by tag
-mnemonic-query --tag architecture
-
-# Find by namespace pattern
-mnemonic-query --namespace "decisions/*"
-
-# Combine filters (AND logic)
-mnemonic-query --type semantic --tag architecture
-```
-
-### Comparison Operators
+### Level 1: Quick Answer (Titles Only) - START HERE
 
 ```bash
-# Greater than
-mnemonic-query --confidence ">0.8"
+# List matching files first
+rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
 
-# Greater or equal
-mnemonic-query --confidence ">=0.9"
-
-# Less than
-mnemonic-query --confidence "<0.5"
-
-# Less or equal
-mnemonic-query --confidence "<=0.7"
-
-# Not equal
-mnemonic-query --type "!=episodic"
+# Then get titles
+for f in $(rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"); do
+    grep "^title:" "$f" | head -1
+done
 ```
 
-### Range Queries
+### Level 2: Context (Frontmatter + Summary)
+
+Only expand to Level 2 if Level 1 titles aren't sufficient:
 
 ```bash
-# Confidence range (inclusive)
-mnemonic-query --confidence "0.7..0.9"
-
-# Date range
-mnemonic-query --created "2026-01-01..2026-01-31"
-
-# Modified date range
-mnemonic-query --modified "2026-01-15..2026-01-31"
+# Get frontmatter plus first 10 content lines
+head -50 /path/to/memory.memory.md
 ```
 
-### Output Formats
+### Level 3: Full Detail
+
+Only use full read when absolutely necessary:
 
 ```bash
-# File paths (default)
-mnemonic-query --type semantic
-
-# Titles only
-mnemonic-query --type semantic --format titles
-
-# JSON with full metadata
-mnemonic-query --type semantic --format json
-
-# Count only
-mnemonic-query --type semantic --format count
+cat /path/to/memory.memory.md
 ```
 
-### Combining with Content Search
-
-The real power comes from combining structured queries with rg:
-
-```bash
-# Find security decisions mentioning passwords
-mnemonic-query --namespace "_semantic/decisions" --tag security | xargs rg "password"
-
-# Find high-confidence memories about authentication
-mnemonic-query --confidence ">0.8" | xargs rg -i "auth"
-
-# Search recent memories for specific content
-mnemonic-query --created ">2026-01-01" | xargs rg "api"
-
-# Find memories by type and search content
-mnemonic-query --type procedural | xargs rg "step"
-```
-
-### Structured Query Cheat Sheet
-
-| Goal | Command |
-|------|---------|
-| By type | `mnemonic-query --type semantic` |
-| By tag | `mnemonic-query --tag architecture` |
-| By namespace | `mnemonic-query --namespace "decisions/*"` |
-| High confidence | `mnemonic-query --confidence ">0.8"` |
-| Confidence range | `mnemonic-query --confidence "0.7..0.9"` |
-| Recent memories | `mnemonic-query --created ">2026-01-01"` |
-| Not episodic | `mnemonic-query --type "!=episodic"` |
-| Combined filters | `mnemonic-query --type semantic --tag security` |
-| Pipe to rg | `mnemonic-query --tag api \| xargs rg "endpoint"` |
+**Always start at Level 1. Expand only if needed.**
