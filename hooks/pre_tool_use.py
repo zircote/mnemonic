@@ -7,8 +7,8 @@ Patterns are loaded from MIF ontology discovery configuration.
 """
 
 import json
-import os
 import subprocess
+import sys
 from pathlib import Path
 
 try:
@@ -186,17 +186,20 @@ def find_memories_for_context(context: dict, home: Path, org: str) -> list:
 
 
 def main():
-    tool_name = os.environ.get("CLAUDE_TOOL_NAME", "")
-    tool_input_str = os.environ.get("CLAUDE_TOOL_INPUT", "{}")
+    # Read hook input from stdin (Claude Code passes JSON via stdin)
+    input_data = {}
+    try:
+        if not sys.stdin.isatty():
+            input_data = json.load(sys.stdin)
+    except (json.JSONDecodeError, Exception):
+        pass
+
+    # Extract tool info from stdin JSON
+    tool_name = input_data.get("tool_name", "")
+    tool_input = input_data.get("tool_input", {})
 
     # Only process Write and Edit tools
     if tool_name not in ["Write", "Edit"]:
-        print(json.dumps({"continue": True}))
-        return
-
-    try:
-        tool_input = json.loads(tool_input_str)
-    except json.JSONDecodeError:
         print(json.dumps({"continue": True}))
         return
 

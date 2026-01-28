@@ -7,8 +7,8 @@ Patterns are loaded from MIF ontology discovery configuration.
 """
 
 import json
-import os
 import subprocess
+import sys
 from pathlib import Path
 
 try:
@@ -150,14 +150,18 @@ def get_relationship_suggestions(ontology_data: dict, context: str) -> str:
 
 
 def main():
-    tool_name = os.environ.get("CLAUDE_TOOL_NAME", "")
-    tool_input_str = os.environ.get("CLAUDE_TOOL_INPUT", "{}")
-    tool_output = os.environ.get("CLAUDE_TOOL_OUTPUT", "")
-
+    # Read hook input from stdin (Claude Code passes JSON via stdin)
+    input_data = {}
     try:
-        tool_input = json.loads(tool_input_str)
-    except json.JSONDecodeError:
-        tool_input = {}
+        if not sys.stdin.isatty():
+            input_data = json.load(sys.stdin)
+    except (json.JSONDecodeError, Exception):
+        pass
+
+    # Extract tool info from stdin JSON
+    tool_name = input_data.get("tool_name", "")
+    tool_input = input_data.get("tool_input", {})
+    tool_output = input_data.get("tool_output", "")
 
     context_message = None
     ontology_data = load_ontology_data()
