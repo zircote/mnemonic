@@ -75,7 +75,7 @@ NAMESPACE="decisions"  # or: learnings, patterns, blockers, context
 TITLE="Your descriptive title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << EOF
+cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic

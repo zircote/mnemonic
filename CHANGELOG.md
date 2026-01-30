@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **[Filename Migration]**: Auto-migration utility in `lib/migrate_filenames.py`
+  - Renames UUID-prefixed files (`{uuid}-{slug}.memory.md`) to slug-only (`{slug}.memory.md`)
+  - Merges content when slug collisions occur (atomic writes via temp files)
+  - Idempotent: migration marker prevents re-scanning on subsequent sessions
+  - CLI support: `--dry-run` for preview, `--force` to re-run
+
 - **[Ontology Discovery]**: Enhanced pattern-based entity discovery (`f642fde`)
   - Improved schema validation for custom ontologies
   - Discovery patterns for automatic entity detection
@@ -43,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Progress tracking and git commit of changes
 
 ### Changed
+
+- **[File Naming]**: Memory files now use slug-only format (`{slug}.memory.md`)
+  - UUID removed from filename; stored only in frontmatter `id:` field
+  - Wiki-links `[[slug-name]]` now resolve correctly in Obsidian and similar tools
+  - Existing UUID-prefixed files auto-migrated on session start
+  - Capture command merges content when target file already exists
+  - Updated across 21 files: commands, hooks, tests, templates, and documentation
 
 - **[Unified Path Structure]**: All memories now stored under `~/.claude/mnemonic/`
   - Eliminates "split brain" between user-level and project-level storage

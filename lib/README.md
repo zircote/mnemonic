@@ -31,7 +31,7 @@ memory_dir = resolver.get_memory_dir("_semantic/decisions", Scope.PROJECT)
 # Get full memory path
 memory_path = resolver.get_memory_path(
     "_semantic/decisions",
-    "uuid-slug.memory.md",
+    "slug.memory.md",
     Scope.PROJECT
 )
 
@@ -248,7 +248,7 @@ def capture_memory(namespace: str, title: str, scope: str = "project"):
     # Create memory file
     memory_path = resolver.get_memory_path(
         namespace,
-        f"{uuid}-{slug}.memory.md",
+        f"{slug}.memory.md",
         scope_enum
     )
 
@@ -433,7 +433,7 @@ def create_memory(namespace: str, content: str, scope: Scope):
     memory_dir.mkdir(parents=True, exist_ok=True)
 
     # Get full path
-    filename = f"{uuid.uuid4()}-{slug}.memory.md"
+    filename = f"{slug}.memory.md"
     memory_path = resolver.get_memory_path(namespace, filename, scope)
 
     # Write content

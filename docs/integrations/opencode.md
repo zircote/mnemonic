@@ -48,7 +48,7 @@ rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
 ```
 
 ### Capture Memory
-Write to `~/.claude/mnemonic/default/{namespace}/user/{uuid}-{slug}.memory.md`
+Write to `~/.claude/mnemonic/default/{namespace}/user/{slug}.memory.md`
 
 ## Capture Triggers
 - "let's use X" → decisions/

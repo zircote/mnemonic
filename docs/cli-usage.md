@@ -170,7 +170,7 @@ SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-
 
 MEMORY_DIR="$HOME/.claude/mnemonic/$ORG/$NAMESPACE/user"
 mkdir -p "$MEMORY_DIR"
-MEMORY_FILE="$MEMORY_DIR/${UUID}-${SLUG}.memory.md"
+MEMORY_FILE="$MEMORY_DIR/${SLUG}.memory.md"
 
 cat > "$MEMORY_FILE" << EOF
 ---

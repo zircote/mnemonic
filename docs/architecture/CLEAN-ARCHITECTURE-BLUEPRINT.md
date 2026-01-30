@@ -275,7 +275,7 @@ Convert Bash commands to Python for better path handling:
 
        memory_path = resolver.get_memory_path(
            namespace,
-           f"{uuid}-{slug}.memory.md",
+           f"{slug}.memory.md",
            scope_enum
        )
        # Write memory...

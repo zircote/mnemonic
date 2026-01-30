@@ -136,7 +136,7 @@ UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << EOF
+cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -158,7 +158,7 @@ provenance:
 
 EOF
 
-echo "Created: ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md"
+echo "Created: ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md"
 ```
 
 ### Unix Tool Integration

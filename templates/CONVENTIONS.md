@@ -34,7 +34,7 @@ rg -i "pattern" ~/.claude/mnemonic/*/patterns/ --glob "*.memory.md"
 ### Memory File Location
 
 ```
-~/.claude/mnemonic/default/{namespace}/user/{uuid}-{slug}.memory.md
+~/.claude/mnemonic/default/{namespace}/user/{slug}.memory.md
 ```
 
 ### Memory Format (MIF Level 3)

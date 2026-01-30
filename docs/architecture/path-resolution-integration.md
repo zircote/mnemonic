@@ -91,7 +91,7 @@ def capture_memory(namespace: str, title: str, scope: str = "project"):
 
     memory_path = resolver.get_memory_path(
         namespace,
-        f"{uuid}-{slug}.memory.md",
+        f"{slug}.memory.md",
         scope_enum
     )
 

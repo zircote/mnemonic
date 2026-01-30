@@ -88,7 +88,7 @@ NAMESPACE="decisions"
 TITLE="Your title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${UUID}-${SLUG}.memory.md << 'EOF'
+cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << 'EOF'
 ---
 id: ${UUID}
 type: semantic
