@@ -23,7 +23,8 @@ except ImportError:
 
 # Import path resolution from lib
 try:
-    from lib.paths import PathResolver, PathContext, PathScheme
+    from lib.paths import PathContext, PathResolver, PathScheme
+
     USE_LIB_PATHS = True
 except ImportError:
     USE_LIB_PATHS = False
@@ -104,31 +105,50 @@ def get_fallback_patterns() -> dict:
     """Fallback patterns if ontology loading fails."""
     return {
         "_semantic/decisions": [
-            r"\blet'?s use\b", r"\bwe'?ll use\b", r"\bdecided to\b",
-            r"\bgoing with\b", r"\bdecision:\b", r"\bselected\b",
+            r"\blet'?s use\b",
+            r"\bwe'?ll use\b",
+            r"\bdecided to\b",
+            r"\bgoing with\b",
+            r"\bdecision:\b",
+            r"\bselected\b",
         ],
         "_semantic/knowledge": [
-            r"\blearned that\b", r"\bturns out\b", r"\bthe fix was\b",
+            r"\blearned that\b",
+            r"\bturns out\b",
+            r"\bthe fix was\b",
         ],
         "_procedural/patterns": [
-            r"\bshould always\b", r"\balways use\b", r"\bconvention\b",
+            r"\bshould always\b",
+            r"\balways use\b",
+            r"\bconvention\b",
         ],
         "_episodic/blockers": [
-            r"\bblocked by\b", r"\bstuck on\b",
+            r"\bblocked by\b",
+            r"\bstuck on\b",
         ],
         "_episodic/incidents": [
-            r"\boutage\b", r"\bincident\b", r"\bpostmortem\b",
+            r"\boutage\b",
+            r"\bincident\b",
+            r"\bpostmortem\b",
         ],
         "_procedural/runbooks": [
-            r"\brunbook\b", r"\bplaybook\b", r"\bSOP\b",
+            r"\brunbook\b",
+            r"\bplaybook\b",
+            r"\bSOP\b",
         ],
     }
 
 
 # Recall triggers (not in ontology yet)
 RECALL_TRIGGERS = [
-    r"\bremember\b", r"\brecall\b", r"\bwhat did we\b", r"\bhow did we\b",
-    r"\bwhat was\b", r"\bpreviously\b", r"\blast time\b", r"\bbefore\b",
+    r"\bremember\b",
+    r"\brecall\b",
+    r"\bwhat did we\b",
+    r"\bhow did we\b",
+    r"\bwhat was\b",
+    r"\bpreviously\b",
+    r"\blast time\b",
+    r"\bbefore\b",
 ]
 
 
@@ -158,11 +178,52 @@ def extract_topic(prompt: str) -> str:
     """Extract topic keywords for search."""
     words = re.sub(r"[^\w\s]", "", prompt.lower()).split()
     stopwords = {
-        "the", "a", "an", "is", "are", "was", "were", "we", "i", "you", "it",
-        "do", "did", "does", "have", "has", "had", "what", "how", "why", "when",
-        "about", "this", "that", "there", "here", "with", "for", "to", "from",
-        "remember", "recall", "before", "earlier", "previously", "last", "time",
-        "let", "lets", "use", "using", "go", "going", "will", "should", "can",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "we",
+        "i",
+        "you",
+        "it",
+        "do",
+        "did",
+        "does",
+        "have",
+        "has",
+        "had",
+        "what",
+        "how",
+        "why",
+        "when",
+        "about",
+        "this",
+        "that",
+        "there",
+        "here",
+        "with",
+        "for",
+        "to",
+        "from",
+        "remember",
+        "recall",
+        "before",
+        "earlier",
+        "previously",
+        "last",
+        "time",
+        "let",
+        "lets",
+        "use",
+        "using",
+        "go",
+        "going",
+        "will",
+        "should",
+        "can",
     }
     keywords = [w for w in words if w not in stopwords and len(w) > 2]
     return " ".join(keywords[:5]) if keywords else ""
@@ -187,7 +248,7 @@ def search_memories(topic: str) -> list:
                 capture_output=True,
                 text=True,
                 cwd=str(mnemonic_dir),
-                timeout=2
+                timeout=2,
             )
             if result.returncode == 0 and result.stdout.strip():
                 # Prefix paths with their root directory
@@ -213,7 +274,7 @@ def get_memory_title(memory_path: str) -> str:
                 if candidate.exists():
                     full_path = candidate
                     break
-        with open(full_path, 'r') as f:
+        with open(full_path) as f:
             content = f.read(500)
         match = re.search(r'title:\s*["\']?([^"\'\n]+)', content)
         if match:
@@ -248,11 +309,7 @@ def main():
 
         # Save pending capture info for stop hook
         pending_file = get_pending_file()
-        pending_file.write_text(json.dumps({
-            "namespaces": triggers["capture"],
-            "prompt": prompt[:200],
-            "topic": topic
-        }))
+        pending_file.write_text(json.dumps({"namespaces": triggers["capture"], "prompt": prompt[:200], "topic": topic}))
 
         context_lines.append("═══════════════════════════════════════════════════════")
         context_lines.append(">>> CAPTURE OPPORTUNITY DETECTED <<<")
@@ -263,7 +320,7 @@ def main():
         context_lines.append(f"Topic: {topic}")
         context_lines.append("")
         context_lines.append("To honor your commitment to persistent memory:")
-        context_lines.append(f"  /mnemonic:capture {triggers['capture'][0]} \"{topic}\"")
+        context_lines.append(f'  /mnemonic:capture {triggers["capture"][0]} "{topic}"')
         context_lines.append("")
         context_lines.append("Capturing preserves this knowledge for future sessions.")
         context_lines.append("")
@@ -281,18 +338,12 @@ def main():
 
     # Add recall context
     if triggers["recall"] and not relevant_memories:
-        context_lines.append(
-            f"Recall triggered. Search: rg -i '{topic}' "
-            "~/.claude/mnemonic/ --glob '*.memory.md'"
-        )
+        context_lines.append(f"Recall triggered. Search: rg -i '{topic}' ~/.claude/mnemonic/ --glob '*.memory.md'")
 
     if context_lines:
         output = {
             "continue": True,
-            "hookSpecificOutput": {
-                "hookEventName": "UserPromptSubmit",
-                "additionalContext": "\n".join(context_lines)
-            }
+            "hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": "\n".join(context_lines)},
         }
         print(json.dumps(output))
     else:

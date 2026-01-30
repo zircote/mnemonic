@@ -21,7 +21,8 @@ except ImportError:
 
 # Import path resolution from lib
 try:
-    from lib.paths import PathResolver, PathContext, PathScheme, Scope
+    from lib.paths import PathContext, PathResolver, PathScheme, Scope
+
     USE_LIB_PATHS = True
 except ImportError:
     USE_LIB_PATHS = False
@@ -53,6 +54,7 @@ def get_org() -> str:
 
     # Fallback to git detection
     import subprocess
+
     try:
         result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
@@ -76,6 +78,7 @@ def get_project_name() -> str:
 
     # Fallback to git detection
     import subprocess
+
     try:
         result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
@@ -117,9 +120,18 @@ def load_ontology_namespaces() -> list:
     """Load all namespaces from MIF and custom ontology files."""
     # Hierarchical namespaces (cognitive triad, prefixed with _ for filesystem disambiguation)
     base_namespaces = [
-        "_semantic", "_semantic/decisions", "_semantic/knowledge", "_semantic/entities",
-        "_episodic", "_episodic/incidents", "_episodic/sessions", "_episodic/blockers",
-        "_procedural", "_procedural/runbooks", "_procedural/patterns", "_procedural/migrations",
+        "_semantic",
+        "_semantic/decisions",
+        "_semantic/knowledge",
+        "_semantic/entities",
+        "_episodic",
+        "_episodic/incidents",
+        "_episodic/sessions",
+        "_episodic/blockers",
+        "_procedural",
+        "_procedural/runbooks",
+        "_procedural/patterns",
+        "_procedural/migrations",
     ]
 
     custom_namespaces = []
@@ -138,6 +150,7 @@ def load_ontology_namespaces() -> list:
         if ont_path.exists():
             try:
                 import yaml
+
                 with open(ont_path) as f:
                     data = yaml.safe_load(f)
                 if data and "namespaces" in data:
@@ -203,9 +216,7 @@ def get_ontology_info() -> dict:
         if "entity_types" in mif_data:
             ets = mif_data["entity_types"]
             if isinstance(ets, list):
-                info["entity_types"] = [
-                    et.get("name") for et in ets if isinstance(et, dict)
-                ]
+                info["entity_types"] = [et.get("name") for et in ets if isinstance(et, dict)]
         if "traits" in mif_data:
             info["traits"] = mif_data["traits"]
         if "relationships" in mif_data:
@@ -240,9 +251,7 @@ def get_ontology_info() -> dict:
                     if "entity_types" in data:
                         ets = data["entity_types"]
                         if isinstance(ets, list):
-                            info["entity_types"].extend(
-                                [et.get("name") for et in ets if isinstance(et, dict)]
-                            )
+                            info["entity_types"].extend([et.get("name") for et in ets if isinstance(et, dict)])
                     if "traits" in data and isinstance(data["traits"], dict):
                         info["traits"].update(data["traits"])
                     if "relationships" in data and isinstance(data["relationships"], dict):
@@ -259,9 +268,15 @@ def count_memories_by_namespace() -> dict:
     counts = {}
     # Hierarchical namespace leaf nodes (what we count)
     leaf_namespaces = [
-        "decisions", "knowledge", "entities",
-        "incidents", "sessions", "blockers",
-        "runbooks", "patterns", "migrations",
+        "decisions",
+        "knowledge",
+        "entities",
+        "incidents",
+        "sessions",
+        "blockers",
+        "runbooks",
+        "patterns",
+        "migrations",
     ]
     custom_namespaces = load_ontology_namespaces()
     all_namespaces = leaf_namespaces + custom_namespaces
@@ -299,11 +314,11 @@ def calculate_memory_health() -> dict:
             total += 1
             try:
                 # Read first 30 lines for frontmatter (fast)
-                with open(memory_file, 'r') as f:
-                    content = ''.join(f.readline() for _ in range(30))
+                with open(memory_file) as f:
+                    content = "".join(f.readline() for _ in range(30))
 
                 # Check confidence
-                confidence_match = re.search(r'confidence:\s*([\d.]+)', content)
+                confidence_match = re.search(r"confidence:\s*([\d.]+)", content)
                 if confidence_match and float(confidence_match.group(1)) < 0.5:
                     decayed += 1
 
@@ -330,7 +345,7 @@ def calculate_memory_health() -> dict:
         "total": total,
         "decayed": decayed,
         "duplicates_possible": duplicates_possible,
-        "score": round(health_score)
+        "score": round(health_score),
     }
 
 
@@ -355,7 +370,7 @@ def get_blackboard_summaries() -> dict:
         filepath = bb_dir / filename
         if filepath.exists():
             try:
-                with open(filepath, 'r') as f:
+                with open(filepath) as f:
                     # Read last 500 chars (recent entries)
                     f.seek(0, 2)  # Go to end
                     size = f.tell()
@@ -399,8 +414,8 @@ def find_project_relevant_memories(project: str) -> list:
                     continue
 
                 # Check first 20 lines for project namespace or mentions
-                with open(memory_file, 'r') as f:
-                    header = ''.join(f.readline() for _ in range(20))
+                with open(memory_file) as f:
+                    header = "".join(f.readline() for _ in range(20))
 
                 if f"/{project}" in header or f"project: {project}" in header.lower():
                     relevant.append(str(memory_file))
@@ -473,7 +488,7 @@ def main():
         "Future sessions depend on what you preserve today.",
         "═══════════════════════════════════════════════════════",
         "",
-        f"Mnemonic Memory System Active:",
+        "Mnemonic Memory System Active:",
         f"- Organization: {org}",
         f"- Project: {project}",
         f"- Total memories: {total}",
@@ -492,8 +507,8 @@ def main():
         context_lines.append(f"- Potential duplicates: {health['duplicates_possible']}")
 
     if ontology_info["loaded"]:
-        ont_id = ontology_info.get('id', 'custom')
-        ont_ver = ontology_info.get('version', '?')
+        ont_id = ontology_info.get("id", "custom")
+        ont_ver = ontology_info.get("version", "?")
         context_lines.append(f"- Ontology: {ont_id} v{ont_ver}")
         if ontology_info.get("discovery_enabled"):
             context_lines.append("- Discovery patterns: enabled")
@@ -533,7 +548,7 @@ def main():
     context_lines.append("")
     context_lines.append("**MEMORY-FIRST PROTOCOL:**")
     context_lines.append("Before researching or implementing:")
-    context_lines.append("1. Search mnemonic: rg -i \"{topic}\" ~/.claude/mnemonic/ --glob \"*.memory.md\"")
+    context_lines.append('1. Search mnemonic: rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"')
     context_lines.append("2. If found: Read memory, use Level 1 (Quick Answer) first")
     context_lines.append("3. Expand to Level 2 (Context) or Level 3 (Full Detail) only if needed")
     context_lines.append("4. Research externally only if memory is insufficient")
@@ -549,10 +564,7 @@ def main():
     # Output using hookSpecificOutput.additionalContext (what Claude sees)
     output = {
         "continue": True,
-        "hookSpecificOutput": {
-            "hookEventName": "SessionStart",
-            "additionalContext": additional_context
-        }
+        "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": additional_context},
     }
 
     print(json.dumps(output))

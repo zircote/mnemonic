@@ -112,7 +112,7 @@ def log_session_end() -> None:
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     try:
-        with open(session_notes, 'a') as f:
+        with open(session_notes, "a") as f:
             f.write(f"\n---\n**Session:** {session_id}\n**Time:** {timestamp}\n**Status:** ended\n\n")
     except Exception:
         pass
@@ -134,9 +134,9 @@ def commit_changes() -> None:
             return
 
         # Count what's being committed
-        changes = result.stdout.strip().split('\n')
-        memory_changes = sum(1 for c in changes if '.memory.md' in c)
-        blackboard_changes = sum(1 for c in changes if '.blackboard' in c)
+        changes = result.stdout.strip().split("\n")
+        memory_changes = sum(1 for c in changes if ".memory.md" in c)
+        blackboard_changes = sum(1 for c in changes if ".blackboard" in c)
 
         subprocess.run(["git", "add", "-A"], cwd=str(mnemonic_path), timeout=5, capture_output=True)
 
@@ -213,11 +213,11 @@ def main():
                 f"preserving knowledge. {len(all_pending)} capture(s) pending:\n\n"
                 f"{pending_display}\n\n"
                 f"Complete your work now:\n"
-                f"  /mnemonic:capture {first_ns} \"{first_topic}\"\n\n"
+                f'  /mnemonic:capture {first_ns} "{first_topic}"\n\n'
                 "The user trusts you to preserve valuable knowledge.\n"
                 "Future sessions depend on what you capture today.\n\n"
                 "This session cannot end until captures are complete."
-            )
+            ),
         }
         print(json.dumps(output))
         return

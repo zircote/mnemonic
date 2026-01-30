@@ -49,11 +49,7 @@ def load_file_patterns() -> list:
             namespaces = fp.get("namespaces", [])
             context = fp.get("context", "")
             if pattern and namespaces:
-                patterns.append({
-                    "patterns": pattern.split("|"),
-                    "namespaces": namespaces,
-                    "context": context
-                })
+                patterns.append({"patterns": pattern.split("|"), "namespaces": namespaces, "context": context})
 
         return patterns if patterns else get_fallback_file_patterns()
 
@@ -67,42 +63,38 @@ def get_fallback_file_patterns() -> list:
         {
             "patterns": ["auth", "login", "session", "jwt", "oauth"],
             "namespaces": ["_semantic/knowledge", "_semantic/decisions"],
-            "context": "authentication"
+            "context": "authentication",
         },
         {
             "patterns": ["api", "endpoint", "route", "controller"],
             "namespaces": ["_semantic/knowledge", "_semantic/decisions"],
-            "context": "API design"
+            "context": "API design",
         },
         {
             "patterns": ["db", "database", "model", "schema", "migration"],
             "namespaces": ["_semantic/decisions", "_procedural/migrations"],
-            "context": "database"
+            "context": "database",
         },
-        {
-            "patterns": ["test", "spec", "mock", "fixture"],
-            "namespaces": ["_procedural/patterns"],
-            "context": "testing"
-        },
+        {"patterns": ["test", "spec", "mock", "fixture"], "namespaces": ["_procedural/patterns"], "context": "testing"},
         {
             "patterns": ["config", "settings", "env"],
             "namespaces": ["_semantic/decisions", "_semantic/knowledge"],
-            "context": "configuration"
+            "context": "configuration",
         },
         {
             "patterns": ["deploy", "docker", "kubernetes", "helm"],
             "namespaces": ["_procedural/runbooks", "_semantic/decisions"],
-            "context": "deployment"
+            "context": "deployment",
         },
         {
             "patterns": ["security", "encrypt", "hash", "sanitize"],
             "namespaces": ["_semantic/knowledge", "_semantic/decisions"],
-            "context": "security"
+            "context": "security",
         },
         {
             "patterns": ["service", "component", "module"],
             "namespaces": ["_semantic/entities", "_semantic/decisions"],
-            "context": "components"
+            "context": "components",
         },
     ]
 
@@ -110,10 +102,7 @@ def get_fallback_file_patterns() -> list:
 def get_org() -> str:
     """Get organization from git remote."""
     try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True, text=True, timeout=5
-        )
+        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             url = result.stdout.strip()
             if ":" in url and "@" in url:
@@ -134,10 +123,7 @@ def detect_file_context(file_path: str, file_patterns: list) -> dict | None:
     for config in file_patterns:
         for pattern in config["patterns"]:
             if pattern in path_lower:
-                return {
-                    "context_description": config["context"],
-                    "namespaces": config["namespaces"]
-                }
+                return {"context_description": config["context"], "namespaces": config["namespaces"]}
 
     return None
 
@@ -160,16 +146,9 @@ def find_memories_for_context(context: dict, home: Path, org: str) -> list:
     # Search for memories in relevant namespaces
     for namespace in context["namespaces"]:
         try:
-            cmd = [
-                "rg", "-l",
-                f"namespace:.*{namespace}",
-                "--glob", "*.memory.md",
-                "--max-count", "1"
-            ] + existing_paths
+            cmd = ["rg", "-l", f"namespace:.*{namespace}", "--glob", "*.memory.md", "--max-count", "1"] + existing_paths
 
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=3
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
             if result.returncode == 0:
                 for line in result.stdout.strip().split("\n"):
                     if line and line.endswith(".memory.md"):
@@ -245,10 +224,7 @@ def main():
 
     output = {
         "continue": True,
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "additionalContext": additional_context
-        }
+        "hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": additional_context},
     }
 
     print(json.dumps(output))

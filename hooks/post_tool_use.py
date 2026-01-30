@@ -66,11 +66,7 @@ def load_file_patterns() -> list:
             namespaces = fp.get("namespaces", [])
             context = fp.get("context", "")
             if pattern and namespaces:
-                patterns.append({
-                    "patterns": pattern.split("|"),
-                    "namespaces": namespaces,
-                    "context": context
-                })
+                patterns.append({"patterns": pattern.split("|"), "namespaces": namespaces, "context": context})
 
         return patterns if patterns else get_fallback_patterns()
 
@@ -81,16 +77,8 @@ def load_file_patterns() -> list:
 def get_fallback_patterns() -> list:
     """Fallback patterns if ontology loading fails."""
     return [
-        {
-            "patterns": ["service", "component"],
-            "namespaces": ["_semantic/entities"],
-            "context": "component"
-        },
-        {
-            "patterns": ["test", "spec"],
-            "namespaces": ["_procedural/patterns"],
-            "context": "testing"
-        },
+        {"patterns": ["service", "component"], "namespaces": ["_semantic/entities"], "context": "component"},
+        {"patterns": ["test", "spec"], "namespaces": ["_procedural/patterns"], "context": "testing"},
     ]
 
 
@@ -121,7 +109,7 @@ def find_related_memories(context: str) -> list:
             capture_output=True,
             text=True,
             cwd=str(mnemonic_dir),
-            timeout=2
+            timeout=2,
         )
         if result.returncode == 0 and result.stdout.strip():
             return result.stdout.strip().split("\n")[:3]
@@ -251,10 +239,7 @@ def main():
     if context_message:
         output = {
             "continue": True,
-            "hookSpecificOutput": {
-                "hookEventName": "PostToolUse",
-                "additionalContext": context_message
-            }
+            "hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": context_message},
         }
         print(json.dumps(output))
     else:
