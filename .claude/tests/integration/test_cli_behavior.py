@@ -73,7 +73,7 @@ def create_test_memory(namespace: str, title: str, content: str) -> Path:
     memory_dir = MEMORY_BASE / org / namespace / "user"
     memory_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = f"{memory_id}-{TEST_MARKER}{slug}.memory.md"
+    filename = f"{TEST_MARKER}{slug}.memory.md"
     memory_path = memory_dir / filename
 
     memory_content = f"""---
@@ -214,7 +214,9 @@ class TestRecallIntegration(unittest.TestCase):
 
         try:
             # Ask about the topic
-            prompt = f"What framework should I use for the API? Look for any existing decisions about Express-{unique_id}."
+            prompt = (
+                f"What framework should I use for the API? Look for any existing decisions about Express-{unique_id}."
+            )
 
             returncode, stdout, stderr = run_claude(prompt)
 

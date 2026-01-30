@@ -106,8 +106,10 @@ else
 fi
 
 mkdir -p "$MEMORY_DIR"
-MEMORY_FILE="${MEMORY_DIR}/${UUID}-${SLUG}.memory.md"
+MEMORY_FILE="${MEMORY_DIR}/${SLUG}.memory.md"
 ```
+
+**If `$MEMORY_FILE` already exists:** This memory will be merged with the existing file. Read the existing content, combine it with the new content under a `## Merged Content` separator, and keep the existing file's `id:` and `created:` fields. Update the `modified:` timestamp to now.
 
 ### Step 5: Format Tags
 

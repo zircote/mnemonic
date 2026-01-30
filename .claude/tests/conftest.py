@@ -48,8 +48,17 @@ def isolated_mnemonic_env(tmp_path, monkeypatch):
     project_mnemonic = fake_project / ".claude" / "mnemonic"
 
     # Create namespace structure
-    namespaces = ["apis", "blockers", "context", "decisions",
-                  "learnings", "patterns", "security", "testing", "episodic"]
+    namespaces = [
+        "apis",
+        "blockers",
+        "context",
+        "decisions",
+        "learnings",
+        "patterns",
+        "security",
+        "testing",
+        "episodic",
+    ]
 
     for ns in namespaces:
         (user_mnemonic / "testorg" / ns / "user").mkdir(parents=True)
@@ -143,7 +152,7 @@ def memory_factory(isolated_mnemonic_env):
 
             base.mkdir(parents=True, exist_ok=True)
 
-            filename = f"{memory_id}-{slug}.memory.md"
+            filename = f"{slug}.memory.md"
             filepath = base / filename
 
             # Create memory content
@@ -180,10 +189,11 @@ provenance:
         def _slugify(self, text: str) -> str:
             """Convert text to slug format."""
             import re
+
             slug = text.lower()
-            slug = re.sub(r'[^a-z0-9]+', '-', slug)
-            slug = re.sub(r'-+', '-', slug)
-            return slug[:50].strip('-')
+            slug = re.sub(r"[^a-z0-9]+", "-", slug)
+            slug = re.sub(r"-+", "-", slug)
+            return slug[:50].strip("-")
 
     return MemoryFactory()
 
@@ -323,10 +333,12 @@ def memory_searcher(isolated_mnemonic_env):
                 cmd.append("-i")
             cmd.extend(["-l", "--glob", "*.memory.md"])
             cmd.append(query)
-            cmd.extend([
-                str(env["user_mnemonic"]),
-                str(env["project_mnemonic"]),
-            ])
+            cmd.extend(
+                [
+                    str(env["user_mnemonic"]),
+                    str(env["project_mnemonic"]),
+                ]
+            )
 
             result = subprocess.run(
                 cmd,

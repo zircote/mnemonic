@@ -10,6 +10,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Add project root to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -459,9 +460,59 @@ def get_suggestions(health: dict, counts: dict) -> list:
     return suggestions
 
 
+def run_filename_migration() -> Optional[dict]:
+    """Auto-migrate UUID-prefixed memory files to slug-only naming.
+
+    Idempotent: skips if migration marker exists.
+    """
+    try:
+        from lib.migrate_filenames import migrate_all, migration_summary
+
+        mnemonic_root = Path.home() / ".claude" / "mnemonic"
+        if not mnemonic_root.exists():
+            return None
+
+        results = migrate_all(mnemonic_root)
+        if not results:
+            return None
+
+        summary = migration_summary(results)
+        if summary["total"] > 0:
+            # Commit the migration if this is a git repo
+            import subprocess
+
+            git_check = subprocess.run(
+                ["git", "rev-parse", "--git-dir"],
+                cwd=str(mnemonic_root),
+                capture_output=True,
+                timeout=5,
+            )
+            if git_check.returncode == 0:
+                add_result = subprocess.run(
+                    ["git", "add", "-A"],
+                    cwd=str(mnemonic_root),
+                    capture_output=True,
+                    timeout=10,
+                )
+                if add_result.returncode == 0:
+                    subprocess.run(
+                        ["git", "commit", "-m", f"migrate: rename {summary['total']} files to slug-only format"],
+                        cwd=str(mnemonic_root),
+                        capture_output=True,
+                        timeout=10,
+                    )
+
+        return summary
+    except Exception:
+        return None
+
+
 def main():
     org = get_org()
     project = get_project_name()
+
+    # Auto-migrate UUID-prefixed filenames
+    migration_result = run_filename_migration()
 
     counts = count_memories_by_namespace()
     health = calculate_memory_health()
@@ -552,6 +603,14 @@ def main():
     context_lines.append("2. If found: Read memory, use Level 1 (Quick Answer) first")
     context_lines.append("3. Expand to Level 2 (Context) or Level 3 (Full Detail) only if needed")
     context_lines.append("4. Research externally only if memory is insufficient")
+
+    if migration_result and migration_result.get("total", 0) > 0:
+        context_lines.append("")
+        context_lines.append("**FILENAME MIGRATION:**")
+        context_lines.append(
+            f"  Migrated {migration_result['total']} files to slug-only naming "
+            f"(renamed: {migration_result['renamed']}, merged: {migration_result['merged']})"
+        )
 
     if suggestions:
         context_lines.append("")

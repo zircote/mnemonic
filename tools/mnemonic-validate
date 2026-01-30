@@ -685,7 +685,7 @@ def capture_as_memory(
     ns_path.mkdir(parents=True, exist_ok=True)
 
     slug = f"validation-run-{date_str}"[:50]
-    filename = f"{memory_id}-{slug}.memory.md"
+    filename = f"{slug}.memory.md"
     memory_path = ns_path / filename
 
     memory_path.write_text(content)

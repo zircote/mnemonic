@@ -62,15 +62,19 @@ def claude_runner(test_session_id):
     Run Claude CLI in the project directory.
     Uses --allowed-tools to permit memory creation.
     """
+
     class ClaudeRunner:
         def run(self, prompt: str, timeout: int = 120) -> str:
             """Run Claude and return response."""
             result = subprocess.run(
                 [
                     "claude",
-                    "--plugin-dir", str(PROJECT_ROOT),
-                    "--allowed-tools", "Bash(cat:*) Bash(uuidgen:*) Bash(date:*) Bash(rg:*) Bash(mkdir:*) Write Skill",
-                    "-p", prompt
+                    "--plugin-dir",
+                    str(PROJECT_ROOT),
+                    "--allowed-tools",
+                    "Bash(cat:*) Bash(uuidgen:*) Bash(date:*) Bash(rg:*) Bash(mkdir:*) Write Skill",
+                    "-p",
+                    prompt,
                 ],
                 capture_output=True,
                 text=True,
@@ -81,10 +85,7 @@ def claude_runner(test_session_id):
             if result.returncode != 0:
                 if "Invalid API key" in result.stdout or "login" in result.stdout.lower():
                     pytest.skip("Claude CLI not authenticated")
-                raise RuntimeError(
-                    f"Claude CLI failed (exit {result.returncode}): "
-                    f"{result.stderr or result.stdout}"
-                )
+                raise RuntimeError(f"Claude CLI failed (exit {result.returncode}): {result.stderr or result.stdout}")
 
             # Debug: print response
             print(f"\n[DEBUG] Claude response:\n{result.stdout[:1000]}\n")
@@ -127,7 +128,7 @@ def memory_helper(test_session_id):
             memory_dir = user_mnemonic / org / namespace
             memory_dir.mkdir(parents=True, exist_ok=True)
 
-            filepath = memory_dir / f"{memory_id}-{slug}.memory.md"
+            filepath = memory_dir / f"{slug}.memory.md"
 
             # Include session ID in content for cleanup
             memory_content = f"""---
@@ -204,11 +205,7 @@ def test_mnemonic(test_session_id, memory_helper):
 def require_claude():
     """Skip if Claude CLI not available."""
     try:
-        result = subprocess.run(
-            ["claude", "--version"],
-            capture_output=True,
-            timeout=10
-        )
+        result = subprocess.run(["claude", "--version"], capture_output=True, timeout=10)
         if result.returncode != 0:
             pytest.skip("Claude CLI not available")
     except (FileNotFoundError, subprocess.TimeoutExpired):

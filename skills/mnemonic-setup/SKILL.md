@@ -195,7 +195,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG="mnemonic-initialized"
 
 # Create memory file
-cat > "~/.claude/mnemonic/_semantic/knowledge/${UUID}-${SLUG}.memory.md" << EOF
+cat > "~/.claude/mnemonic/_semantic/knowledge/${SLUG}.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Mnemonic initialized for ${PROJECT}"

@@ -89,16 +89,17 @@ class TestMemoryCreation:
         mem = memory_factory.create(title=long_title)
 
         # Slug should be max 50 chars
-        slug_part = mem.name.split("-", 5)[-1].replace(".memory.md", "")
+        slug_part = mem.name.replace(".memory.md", "")
         assert len(slug_part) <= 50
 
-    def test_uuid_in_filename(self, memory_factory):
-        """Memory filename contains valid UUID."""
+    def test_no_uuid_in_filename(self, memory_factory):
+        """Memory filename uses slug-only format (no UUID prefix)."""
         import re
 
         mem = memory_factory.create(title="Test")
-        uuid_pattern = r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
-        assert re.search(uuid_pattern, mem.name)
+        uuid_pattern = r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-"
+        assert not re.search(uuid_pattern, mem.name)
+        assert mem.name == "test.memory.md"
 
 
 class TestMemorySearch:
@@ -257,16 +258,19 @@ class TestBlackboard:
 class TestNamespaceRouting:
     """Test that memories go to correct namespaces."""
 
-    @pytest.mark.parametrize("namespace,expected_path", [
-        ("decisions", "/decisions/"),
-        ("learnings", "/learnings/"),
-        ("patterns", "/patterns/"),
-        ("blockers", "/blockers/"),
-        ("context", "/context/"),
-        ("apis", "/apis/"),
-        ("security", "/security/"),
-        ("testing", "/testing/"),
-    ])
+    @pytest.mark.parametrize(
+        "namespace,expected_path",
+        [
+            ("decisions", "/decisions/"),
+            ("learnings", "/learnings/"),
+            ("patterns", "/patterns/"),
+            ("blockers", "/blockers/"),
+            ("context", "/context/"),
+            ("apis", "/apis/"),
+            ("security", "/security/"),
+            ("testing", "/testing/"),
+        ],
+    )
     def test_namespace_routing(self, memory_factory, namespace, expected_path):
         """Memory is created in correct namespace directory."""
         mem = memory_factory.create(namespace=namespace, title="Test")

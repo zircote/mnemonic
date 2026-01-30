@@ -60,11 +60,12 @@ Content here.
 ## File Naming
 
 ```
-{uuid}-{slug}.memory.md
+{slug}.memory.md
 ```
 
-- **uuid**: Lowercase UUID v4
-- **slug**: URL-safe title, max 50 chars
+- **slug**: URL-safe title, lowercase, max 50 chars
+- UUID is stored only in the frontmatter `id:` field
+- If a file with the same slug already exists, content is merged
 
 ---
 
@@ -581,7 +582,7 @@ The `## Full Detail` section includes:
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 TITLE="My Memory Title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-' | head -c 50)
-FILENAME="${UUID}-${SLUG}.memory.md"
+FILENAME="${SLUG}.memory.md"
 ```
 
 ---

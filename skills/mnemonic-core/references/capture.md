@@ -42,7 +42,7 @@ UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
 
 **CRITICAL: Always generate REAL values. Never write placeholders like "PLACEHOLDER_UUID" or "PLACEHOLDER_DATE".**
 
-**File naming:** `{uuid}-{slug}.memory.md`
+**File naming:** `{slug}.memory.md`
 
 ```bash
 # Generate real values - NEVER use placeholder text
@@ -66,7 +66,7 @@ fi
 mkdir -p "$MEMORY_DIR"
 
 # Create memory file (minimal format)
-cat > "${MEMORY_DIR}/${UUID}-${SLUG}.memory.md" << MEMORY_EOF
+cat > "${MEMORY_DIR}/${SLUG}.memory.md" << MEMORY_EOF
 ---
 id: ${UUID}
 title: "${TITLE}"
