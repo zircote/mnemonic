@@ -28,7 +28,8 @@
     "./commands/search-enhanced.md",
     "./commands/setup.md",
     "./commands/status.md",
-    "./commands/validate.md"
+    "./commands/validate.md",
+    "./commands/custodian.md"
   ],
   "skills": [
     "./skills/mnemonic-agent-coordination/SKILL.md",
@@ -41,7 +42,8 @@
     "./skills/mnemonic-search-enhanced/SKILL.md",
     "./skills/mnemonic-setup/SKILL.md",
     "./skills/integrate/SKILL.md",
-    "./skills/ontology/SKILL.md"
+    "./skills/ontology/SKILL.md",
+    "./skills/custodian/SKILL.md"
   ],
   "agents": [
     "./agents/memory-curator.md",
