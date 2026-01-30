@@ -588,14 +588,16 @@ FILENAME="${UUID}-${SLUG}.memory.md"
 
 ## Quick Templates
 
+**CRITICAL: When using these templates, generate REAL values for `{uuid}` and `{timestamp}`. Run `uuidgen | tr '[:upper:]' '[:lower:]'` and `date -u +"%Y-%m-%dT%H:%M:%SZ"` first. NEVER write placeholder text like "PLACEHOLDER_UUID" or "PLACEHOLDER_DATE".**
+
 ### Minimal Memory
 
 ```yaml
 ---
-id: {uuid}
+id: <generate with: uuidgen | tr '[:upper:]' '[:lower:]'>
 type: semantic
 namespace: _semantic/knowledge/project
-created: {timestamp}
+created: <generate with: date -u +"%Y-%m-%dT%H:%M:%SZ">
 title: "{title}"
 summary: "{Brief summary for quick recall}"
 detail_level: minimal

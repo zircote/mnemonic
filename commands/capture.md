@@ -67,21 +67,25 @@ fi
 
 ### Step 3: Generate Identifiers
 
+**CRITICAL: You MUST execute these commands to generate real values. NEVER write placeholder text like "PLACEHOLDER_UUID" or "PLACEHOLDER_DATE" into memory files.**
+
 ```bash
-# UUID
+# UUID - MUST be a real UUID, not a placeholder
 UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
 [ -z "$UUID" ] && UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
 
 # Slug from title
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-' | head -c 50)
 
-# Timestamp
+# Timestamp - MUST be a real ISO 8601 timestamp, not a placeholder
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Organization
 ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|' | sed 's|\.git$||')
 [ -z "$ORG" ] && ORG="default"
 ```
+
+**Validation:** Before proceeding, verify UUID looks like `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` and DATE looks like `2026-01-28T12:00:00Z`. If either is empty or a placeholder, re-run the generation commands.
 
 ### Step 4: Determine Path
 
@@ -155,40 +159,39 @@ Ask the user to provide the memory content. This should include:
 
 ### Step 7: Create Memory File
 
+**CRITICAL: Replace ALL variables below with the REAL values generated in Steps 1-5. Every `{VARIABLE}` must be substituted. No placeholders may appear in the final file.**
+
+Use the Write tool to create the file at `$MEMORY_FILE` with this structure (all variables substituted with real values):
+
 ```yaml
 ---
-id: {UUID}
-type: {TYPE}
-namespace: {NAMESPACE}
-created: {DATE}
-modified: {DATE}
-title: "{TITLE}"
+id: <real UUID from Step 3>
+type: <real TYPE from Step 1>
+namespace: <real NAMESPACE from Step 1>
+created: <real DATE from Step 3>
+modified: <real DATE from Step 3>
+title: "<real TITLE from Step 1>"
 tags:
-{TAGS_YAML}
+<real TAGS_YAML from Step 5>
 temporal:
-  valid_from: {DATE}
-  recorded_at: {DATE}
+  valid_from: <real DATE from Step 3>
+  recorded_at: <real DATE from Step 3>
 provenance:
   source_type: conversation
   agent: claude-opus-4
-  confidence: {CONFIDENCE}
-{CITATIONS_YAML}
-{ONTOLOGY_YAML}
-{ENTITY_YAML}
+  confidence: <real CONFIDENCE from Step 1>
 ---
 
-# {TITLE}
+# <real TITLE>
 
-{CONTENT}
+<real CONTENT from Step 6>
 
 ## Rationale
 
-{RATIONALE}
-
-## Relationships
-
-- relates-to [[other-memory-id]]
+<real RATIONALE from Step 6>
 ```
+
+**Validation:** After writing, read the first 5 lines of the file and verify the `id:` field contains a real UUID (not "PLACEHOLDER" or "{UUID}").
 
 ### Step 7b: Add Ontology Fields (if --entity-type provided)
 

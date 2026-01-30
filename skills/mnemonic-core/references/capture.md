@@ -40,11 +40,14 @@ UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
 
 ## Step 4: Create Memory File
 
+**CRITICAL: Always generate REAL values. Never write placeholders like "PLACEHOLDER_UUID" or "PLACEHOLDER_DATE".**
+
 **File naming:** `{uuid}-{slug}.memory.md`
 
 ```bash
-# Variables
-UUID="550e8400-e29b-41d4-a716-446655440000"
+# Generate real values - NEVER use placeholder text
+UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
+[ -z "$UUID" ] && UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
 NAMESPACE="decisions"
 SCOPE="project"
 TYPE="semantic"

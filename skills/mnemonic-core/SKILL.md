@@ -115,15 +115,28 @@ rg -i "{keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 ## Minimal Memory Format
 
+**CRITICAL: Generate real values. NEVER write placeholders like "PLACEHOLDER_UUID" or "PLACEHOLDER_DATE".**
+
+Generate a UUID and timestamp FIRST, then write the file:
+
+```bash
+# Generate these BEFORE writing the memory file
+UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
+[ -z "$UUID" ] && UUID=$(python3 -c "import uuid; print(uuid.uuid4())")
+DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+```
+
+Then create the file with the real generated values:
+
 ```yaml
 ---
-id: {uuid}
-title: "Title"
-type: semantic|episodic|procedural
-created: {iso-date}
+id: <the real UUID generated above>
+title: "Your actual title here"
+type: semantic
+created: <the real DATE generated above>
 ---
 
-# Title
+# Your actual title here
 
 Content here.
 ```
