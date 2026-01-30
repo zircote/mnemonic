@@ -7,7 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+- Semantic search with embeddings
+- Export/import functionality
+- Web UI for memory browsing
+
+## [2.1.0] - 2026-01-30
+
 ### Added
+
+- **[Custodian Skill]**: Unified memory maintenance command (`/mnemonic:custodian`)
+  - `audit` - Full health check: frontmatter, links, decay, relationships, orphans
+  - `validate-links --fix` - Check and repair broken wiki-links and UUID references
+  - `validate-memories` - MIF schema compliance for frontmatter fields
+  - `validate-relationships` - Ontological relationship type and target validation
+  - `decay` - Recalculate exponential decay strength values in-place
+  - `summarize` - Find memories eligible for compression-worker agent
+  - `relocate <old> <new>` - Move memories with cross-reference updates and `git mv`
+  - Options: `--dry-run`, `--fix`, `--json`, `--commit`
+  - 8 Python modules in `skills/custodian/lib/`
 
 - **[Filename Migration]**: Auto-migration utility in `lib/migrate_filenames.py`
   - Renames UUID-prefixed files (`{uuid}-{slug}.memory.md`) to slug-only (`{slug}.memory.md`)
@@ -127,12 +146,6 @@ python scripts/migrate_to_v2_paths.py
 # Rollback if needed
 python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/legacy_backup_TIMESTAMP
 ```
-
-### Planned
-
-- Semantic search with embeddings
-- Export/import functionality
-- Web UI for memory browsing
 
 ## [2.0.0] - 2026-01-26
 
