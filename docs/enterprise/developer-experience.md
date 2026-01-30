@@ -23,8 +23,8 @@ Mnemonic collects nothing:
 ### Local Storage Only
 
 ```
-~/.claude/mnemonic/          # Your memories
-~/.claude/mnemonic/          # Project memories (optional)
+${MNEMONIC_ROOT}/          # Your memories
+${MNEMONIC_ROOT}/          # Project memories (optional)
 ```
 
 That's it. Plain files on your filesystem.
@@ -33,16 +33,16 @@ That's it. Plain files on your filesystem.
 
 ```bash
 # See exactly what's stored
-ls -la ~/.claude/mnemonic/
+ls -la ${MNEMONIC_ROOT}/
 
 # Read any memory with cat
-cat ~/.claude/mnemonic/default/decisions/user/*.memory.md
+cat ${MNEMONIC_ROOT}/default/decisions/user/*.memory.md
 
 # Delete anything
-rm ~/.claude/mnemonic/default/learnings/user/unwanted.memory.md
+rm ${MNEMONIC_ROOT}/default/learnings/user/unwanted.memory.md
 
 # Export everything
-tar -czf my-memories.tar.gz ~/.claude/mnemonic/
+tar -czf my-memories.tar.gz ${MNEMONIC_ROOT}/
 ```
 
 ---
@@ -77,18 +77,18 @@ We decided to use PostgreSQL because:
 
 ```bash
 # Your favorite editor
-vim ~/.claude/mnemonic/default/decisions/user/memory.memory.md
-code ~/.claude/mnemonic/
-nano ~/.claude/mnemonic/default/learnings/user/new.memory.md
+vim ${MNEMONIC_ROOT}/default/decisions/user/memory.memory.md
+code ${MNEMONIC_ROOT}/
+nano ${MNEMONIC_ROOT}/default/learnings/user/new.memory.md
 
 # Batch operations
-sed -i 's/old-tag/new-tag/g' ~/.claude/mnemonic/**/*.memory.md
+sed -i 's/old-tag/new-tag/g' ${MNEMONIC_ROOT}/**/*.memory.md
 ```
 
 ### Version Control Built-in
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git log --oneline -10           # See recent changes
 git diff HEAD~1                 # What changed?
 git checkout HEAD~1 -- file.md  # Restore old version
@@ -103,22 +103,22 @@ git blame file.memory.md        # Who changed what?
 
 ```bash
 # Full-text search with ripgrep
-rg -i "authentication" ~/.claude/mnemonic/
+rg -i "authentication" ${MNEMONIC_ROOT}/
 
 # Search by namespace
-rg -i "pattern" ~/.claude/mnemonic/*/decisions/
+rg -i "pattern" ${MNEMONIC_ROOT}/*/decisions/
 
 # Search by memory type
-rg "^type: episodic" ~/.claude/mnemonic/ -l
+rg "^type: episodic" ${MNEMONIC_ROOT}/ -l
 
 # Search by tag
-rg -l "^  - security" ~/.claude/mnemonic/
+rg -l "^  - security" ${MNEMONIC_ROOT}/
 
 # Recent memories (last 7 days)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7
 
 # Combine searches
-rg -l "authentication" ~/.claude/mnemonic/*/decisions/ | \
+rg -l "authentication" ${MNEMONIC_ROOT}/*/decisions/ | \
   xargs rg "JWT"
 ```
 
@@ -136,7 +136,7 @@ UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
+cat > ${MNEMONIC_ROOT}/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -158,24 +158,24 @@ provenance:
 
 EOF
 
-echo "Created: ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md"
+echo "Created: ${MNEMONIC_ROOT}/default/${NAMESPACE}/user/${SLUG}.memory.md"
 ```
 
 ### Unix Tool Integration
 
 ```bash
 # Count memories by namespace
-find ~/.claude/mnemonic -name "*.memory.md" | \
+find ${MNEMONIC_ROOT} -name "*.memory.md" | \
   sed 's|.*/\([^/]*\)/[^/]*/.*|\1|' | sort | uniq -c
 
 # Find largest memories
-find ~/.claude/mnemonic -name "*.memory.md" -exec wc -l {} + | sort -n | tail -10
+find ${MNEMONIC_ROOT} -name "*.memory.md" -exec wc -l {} + | sort -n | tail -10
 
 # Extract all titles
-rg "^title:" ~/.claude/mnemonic/ | sed 's/.*title: "//' | sed 's/"$//'
+rg "^title:" ${MNEMONIC_ROOT}/ | sed 's/.*title: "//' | sed 's/"$//'
 
 # JSON export with yq
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
   yq -f extract '.title, .type, .created' "$f"
 done
 ```
@@ -215,7 +215,7 @@ Same memories, same format, any AI coding assistant:
 # Afternoon: Switch to GitHub Copilot
 # Evening: Use Claude Code CLI
 
-# All access the same memories at ~/.claude/mnemonic/
+# All access the same memories at ${MNEMONIC_ROOT}/
 ```
 
 ---
@@ -256,8 +256,8 @@ decisions/  patterns/  learnings/  blockers/  context/
 apis/       security/  testing/    episodic/
 
 # Add your own
-mkdir -p ~/.claude/mnemonic/default/research/user
-mkdir -p ~/.claude/mnemonic/default/bookmarks/user
+mkdir -p ${MNEMONIC_ROOT}/default/research/user
+mkdir -p ${MNEMONIC_ROOT}/default/bookmarks/user
 ```
 
 ### Memory Types
@@ -296,7 +296,7 @@ temporal:
 
 ```bash
 # Initialize git (if not already)
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git init
 
 # Daily backup
@@ -311,7 +311,7 @@ git push -u origin main
 ### Branch for Experiments
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git checkout -b experiment/new-architecture
 
 # Try new patterns, make decisions
@@ -348,17 +348,17 @@ brew install ripgrep  # macOS
 apt install ripgrep   # Ubuntu
 
 # Limit search scope
-rg "pattern" ~/.claude/mnemonic/*/decisions/  # Not all namespaces
+rg "pattern" ${MNEMONIC_ROOT}/*/decisions/  # Not all namespaces
 
 # Use file lists for large sets
-rg -l "keyword" ~/.claude/mnemonic/ | head -20  # Preview first
+rg -l "keyword" ${MNEMONIC_ROOT}/ | head -20  # Preview first
 ```
 
 ### Manage Memory Growth
 
 ```bash
 # Check size
-du -sh ~/.claude/mnemonic/
+du -sh ${MNEMONIC_ROOT}/
 
 # Archive old memories
 /mnemonic:gc --compress --compress-threshold 100
@@ -381,7 +381,7 @@ du -sh ~/.claude/mnemonic/
 ./tools/mnemonic-validate
 
 # Check specific namespace
-./tools/mnemonic-validate ~/.claude/mnemonic/default/decisions/
+./tools/mnemonic-validate ${MNEMONIC_ROOT}/default/decisions/
 
 # Capture validation as memory
 ./tools/mnemonic-validate --capture
@@ -428,7 +428,7 @@ du -sh ~/.claude/mnemonic/
 /mnemonic:capture decisions "Title here"
 
 # Search
-rg -i "topic" ~/.claude/mnemonic/
+rg -i "topic" ${MNEMONIC_ROOT}/
 
 # Recall (automatic, but manual option)
 /mnemonic:recall --namespace decisions

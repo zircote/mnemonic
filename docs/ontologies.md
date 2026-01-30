@@ -230,7 +230,7 @@ Resolution order (later overrides earlier):
 |----------|-------|-------|
 | `mif/ontologies/` | Base | MIF submodule (cognitive triad) |
 | `skills/ontology/fallback/` | Fallback | Used when submodule missing |
-| `~/.claude/mnemonic/{org}/{project}/ontology.yaml` | User | Org/project specific |
+| `${MNEMONIC_ROOT}/{org}/{project}/ontology.yaml` | User | Org/project specific |
 | `.claude/mnemonic/ontology.yaml` | Project | Current project |
 
 Project ontologies can extend or override base definitions.

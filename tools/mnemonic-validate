@@ -700,7 +700,7 @@ def main():
         "path",
         nargs="*",
         default=[],
-        help="Paths to validate (default: ~/.claude/mnemonic and ./.claude/mnemonic)",
+        help="Paths to validate (default: ${MNEMONIC_ROOT} and ./.claude/mnemonic)",
     )
     parser.add_argument(
         "--format",

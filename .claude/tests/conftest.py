@@ -28,7 +28,7 @@ def isolated_mnemonic_env(tmp_path, monkeypatch):
 
     This fixture:
     - Creates temp directories for user and project mnemonic
-    - Patches HOME to redirect ~/.claude/mnemonic
+    - Patches HOME to redirect ${MNEMONIC_ROOT}
     - Copies Claude CLI auth config so API calls work
     - Sets up proper directory structure
     - Cleans up automatically after test

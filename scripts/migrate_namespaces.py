@@ -238,7 +238,7 @@ def main():
         "--path",
         type=Path,
         default=None,
-        help="Path to migrate (default: ~/.claude/mnemonic and ./.claude/mnemonic)",
+        help="Path to migrate (default: ${MNEMONIC_ROOT} and ./.claude/mnemonic)",
     )
 
     args = parser.parse_args()

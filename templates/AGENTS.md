@@ -2,7 +2,7 @@
 
 ## Mnemonic Memory System
 
-You have access to a persistent memory system at `~/.claude/mnemonic/`. This system stores memories as `.memory.md` files with YAML frontmatter (MIF Level 3 format).
+You have access to a persistent memory system at `${MNEMONIC_ROOT}/`. This system stores memories as `.memory.md` files with YAML frontmatter (MIF Level 3 format).
 
 ## Required Behavior
 
@@ -12,11 +12,11 @@ Search for relevant memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Check specific namespaces
-rg -i "<topic>" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md"
-rg -i "<topic>" ~/.claude/mnemonic/*/patterns/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/*/decisions/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/*/patterns/ --glob "*.memory.md"
 ```
 
 ### Capture Requirements
@@ -75,7 +75,7 @@ NAMESPACE="decisions"  # or: learnings, patterns, blockers, context
 TITLE="Your descriptive title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
+cat > ${MNEMONIC_ROOT}/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -120,7 +120,7 @@ EOF
 
 ## Memory Locations
 
-- **Global**: `~/.claude/mnemonic/{org}/{namespace}/`
-- **Project**: `~/.claude/mnemonic/{namespace}/`
+- **Global**: `${MNEMONIC_ROOT}/{org}/{namespace}/`
+- **Project**: `${MNEMONIC_ROOT}/{namespace}/`
 
 Use global for cross-project knowledge, project-local for project-specific context.

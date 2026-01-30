@@ -16,7 +16,7 @@ Each developer has their own memory store:
 
 ```
 Developer Workstation
-└── ~/.claude/mnemonic/
+└── ${MNEMONIC_ROOT}/
     └── {org}/
         ├── decisions/user/
         ├── learnings/user/
@@ -39,7 +39,7 @@ Git Server (GitHub Enterprise / GitLab)
     └── context/team/
 
 Developer Workstation
-└── ~/.claude/mnemonic/
+└── ${MNEMONIC_ROOT}/
     ├── shared/              # Clone of team-memories.git
     │   ├── decisions/team/
     │   └── patterns/team/
@@ -50,10 +50,10 @@ Developer Workstation
 **Setup:**
 ```bash
 # Each developer
-git clone git@github.com:org/team-memories.git ~/.claude/mnemonic/shared
+git clone git@github.com:org/team-memories.git ${MNEMONIC_ROOT}/shared
 
 # Sync daily
-cd ~/.claude/mnemonic/shared && git pull
+cd ${MNEMONIC_ROOT}/shared && git pull
 ```
 
 ### Organization Memory Hub
@@ -69,7 +69,7 @@ Git Server
 └── ...
 
 Developer Workstation
-└── ~/.claude/mnemonic/
+└── ${MNEMONIC_ROOT}/
     ├── org/                 # Clone of org-decisions
     ├── security/            # Clone of security-policies
     ├── team/                # Clone of team-X-memories
@@ -110,10 +110,10 @@ git clone --branch v${MNEMONIC_VERSION} \
 claude settings plugins add "$INSTALL_DIR"
 
 # Initialize directories
-mkdir -p ~/.claude/mnemonic/default/{decisions,learnings,patterns,blockers,context,apis,security,testing,episodic}/{user,project,shared}
+mkdir -p ${MNEMONIC_ROOT}/default/{decisions,learnings,patterns,blockers,context,apis,security,testing,episodic}/{user,project,shared}
 
 # Initialize git
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git init
 git add .
 git commit -m "Initialize mnemonic"
@@ -161,7 +161,7 @@ echo "Mnemonic installed successfully"
 gh repo create org/shared-memories --private
 
 # Clone to shared location
-git clone git@github.com:org/shared-memories.git ~/.claude/mnemonic/shared
+git clone git@github.com:org/shared-memories.git ${MNEMONIC_ROOT}/shared
 
 # Add branch protection
 gh api repos/org/shared-memories/branches/main/protection \
@@ -176,7 +176,7 @@ gh api repos/org/shared-memories/branches/main/protection \
 glab project create shared-memories --group org --private
 
 # Clone
-git clone git@gitlab.com:org/shared-memories.git ~/.claude/mnemonic/shared
+git clone git@gitlab.com:org/shared-memories.git ${MNEMONIC_ROOT}/shared
 
 # Configure merge request approvals
 glab mr approval-rule create \
@@ -189,7 +189,7 @@ glab mr approval-rule create \
 
 ```bash
 # Gitea, Gogs, or bare git server
-git clone git@git.internal:memories/shared.git ~/.claude/mnemonic/shared
+git clone git@git.internal:memories/shared.git ${MNEMONIC_ROOT}/shared
 ```
 
 ---
@@ -201,7 +201,7 @@ git clone git@git.internal:memories/shared.git ~/.claude/mnemonic/shared
 ```bash
 # Cron job for daily backup
 # Add to crontab: crontab -e
-0 2 * * * tar -czf ~/backups/mnemonic-$(date +\%Y\%m\%d).tar.gz ~/.claude/mnemonic/
+0 2 * * * tar -czf ~/backups/mnemonic-$(date +\%Y\%m\%d).tar.gz ${MNEMONIC_ROOT}/
 
 # Keep last 30 backups
 find ~/backups -name "mnemonic-*.tar.gz" -mtime +30 -delete
@@ -211,11 +211,11 @@ find ~/backups -name "mnemonic-*.tar.gz" -mtime +30 -delete
 
 ```bash
 # Add backup remote
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git remote add backup git@backup-server:mnemonic.git
 
 # Push to backup (cron job)
-0 3 * * * cd ~/.claude/mnemonic && git push backup main
+0 3 * * * cd ${MNEMONIC_ROOT} && git push backup main
 
 # Or push to multiple remotes
 git remote set-url --add --push origin git@github.com:user/mnemonic.git
@@ -226,10 +226,10 @@ git remote set-url --add --push origin git@backup:mnemonic.git
 
 ```bash
 # Dropbox/iCloud/OneDrive
-ln -s ~/.claude/mnemonic ~/Dropbox/mnemonic-backup
+ln -s ${MNEMONIC_ROOT} ~/Dropbox/mnemonic-backup
 
 # Or rsync to cloud storage
-rsync -avz ~/.claude/mnemonic/ s3://bucket/mnemonic/
+rsync -avz ${MNEMONIC_ROOT}/ s3://bucket/mnemonic/
 ```
 
 ---
@@ -243,13 +243,13 @@ rsync -avz ~/.claude/mnemonic/ s3://bucket/mnemonic/
 tar -xzf ~/backups/mnemonic-20260124.tar.gz -C ~/
 
 # From git remote
-git clone git@backup-server:mnemonic.git ~/.claude/mnemonic
+git clone git@backup-server:mnemonic.git ${MNEMONIC_ROOT}
 ```
 
 ### Point-in-Time Recovery
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 
 # Find commit from desired date
 git log --before="2026-01-20" --oneline | head -1
@@ -265,7 +265,7 @@ git checkout -b recovery-20260120 abc123
 
 ```bash
 # If git is corrupted
-rm -rf ~/.claude/mnemonic/.git
+rm -rf ${MNEMONIC_ROOT}/.git
 git init
 git add .
 git commit -m "Recover from corruption"
@@ -281,7 +281,7 @@ git remote add origin git@github.com:user/mnemonic.git
 ### Namespace Strategy
 
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── org/                    # Organization-wide (read-only for most)
 │   ├── decisions/shared/   # Company architectural decisions
 │   ├── patterns/shared/    # Standard code patterns
@@ -299,7 +299,7 @@ git remote add origin git@github.com:user/mnemonic.git
 
 ```bash
 # Developer wants to share a pattern
-cd ~/.claude/mnemonic/team
+cd ${MNEMONIC_ROOT}/team
 
 # Create memory
 cat > patterns/team/uuid-new-pattern.memory.md << 'EOF'
@@ -344,7 +344,7 @@ patterns/shared/*.memory.md   @org/tech-leads
 # Use migration tool
 ./tools/migrate-memory-bank \
   --source ~/old-memory-bank \
-  --target ~/.claude/mnemonic/default \
+  --target ${MNEMONIC_ROOT}/default \
   --namespace learnings
 ```
 
@@ -357,7 +357,7 @@ for f in ~/old-memories/*.md; do
   DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   TITLE=$(head -1 "$f" | sed 's/^# //')
 
-  cat > ~/.claude/mnemonic/default/context/user/${UUID}-migrated.memory.md << EOF
+  cat > ${MNEMONIC_ROOT}/default/context/user/${UUID}-migrated.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -376,7 +376,7 @@ done
 
 ```bash
 # Validate all migrated memories
-./tools/mnemonic-validate ~/.claude/mnemonic/
+./tools/mnemonic-validate ${MNEMONIC_ROOT}/
 
 # Check for errors
 ./tools/mnemonic-validate --format json | jq '.summary'
@@ -429,18 +429,18 @@ echo -e "\n=== Validation ==="
 
 ```bash
 # Restrict access
-chmod 700 ~/.claude/mnemonic
-chmod 600 ~/.claude/mnemonic/**/*.memory.md
+chmod 700 ${MNEMONIC_ROOT}
+chmod 600 ${MNEMONIC_ROOT}/**/*.memory.md
 
 # Shared directories (read-only for team members)
-chmod 750 ~/.claude/mnemonic/shared
-chmod 640 ~/.claude/mnemonic/shared/**/*.memory.md
+chmod 750 ${MNEMONIC_ROOT}/shared
+chmod 640 ${MNEMONIC_ROOT}/shared/**/*.memory.md
 ```
 
 ### Git Signing
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 
 # Configure signing
 git config commit.gpgsign true
@@ -454,7 +454,7 @@ git log --show-signature -5
 
 ```bash
 # Add to .gitignore
-echo "security/private/*" >> ~/.claude/mnemonic/.gitignore
+echo "security/private/*" >> ${MNEMONIC_ROOT}/.gitignore
 
 # Or use git-crypt for encryption
 git-crypt init
@@ -470,17 +470,17 @@ echo "security/**/*.memory.md filter=git-crypt" >> .gitattributes
 ```bash
 # Use indexed search for 10k+ memories
 # Consider organizing by date
-mkdir -p ~/.claude/mnemonic/archive/2025
-mv ~/.claude/mnemonic/default/episodic/user/2025-* ~/.claude/mnemonic/archive/2025/
+mkdir -p ${MNEMONIC_ROOT}/archive/2025
+mv ${MNEMONIC_ROOT}/default/episodic/user/2025-* ${MNEMONIC_ROOT}/archive/2025/
 
 # Limit search scope
-rg "pattern" ~/.claude/mnemonic/default/  # Not archive
+rg "pattern" ${MNEMONIC_ROOT}/default/  # Not archive
 ```
 
 ### Git Performance
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 
 # Pack repository
 git gc --aggressive
@@ -539,7 +539,7 @@ git sparse-checkout set decisions patterns
 
 **Git conflicts on shared memories:**
 ```bash
-cd ~/.claude/mnemonic/shared
+cd ${MNEMONIC_ROOT}/shared
 git fetch origin
 git rebase origin/main
 # Resolve conflicts, then:
@@ -552,7 +552,7 @@ git rebase --continue
 /mnemonic:gc --compress
 
 # Archive old episodic memories
-mv ~/.claude/mnemonic/default/episodic/user/old-* ~/archive/
+mv ${MNEMONIC_ROOT}/default/episodic/user/old-* ~/archive/
 ```
 
 **Slow search:**
@@ -561,7 +561,7 @@ mv ~/.claude/mnemonic/default/episodic/user/old-* ~/archive/
 which rg || brew install ripgrep
 
 # Use namespace filtering
-rg "pattern" ~/.claude/mnemonic/default/decisions/  # Faster
+rg "pattern" ${MNEMONIC_ROOT}/default/decisions/  # Faster
 ```
 
 ---

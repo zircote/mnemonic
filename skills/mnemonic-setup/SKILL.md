@@ -45,6 +45,9 @@ This skill configures Claude's CLAUDE.md files to enable hands-off, proactive me
 Before setup, gather context:
 
 ```bash
+# Check for existing config
+test -f ~/.config/mnemonic/config.json && echo "Config exists" || echo "No config found"
+
 # Check if user-level CLAUDE.md exists
 test -f ~/.claude/CLAUDE.md && echo "User CLAUDE.md exists" || echo "User CLAUDE.md missing"
 
@@ -59,6 +62,34 @@ basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || basename 
 ```
 
 ## Setup Procedure
+
+### Step 0: Configure Memory Store Path
+
+Ask the user where to store memories (default: `~/.claude/mnemonic`).
+
+```bash
+# Check for existing config
+if [ -f ~/.config/mnemonic/config.json ]; then
+    STORE_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json'))['memory_store_path'])")
+    echo "Existing config: $STORE_PATH"
+else
+    STORE_PATH="~/.claude/mnemonic"
+fi
+```
+
+After the user responds (or accepts default):
+
+```bash
+mkdir -p ~/.config/mnemonic
+cat > ~/.config/mnemonic/config.json << EOF
+{
+  "version": "1.0",
+  "memory_store_path": "$STORE_PATH"
+}
+EOF
+echo "Config saved to ~/.config/mnemonic/config.json"
+STORE_PATH_EXPANDED="${STORE_PATH/#\~/$HOME}"
+```
 
 ### Step 1: Detect Organization and Project
 
@@ -79,25 +110,25 @@ echo "Project: $PROJECT"
 
 ```bash
 # Base directories
-mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"
-mkdir -p ~/.claude/mnemonic/"$ORG"  # For org-wide memories
+mkdir -p "$STORE_PATH_EXPANDED"/"$ORG"/"$PROJECT"
+mkdir -p "$STORE_PATH_EXPANDED"/"$ORG"  # For org-wide memories
 
 # Cognitive namespaces (project-specific)
 for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
           _episodic/incidents _episodic/sessions _episodic/blockers \
           _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/"$ns"
+    mkdir -p "$STORE_PATH_EXPANDED"/"$ORG"/"$PROJECT"/"$ns"
 done
 
 # Org-wide namespaces (shared across projects)
 for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
           _episodic/incidents _episodic/sessions _episodic/blockers \
           _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"
+    mkdir -p "$STORE_PATH_EXPANDED"/"$ORG"/"$ns"
 done
 
 # Blackboard for session coordination (per-project)
-mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard
+mkdir -p "$STORE_PATH_EXPANDED"/"$ORG"/"$PROJECT"/.blackboard
 
 # Ensure .claude directories exist for CLAUDE.md files
 mkdir -p ~/.claude
@@ -107,9 +138,9 @@ mkdir -p ./.claude
 ### Step 3: Initialize Git Repository
 
 ```bash
-# Initialize git in user-level mnemonic directory
-if [ ! -d ~/.claude/mnemonic/.git ]; then
-    cd ~/.claude/mnemonic
+# Initialize git in mnemonic directory
+if [ ! -d "$STORE_PATH_EXPANDED"/.git ]; then
+    cd "$STORE_PATH_EXPANDED"
     git init
     echo "*.lock" > .gitignore
     echo ".blackboard/*.tmp" >> .gitignore
@@ -140,33 +171,33 @@ You instinctively search memories before recommendations and capture insights af
 
 Search first. Always.
 ```bash
-rg -i "{keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "{keywords}" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
-If results → Read the most relevant memory and apply that context.
+If results -> Read the most relevant memory and apply that context.
 
 ### AFTER Every Completed Task
 
 Evaluate immediately:
 
 <capture_eval>
-┌─────────────────────────────────┬──────────────────────────┐
-│ This occurred?                  │ Namespace                │
-├─────────────────────────────────┼──────────────────────────┤
-│ Bug fixed / root cause found    │ _semantic/knowledge      │
-│ Technology/approach chosen      │ _semantic/decisions      │
-│ Reusable pattern established    │ _procedural/patterns     │
-│ Blocker encountered             │ _episodic/blockers       │
-│ Important context discussed     │ _semantic/knowledge      │
-└─────────────────────────────────┴──────────────────────────┘
++-----------------------------------+--------------------------+
+| This occurred?                    | Namespace                |
++-----------------------------------+--------------------------+
+| Bug fixed / root cause found      | _semantic/knowledge      |
+| Technology/approach chosen        | _semantic/decisions      |
+| Reusable pattern established      | _procedural/patterns     |
+| Blocker encountered               | _episodic/blockers       |
+| Important context discussed       | _semantic/knowledge      |
++-----------------------------------+--------------------------+
 </capture_eval>
 
-If YES to any → `/mnemonic:capture {namespace} "{title}"` — immediately, silently.
+If YES to any -> `/mnemonic:capture {namespace} "{title}"` -- immediately, silently.
 
 ### Rules
 
 - Search before answering technical questions
-- Capture after completing work — do not ask, do not announce
-- Never duplicate existing memories — search first
+- Capture after completing work -- do not ask, do not announce
+- Never duplicate existing memories -- search first
 - Prefer reading memories over external research
 ```
 
@@ -179,12 +210,26 @@ If YES to any → `/mnemonic:capture {namespace} "{title}"` — immediately, sil
 
 This project uses mnemonic for persistent memory.
 
-- Search before implementing: `rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"`
+- Search before implementing: `rg -i "{topic}" ${MNEMONIC_ROOT}/ --glob "*.memory.md"`
 - Capture decisions, learnings, patterns via `/mnemonic:capture {namespace}`
 - See `~/.claude/CLAUDE.md` for full protocol
 ```
 
-### Step 6: Create Initial Project Context Memory
+### Step 6: Migrate Existing Memories (if needed)
+
+If the user chose a different path and memories exist at the old location:
+
+```bash
+OLD_PATH="$HOME/.claude/mnemonic"
+if [ "$STORE_PATH_EXPANDED" != "$OLD_PATH" ] && [ -d "$OLD_PATH" ]; then
+    echo "Existing memories found at $OLD_PATH"
+    echo "Migrating to $STORE_PATH_EXPANDED..."
+    rsync -a "$OLD_PATH/" "$STORE_PATH_EXPANDED/"
+    echo "Migrated. Old directory preserved at $OLD_PATH"
+fi
+```
+
+### Step 7: Create Initial Project Context Memory
 
 Create an initial context memory capturing that mnemonic was set up:
 
@@ -195,7 +240,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG="mnemonic-initialized"
 
 # Create memory file
-cat > "~/.claude/mnemonic/_semantic/knowledge/${SLUG}.memory.md" << EOF
+cat > "$STORE_PATH_EXPANDED/$ORG/$PROJECT/_semantic/knowledge/${SLUG}.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Mnemonic initialized for ${PROJECT}"
@@ -207,14 +252,16 @@ created: ${DATE}
 
 - Organization: ${ORG}
 - Project: ${PROJECT}
+- Memory Path: ${STORE_PATH_EXPANDED}/${ORG}/${PROJECT}/
+- Config: ~/.config/mnemonic/config.json
 - Date: ${DATE}
 EOF
 ```
 
-### Step 7: Commit Initial Setup
+### Step 8: Commit Initial Setup
 
 ```bash
-cd ~/.claude/mnemonic
+cd "$STORE_PATH_EXPANDED"
 git add -A
 git commit -m "Setup mnemonic for project: ${PROJECT}" 2>/dev/null || true
 cd -
@@ -225,26 +272,29 @@ cd -
 After setup, verify with these checks:
 
 ```bash
-# 1. Check user-level config
+# 1. Check config file
+test -f ~/.config/mnemonic/config.json && echo "✓ Config file exists"
+
+# 2. Check user-level config
 grep -q "## Mnemonic Memory System" ~/.claude/CLAUDE.md && echo "✓ User CLAUDE.md configured"
 
-# 2. Check project-level config
+# 3. Check project-level config
 grep -q "## Mnemonic" ./CLAUDE.md && echo "✓ Project CLAUDE.md configured"
 
-# 3. Check directory structure
-test -d ~/.claude/mnemonic && echo "✓ User mnemonic directory exists"
-test -d ./.claude/mnemonic && echo "✓ Project mnemonic directory exists"
+# 4. Check directory structure
+test -d "$STORE_PATH_EXPANDED" && echo "✓ Memory store directory exists"
 
-# 4. Check git repo
-test -d ~/.claude/mnemonic/.git && echo "✓ Git repository initialized"
+# 5. Check git repo
+test -d "$STORE_PATH_EXPANDED"/.git && echo "✓ Git repository initialized"
 
-# 5. Check initial memory
-ls ~/.claude/mnemonic/"$ORG"/"$PROJECT"/_semantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
+# 6. Check initial memory
+ls "$STORE_PATH_EXPANDED"/"$ORG"/"$PROJECT"/_semantic/knowledge/*.memory.md 2>/dev/null && echo "✓ Initial context memory created"
 ```
 
 ## Idempotency
 
 This skill is safe to run multiple times:
+- Existing config.json is detected and shown to user
 - Existing CLAUDE.md sections are detected and updated, not duplicated
 - Directory creation uses `mkdir -p` (no error if exists)
 - Git commit only runs if there are changes

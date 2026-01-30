@@ -19,10 +19,10 @@ models:
 
 chatOptions:
   baseSystemMessage: |
-    You have access to a Mnemonic memory system at ~/.claude/mnemonic/.
+    You have access to a Mnemonic memory system at ${MNEMONIC_ROOT}/.
 
     BEFORE implementing anything:
-    - Search: rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+    - Search: rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
     CAPTURE immediately when:
     - Decision made → decisions/user/
@@ -37,19 +37,19 @@ customCommands:
     description: Search mnemonic memories
     prompt: |
       Search for memories related to: {{input}}
-      Use: rg -i "{{input}}" ~/.claude/mnemonic/ --glob "*.memory.md"
+      Use: rg -i "{{input}}" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
   - name: mnemonic-capture
     description: Capture a new memory
     prompt: |
-      Create a memory in ~/.claude/mnemonic/default/{{namespace}}/user/
+      Create a memory in ${MNEMONIC_ROOT}/default/{{namespace}}/user/
       with MIF Level 3 format for: {{input}}
 
   - name: mnemonic-list
     description: List memories by namespace
     prompt: |
       List memories in namespace: {{input}}
-      Use: ls ~/.claude/mnemonic/default/{{input}}/user/
+      Use: ls ${MNEMONIC_ROOT}/default/{{input}}/user/
 ```
 
 ## Custom Commands
@@ -80,7 +80,7 @@ Add a custom context provider for deeper integration:
 contextProviders:
   - name: mnemonic
     params:
-      path: ~/.claude/mnemonic
+      path: ${MNEMONIC_ROOT}
       pattern: "*.memory.md"
 ```
 

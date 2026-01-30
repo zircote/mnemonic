@@ -65,7 +65,7 @@ As the mnemonic system grows to include multiple agents (memory-curator, mnemoni
 **Description**: Create a dedicated `.blackboard/agents/` subdirectory with per-agent files.
 
 **Technical Characteristics**:
-- `~/.claude/mnemonic/.blackboard/agents/{agent-id}.md` per agent
+- `${MNEMONIC_ROOT}/.blackboard/agents/{agent-id}.md` per agent
 - Separate registry file for active agents
 - Custom message format for agent communication
 

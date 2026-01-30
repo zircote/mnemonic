@@ -94,7 +94,7 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
 [ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
 
-# All memories are stored under ~/.claude/mnemonic/
+# All memories are stored under ${MNEMONIC_ROOT}/
 # Path structure: {org}/{project}/{namespace}/ for project scope
 #                 {org}/{namespace}/ for org scope (when --scope org)
 if [ "$SCOPE" = "org" ]; then
@@ -220,7 +220,7 @@ When capturing with an entity type:
 ### Step 8: Commit to Git
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git add -A
 git commit -m "Capture: ${TITLE}"
 cd -

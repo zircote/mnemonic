@@ -36,12 +36,12 @@ aider --read CONVENTIONS.md
 # Mnemonic Memory Integration
 
 ## Memory System
-This project uses Mnemonic for persistent memories at `~/.claude/mnemonic/`.
+This project uses Mnemonic for persistent memories at `${MNEMONIC_ROOT}/`.
 
 ## Before Implementing
 Always search for relevant memories:
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ## Capture Requirements

@@ -13,7 +13,7 @@ This command has a legacy memory section without markers.
 
 Before implementing, search for prior context:
 ```bash
-rg -i "relevant" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "relevant" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 After completing work, capture discoveries:

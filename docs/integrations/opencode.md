@@ -37,18 +37,18 @@ description: Capture and recall memories using the MIF Level 3 filesystem memory
 # Mnemonic Memory Skill
 
 ## Memory Locations
-- Global: `~/.claude/mnemonic/{org}/{namespace}/`
-- Project: `~/.claude/mnemonic/{namespace}/`
+- Global: `${MNEMONIC_ROOT}/{org}/{namespace}/`
+- Project: `${MNEMONIC_ROOT}/{namespace}/`
 
 ## Commands
 
 ### Recall Memories
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### Capture Memory
-Write to `~/.claude/mnemonic/default/{namespace}/user/{slug}.memory.md`
+Write to `${MNEMONIC_ROOT}/default/{namespace}/user/{slug}.memory.md`
 
 ## Capture Triggers
 - "let's use X" → decisions/

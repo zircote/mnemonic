@@ -163,7 +163,7 @@ run_quick_tests() {
     fi
 
     # Test 3: Memory directories exist
-    if [[ -d ~/.claude/mnemonic ]]; then
+    if [[ -d ${MNEMONIC_ROOT} ]]; then
         pass "User mnemonic directory exists"
     else
         skip "User mnemonic directory not initialized"
@@ -171,7 +171,7 @@ run_quick_tests() {
 
     # Test 4: Search command works
     if rg --version &>/dev/null; then
-        if rg -i "test" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l 2>/dev/null || true; then
+        if rg -i "test" ${MNEMONIC_ROOT}/ ./.claude/mnemonic/ --glob "*.memory.md" -l 2>/dev/null || true; then
             pass "Memory search command works"
         else
             fail "Memory search command failed"
@@ -183,7 +183,7 @@ run_quick_tests() {
     # Test 5: Memory files have valid format
     local format_ok=true
     local count=0
-    for mem in $(find ~/.claude/mnemonic -name "*.memory.md" 2>/dev/null | head -5); do
+    for mem in $(find ${MNEMONIC_ROOT} -name "*.memory.md" 2>/dev/null | head -5); do
         if head -1 "$mem" | grep -q "^---$"; then
             count=$((count + 1))
         else

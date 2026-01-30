@@ -85,7 +85,7 @@ SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 AGENT_ID="memory-curator"
 
-cat >> ~/.claude/mnemonic/.blackboard/session-notes.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -425,7 +425,7 @@ EOF
 
 ```bash
 # Find all currently active agents
-grep -B5 "Status: active" ~/.claude/mnemonic/.blackboard/session-notes.md | \
+grep -B5 "Status: active" ${MNEMONIC_ROOT}/.blackboard/session-notes.md | \
     grep "Agent:" | \
     sed 's/.*Agent: //' | \
     sort -u
@@ -435,7 +435,7 @@ grep -B5 "Status: active" ~/.claude/mnemonic/.blackboard/session-notes.md | \
 
 ```bash
 # Find last status for specific agent
-tac ~/.claude/mnemonic/.blackboard/session-notes.md | \
+tac ${MNEMONIC_ROOT}/.blackboard/session-notes.md | \
     grep -A10 "Agent: memory-curator" | \
     head -15
 ```
@@ -444,7 +444,7 @@ tac ~/.claude/mnemonic/.blackboard/session-notes.md | \
 
 ```bash
 # Find tasks waiting for handoff
-grep -A20 "Status: handoff" ~/.claude/mnemonic/.blackboard/active-tasks.md | \
+grep -A20 "Status: handoff" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md | \
     grep -A15 "Target:"
 ```
 
@@ -453,7 +453,7 @@ grep -A20 "Status: handoff" ~/.claude/mnemonic/.blackboard/active-tasks.md | \
 ```bash
 # Get current state of a workflow
 WORKFLOW_ID="search-auth-20260124"
-tac ~/.claude/mnemonic/.blackboard/shared-context.md | \
+tac ${MNEMONIC_ROOT}/.blackboard/shared-context.md | \
     awk "/^## Shared State: $WORKFLOW_ID$/,/^---$/" | \
     tac
 ```

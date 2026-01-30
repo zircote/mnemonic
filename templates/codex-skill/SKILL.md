@@ -1,6 +1,6 @@
 ---
 name: mnemonic
-description: Capture and recall memories from the filesystem-based memory system at ~/.claude/mnemonic. Use for decisions, learnings, patterns, and blockers.
+description: Capture and recall memories from the filesystem-based memory system at ${MNEMONIC_ROOT}. Use for decisions, learnings, patterns, and blockers.
 ---
 
 # Mnemonic Memory Skill
@@ -9,8 +9,8 @@ This skill provides access to the Mnemonic memory system for persistent context 
 
 ## Memory Locations
 
-- **Global**: `~/.claude/mnemonic/{org}/{namespace}/`
-- **Project**: `~/.claude/mnemonic/{namespace}/`
+- **Global**: `${MNEMONIC_ROOT}/{org}/{namespace}/`
+- **Project**: `${MNEMONIC_ROOT}/{namespace}/`
 
 ## Commands
 
@@ -18,16 +18,16 @@ This skill provides access to the Mnemonic memory system for persistent context 
 
 ```bash
 # By topic
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # By namespace
-ls ~/.claude/mnemonic/default/{decisions,learnings,patterns}/user/
+ls ${MNEMONIC_ROOT}/default/{decisions,learnings,patterns}/user/
 
 # By tag (in frontmatter)
-rg "tags:.*<tag>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "tags:.*<tag>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Recent memories
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7
 ```
 
 ### Capture Memory
@@ -41,7 +41,7 @@ NAMESPACE="decisions"  # or: learnings, patterns, blockers, context
 TITLE="Your descriptive title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
+cat > ${MNEMONIC_ROOT}/default/${NAMESPACE}/user/${SLUG}.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -71,12 +71,12 @@ EOF
 
 ```bash
 # All memories
-find ~/.claude/mnemonic -name "*.memory.md" | head -20
+find ${MNEMONIC_ROOT} -name "*.memory.md" | head -20
 
 # By namespace
-ls ~/.claude/mnemonic/default/decisions/user/
-ls ~/.claude/mnemonic/default/learnings/user/
-ls ~/.claude/mnemonic/default/patterns/user/
+ls ${MNEMONIC_ROOT}/default/decisions/user/
+ls ${MNEMONIC_ROOT}/default/learnings/user/
+ls ${MNEMONIC_ROOT}/default/patterns/user/
 ```
 
 ## Memory Types

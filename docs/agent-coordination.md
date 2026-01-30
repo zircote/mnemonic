@@ -20,7 +20,7 @@ Agents coordinate using the existing blackboard files with extended entry format
 All coordination happens through append-only entries in these files:
 
 ```
-~/.claude/mnemonic/.blackboard/
+${MNEMONIC_ROOT}/.blackboard/
 ├── session-notes.md    # Agent registration, status updates
 ├── active-tasks.md     # Task handoffs with context
 ├── shared-context.md   # Workflow state
@@ -53,7 +53,7 @@ Agent entries extend the standard blackboard format:
 Agents register when starting work:
 
 ```bash
-cat >> ~/.claude/mnemonic/.blackboard/session-notes.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -75,7 +75,7 @@ EOF
 Agents update their status during work:
 
 ```bash
-cat >> ~/.claude/mnemonic/.blackboard/session-notes.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -96,7 +96,7 @@ EOF
 Agents hand off tasks with context:
 
 ```bash
-cat >> ~/.claude/mnemonic/.blackboard/active-tasks.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/active-tasks.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -128,7 +128,7 @@ EOF
 Agents share workflow state:
 
 ```bash
-cat >> ~/.claude/mnemonic/.blackboard/shared-context.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/shared-context.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -185,19 +185,19 @@ EOF
 
 ```bash
 # Find active agents
-grep -B5 "Status: active" ~/.claude/mnemonic/.blackboard/session-notes.md | \
+grep -B5 "Status: active" ${MNEMONIC_ROOT}/.blackboard/session-notes.md | \
     grep "Agent:" | sed 's/.*Agent: //'
 
 # Find last status for an agent
-tac ~/.claude/mnemonic/.blackboard/session-notes.md | \
+tac ${MNEMONIC_ROOT}/.blackboard/session-notes.md | \
     grep -A10 "Agent: memory-curator" | head -15
 
 # Find pending handoffs
-grep -A20 "Status: handoff" ~/.claude/mnemonic/.blackboard/active-tasks.md
+grep -A20 "Status: handoff" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 
 # Get workflow state
 WORKFLOW_ID="search-auth-20260124"
-tac ~/.claude/mnemonic/.blackboard/shared-context.md | \
+tac ${MNEMONIC_ROOT}/.blackboard/shared-context.md | \
     awk "/^## Shared State: $WORKFLOW_ID$/,/^---$/" | tac
 ```
 

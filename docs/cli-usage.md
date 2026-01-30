@@ -10,10 +10,10 @@ Mnemonic memories are plain Markdown files with YAML frontmatter stored in predi
 
 ```bash
 # User-level memories (cross-project)
-~/.claude/mnemonic/{org}/{namespace}/{scope}/*.memory.md
+${MNEMONIC_ROOT}/{org}/{namespace}/{scope}/*.memory.md
 
 # Project-level memories
-~/.claude/mnemonic/{namespace}/{scope}/*.memory.md
+${MNEMONIC_ROOT}/{namespace}/{scope}/*.memory.md
 ```
 
 **Namespaces:** apis, blockers, context, decisions, learnings, patterns, security, testing, episodic
@@ -26,19 +26,19 @@ Mnemonic memories are plain Markdown files with YAML frontmatter stored in predi
 
 ```bash
 # Search all memories for a keyword
-rg "postgresql" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
+rg "postgresql" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
 
 # Case-insensitive search
-rg -i "authentication" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
+rg -i "authentication" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
 
 # Search with context (3 lines before/after)
-rg -C3 "api endpoint" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
+rg -C3 "api endpoint" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
 
 # List files only (no content)
-rg -l "database" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md"
+rg -l "database" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
 
 # Search in specific namespace
-rg "pattern" ~/.claude/mnemonic/*/decisionsdecisions/project --glob "*.memory.md"
+rg "pattern" ${MNEMONIC_ROOT}/*/decisionsdecisions/project --glob "*.memory.md"
 
 # Search project-level only
 rg "bug fix" ./.claude/mnemonic --glob "*.memory.md"
@@ -48,35 +48,35 @@ rg "bug fix" ./.claude/mnemonic --glob "*.memory.md"
 
 ```bash
 # Find all semantic memories
-rg "^type: semantic" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^type: semantic" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find memories with specific tag
-rg "^  - architecture" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^  - architecture" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find memories from a date range
-rg "^created: 2026-01" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^created: 2026-01" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find high-confidence memories
-rg "confidence: 0.9" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
+rg "confidence: 0.9" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
 
 # Find memories by title
-rg "^title:.*PostgreSQL" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^title:.*PostgreSQL" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
 ```
 
 ### Using find for File Operations
 
 ```bash
 # List all memories
-find ~/.claude/mnemonic -name "*.memory.md"
+find ${MNEMONIC_ROOT} -name "*.memory.md"
 
 # Find memories modified in last 7 days
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7
 
 # Find memories older than 90 days
-find ~/.claude/mnemonic -name "*.memory.md" -mtime +90
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +90
 
 # Count memories by namespace
-find ~/.claude/mnemonic -name "*.memory.md" | grep -o '/[^/]*/project\|/[^/]*/user' | sort | uniq -c
+find ${MNEMONIC_ROOT} -name "*.memory.md" | grep -o '/[^/]*/project\|/[^/]*/user' | sort | uniq -c
 ```
 
 ## Reading Memories
@@ -85,10 +85,10 @@ find ~/.claude/mnemonic -name "*.memory.md" | grep -o '/[^/]*/project\|/[^/]*/us
 
 ```bash
 # Read full memory
-cat ~/.claude/mnemonic/zircote/_semantic/decisions/550e8400-*.memory.md
+cat ${MNEMONIC_ROOT}/zircote/_semantic/decisions/550e8400-*.memory.md
 
 # View just the title
-grep "^title:" ~/.claude/mnemonic/zircote/_semantic/decisions/*.memory.md
+grep "^title:" ${MNEMONIC_ROOT}/zircote/_semantic/decisions/*.memory.md
 
 # View frontmatter only (between --- markers)
 sed -n '/^---$/,/^---$/p' path/to/memory.memory.md
@@ -101,13 +101,13 @@ sed '1,/^---$/d;/^---$/,$!d;/^---$/d' path/to/memory.memory.md
 
 ```bash
 # Get all memory IDs
-grep "^id:" ~/.claude/mnemonic/**/*.memory.md | cut -d: -f3 | tr -d ' '
+grep "^id:" ${MNEMONIC_ROOT}/**/*.memory.md | cut -d: -f3 | tr -d ' '
 
 # Get all unique tags
-rg "^  - " ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -o | sort -u
+rg "^  - " ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -o | sort -u
 
 # List all titles
-grep "^title:" ~/.claude/mnemonic/**/*.memory.md | sed 's/.*title: "//' | sed 's/"$//'
+grep "^title:" ${MNEMONIC_ROOT}/**/*.memory.md | sed 's/.*title: "//' | sed 's/"$//'
 ```
 
 ## Creating Memories
@@ -122,7 +122,7 @@ UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Create memory file
-cat > ~/.claude/mnemonic/myorg/_semantic/decisions/${UUID}-my-decision.memory.md << EOF
+cat > ${MNEMONIC_ROOT}/myorg/_semantic/decisions/${UUID}-my-decision.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -213,7 +213,7 @@ mnemonic-capture decisions "Use Redis for caching"
 
 ```bash
 # View memory history
-cd ~/.claude/mnemonic && git log --oneline
+cd ${MNEMONIC_ROOT} && git log --oneline
 
 # View changes to a specific memory
 git log -p -- path/to/memory.memory.md
@@ -232,31 +232,31 @@ git add -A && git commit -m "Update: memory description"
 
 ```bash
 # Backup all memories
-tar -czf mnemonic-backup-$(date +%Y%m%d).tar.gz ~/.claude/mnemonic
+tar -czf mnemonic-backup-$(date +%Y%m%d).tar.gz ${MNEMONIC_ROOT}
 
 # Sync to remote (after setting up remote)
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git remote add origin git@github.com:user/mnemonic-memories.git
 git push -u origin main
 
 # Clone on new machine
-git clone git@github.com:user/mnemonic-memories.git ~/.claude/mnemonic
+git clone git@github.com:user/mnemonic-memories.git ${MNEMONIC_ROOT}
 ```
 
 ### Cleanup Operations
 
 ```bash
 # Find memories older than 1 year
-find ~/.claude/mnemonic -name "*.memory.md" -mtime +365
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +365
 
 # Find empty or small memories (< 100 bytes)
-find ~/.claude/mnemonic -name "*.memory.md" -size -100c
+find ${MNEMONIC_ROOT} -name "*.memory.md" -size -100c
 
 # Count memories by type
-rg "^type:" ~/.claude/mnemonic ./.claude/mnemonic --glob "*.memory.md" -o | cut -d: -f2 | sort | uniq -c
+rg "^type:" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -o | cut -d: -f2 | sort | uniq -c
 
 # Find duplicate titles
-grep "^title:" ~/.claude/mnemonic/**/*.memory.md | cut -d: -f3- | sort | uniq -d
+grep "^title:" ${MNEMONIC_ROOT}/**/*.memory.md | cut -d: -f3- | sort | uniq -d
 ```
 
 ## Validation
@@ -279,7 +279,7 @@ validate_memory() {
 }
 
 # Validate all memories
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     echo "Checking: $f"
     validate_memory "$f" || echo "  INVALID"
 done
@@ -289,13 +289,13 @@ done
 
 ```bash
 # Validate all memories (from mnemonic repo)
-python tools/mnemonic-validate ~/.claude/mnemonic
+python tools/mnemonic-validate ${MNEMONIC_ROOT}
 
 # Validate with JSON output
-python tools/mnemonic-validate --format json ~/.claude/mnemonic
+python tools/mnemonic-validate --format json ${MNEMONIC_ROOT}
 
 # Validate only changed files
-python tools/mnemonic-validate --changed ~/.claude/mnemonic
+python tools/mnemonic-validate --changed ${MNEMONIC_ROOT}
 ```
 
 ## Useful Aliases
@@ -304,20 +304,20 @@ Add to your `~/.bashrc` or `~/.zshrc`:
 
 ```bash
 # Quick search
-alias ms='rg -i --glob "*.memory.md" ~/.claude/mnemonic'
+alias ms='rg -i --glob "*.memory.md" ${MNEMONIC_ROOT}'
 
 # List recent memories
-alias mrecent='find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 -exec grep -l "." {} \;'
+alias mrecent='find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 -exec grep -l "." {} \;'
 
 # Count memories
-alias mcount='find ~/.claude/mnemonic -name "*.memory.md" | wc -l'
+alias mcount='find ${MNEMONIC_ROOT} -name "*.memory.md" | wc -l'
 
 # Open memory directory
-alias mdir='cd ~/.claude/mnemonic && ls'
+alias mdir='cd ${MNEMONIC_ROOT} && ls'
 
 # Search by namespace
 mns() {
-    rg -i "$1" ~/.claude/mnemonic/*/"$2""$2"/project --glob "*.memory.md"
+    rg -i "$1" ${MNEMONIC_ROOT}/*/"$2""$2"/project --glob "*.memory.md"
 }
 # Usage: mns "pattern" decisions
 ```
@@ -412,19 +412,19 @@ sed -n '/^---$/,/^---$/p' memory.memory.md | yq '.tags | contains(["security"])'
 echo "# Memory Report - $(date +%Y-%m-%d)"
 echo ""
 echo "## Counts by Namespace"
-find ~/.claude/mnemonic -name "*.memory.md" | \
+find ${MNEMONIC_ROOT} -name "*.memory.md" | \
     sed 's|.*/\([^/]*\)/[^/]*/[^/]*$|\1|' | sort | uniq -c | sort -rn
 
 echo ""
 echo "## Recent Activity (7 days)"
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 -exec grep "^title:" {} \;
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 -exec grep "^title:" {} \;
 ```
 
 ### Watch for Changes
 
 ```bash
 # Monitor memory directory for changes (requires fswatch)
-fswatch -o ~/.claude/mnemonic | while read; do
+fswatch -o ${MNEMONIC_ROOT} | while read; do
     echo "Memory change detected at $(date)"
 done
 ```
@@ -436,7 +436,7 @@ done
 **"No memories found"**
 ```bash
 # Check if directory exists
-ls -la ~/.claude/mnemonic
+ls -la ${MNEMONIC_ROOT}
 
 # Check organization detection
 git remote get-url origin | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|'
@@ -451,7 +451,7 @@ apt install ripgrep     # Ubuntu/Debian
 
 **"Git not initialized"**
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git init
 git add .
 git commit -m "Initialize mnemonic"

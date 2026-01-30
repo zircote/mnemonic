@@ -10,20 +10,20 @@ Always search for existing memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Check patterns
-rg -i "pattern" ~/.claude/mnemonic/*/patterns/
+rg -i "pattern" ${MNEMONIC_ROOT}/*/patterns/
 
 # Check decisions
-rg -i "<topic>" ~/.claude/mnemonic/*/decisions/
+rg -i "<topic>" ${MNEMONIC_ROOT}/*/decisions/
 ```
 
 ### Memory Capture Requirements
 
 When making decisions or learning something new, create a memory file:
 
-- **Location**: `~/.claude/mnemonic/default/{namespace}/user/`
+- **Location**: `${MNEMONIC_ROOT}/default/{namespace}/user/`
 - **Format**: `.memory.md` with YAML frontmatter
 - **Namespaces**: decisions, learnings, patterns, blockers, context
 

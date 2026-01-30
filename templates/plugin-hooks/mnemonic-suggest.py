@@ -113,7 +113,7 @@ Capture command template:
 ```bash
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-# Write memory to ~/.claude/mnemonic/default/{namespace}/user/${{UUID}}-slug.memory.md
+# Write memory to ${MNEMONIC_ROOT}/default/{namespace}/user/${{UUID}}-slug.memory.md
 ```
 """
 

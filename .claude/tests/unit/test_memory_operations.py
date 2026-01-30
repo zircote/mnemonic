@@ -63,7 +63,7 @@ class TestMemoryCreation:
         assert str(isolated_mnemonic_env["project_mnemonic"]) in str(mem)
 
     def test_create_user_level_memory(self, memory_factory, isolated_mnemonic_env):
-        """Memory created at user level goes to ~/.claude/mnemonic."""
+        """Memory created at user level goes to ${MNEMONIC_ROOT}."""
         mem = memory_factory.create(
             namespace="decisions",
             title="User-level decision",

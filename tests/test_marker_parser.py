@@ -184,7 +184,7 @@ class TestLegacyPatterns:
 
 ## Memory Operations
 
-rg -i "search" ~/.claude/mnemonic/
+rg -i "search" ${MNEMONIC_ROOT}/
 
 ## Procedure"""
         assert parser.has_legacy_pattern(content) is True

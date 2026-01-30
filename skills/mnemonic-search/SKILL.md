@@ -59,95 +59,95 @@ awk '/^---$/{p=!p; print; next} p' /path/to/memory.memory.md
 
 ```bash
 # Find all decisions
-rg "^namespace: _semantic/decisions" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^namespace: _semantic/decisions" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 rg "^namespace: _semantic/decisions" --glob "*.memory.md" -l
 
 # Find project-scoped only
 rg "^namespace: .*/project" --glob "*.memory.md" -l
 
 # Find user-scoped only
-rg "^namespace: .*/user" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^namespace: .*/user" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Search by Tag
 
 ```bash
 # Single tag (in YAML list format)
-rg -l "^  - architecture" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^  - architecture" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Multiple tags (AND - both must exist in file)
-rg -l "^  - architecture" ~/.claude/mnemonic/ --glob "*.memory.md" | xargs rg -l "^  - database"
+rg -l "^  - architecture" ${MNEMONIC_ROOT}/ --glob "*.memory.md" | xargs rg -l "^  - database"
 
 # Tag containing substring
-rg -l "^  - auth" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^  - auth" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### Search by Type
 
 ```bash
 # Find semantic memories (facts, concepts)
-rg "^type: semantic" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: semantic" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Find episodic memories (events, experiences)
-rg "^type: episodic" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: episodic" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Find procedural memories (processes, workflows)
-rg "^type: procedural" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: procedural" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Search by Date
 
 ```bash
 # Created in January 2026
-rg "^created: 2026-01" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^created: 2026-01" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Created in specific date range
-rg "^created: 2026-01-(1[5-9]|2[0-9]|3[01])" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^created: 2026-01-(1[5-9]|2[0-9]|3[01])" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Modified recently
-rg "^modified: 2026-01-2" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^modified: 2026-01-2" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Search by Title
 
 ```bash
 # Exact phrase in title
-rg '^title: ".*PostgreSQL.*"' ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg '^title: ".*PostgreSQL.*"' ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Case-insensitive title search
-rg -i '^title: ".*auth.*"' ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i '^title: ".*auth.*"' ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Search by Confidence
 
 ```bash
 # High confidence memories (0.9+)
-rg "confidence: 0\.9" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "confidence: 0\.9" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Lower confidence (might need review)
-rg "confidence: 0\.[0-7]" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "confidence: 0\.[0-7]" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Search by Citations
 
 ```bash
 # Find all memories with citations
-rg -l "^citations:" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^citations:" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Find memories by citation type
-rg "type: paper" ~/.claude/mnemonic/ --glob "*.memory.md" -l
-rg "type: documentation" ~/.claude/mnemonic/ --glob "*.memory.md" -l
-rg "type: github" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "type: paper" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
+rg "type: documentation" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
+rg "type: github" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Find memories citing specific domain
-rg "url: https://arxiv.org" ~/.claude/mnemonic/ --glob "*.memory.md" -l
-rg "url: https://docs.python.org" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "url: https://arxiv.org" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
+rg "url: https://docs.python.org" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Find memories by citation author
-rg "author: \"Smith" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "author: \"Smith" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Find high-relevance citations
-rg "relevance: 0\.9" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "relevance: 0\.9" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ---
@@ -158,52 +158,52 @@ rg "relevance: 0\.9" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 ```bash
 # Simple pattern
-rg "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Case-insensitive
-rg -i "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Whole word only
-rg -w "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -w "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### With Context
 
 ```bash
 # 3 lines before and after match
-rg -C3 "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -C3 "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # 5 lines after (useful for finding related content)
-rg -A5 "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -A5 "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # 2 lines before (useful for finding headers)
-rg -B2 "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -B2 "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### Regex Patterns
 
 ```bash
 # Function names
-rg "function\s+\w+" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "function\s+\w+" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # URLs
-rg "https?://[^\s]+" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "https?://[^\s]+" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # File paths
-rg "src/[^\s]+" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "src/[^\s]+" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Version numbers
-rg "\d+\.\d+\.\d+" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "\d+\.\d+\.\d+" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### Files Only (No Content)
 
 ```bash
 # Just list matching files
-rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Count matches per file
-rg -c "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -c "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ---
@@ -214,40 +214,40 @@ rg -c "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
 
 ```bash
 # Decisions about databases
-rg "database" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md"
+rg "database" ${MNEMONIC_ROOT} --path "*/_semantic/decisions/" --glob "*.memory.md"
 
 # Knowledge about testing
-rg "test" ~/.claude/mnemonic --path "*/_semantic/knowledge/" --glob "*.memory.md"
+rg "test" ${MNEMONIC_ROOT} --path "*/_semantic/knowledge/" --glob "*.memory.md"
 
 # Project patterns only
-rg "pattern" ~/.claude/mnemonic --path "*/_procedural/patterns/" --glob "*.memory.md"
+rg "pattern" ${MNEMONIC_ROOT} --path "*/_procedural/patterns/" --glob "*.memory.md"
 ```
 
 ### Recent + Text
 
 ```bash
 # Files modified in last 7 days containing "api"
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 -exec rg -l "api" {} \;
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 -exec rg -l "api" {} \;
 
 # Files modified today
-find ~/.claude/mnemonic -name "*.memory.md" -mtime 0 -exec rg -l "pattern" {} \;
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime 0 -exec rg -l "pattern" {} \;
 ```
 
 ### Type + Namespace
 
 ```bash
 # Episodic memories in blockers (incident reports)
-rg -l "^type: episodic" ~/.claude/mnemonic --path "*/_episodic/blockers/" --glob "*.memory.md"
+rg -l "^type: episodic" ${MNEMONIC_ROOT} --path "*/_episodic/blockers/" --glob "*.memory.md"
 
 # Procedural memories in patterns (workflows)
-rg -l "^type: procedural" ~/.claude/mnemonic --path "*/_procedural/patterns/" --glob "*.memory.md"
+rg -l "^type: procedural" ${MNEMONIC_ROOT} --path "*/_procedural/patterns/" --glob "*.memory.md"
 ```
 
 ### Tag + Text
 
 ```bash
 # Memories tagged "security" mentioning "password"
-for f in $(rg -l "^  - security" ~/.claude/mnemonic/ --glob "*.memory.md"); do
+for f in $(rg -l "^  - security" ${MNEMONIC_ROOT}/ --glob "*.memory.md"); do
     rg -l "password" "$f" 2>/dev/null
 done
 ```
@@ -260,7 +260,7 @@ done
 
 ```bash
 # List all memory titles
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     title=$(grep "^title:" "$f" 2>/dev/null | head -1 | sed 's/^title: "//' | sed 's/"$//')
     [ -n "$title" ] && echo "$title"
 done
@@ -277,7 +277,7 @@ head -50 /path/to/memory.memory.md
 
 ```bash
 # Extract key fields for quick review
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     echo "=== $(basename "$f") ==="
     grep -E "^(id|type|namespace|title|created):" "$f" | head -5
     echo ""
@@ -299,27 +299,27 @@ cat /path/to/memory.memory.md
 
 ```bash
 # Use find to limit scope, then search
-find ~/.claude/mnemonic -path "*/_semantic/decisions/*" -name "*.memory.md" | xargs rg "pattern"
+find ${MNEMONIC_ROOT} -path "*/_semantic/decisions/*" -name "*.memory.md" | xargs rg "pattern"
 
 # Or use directory restriction
-rg "pattern" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md"
+rg "pattern" ${MNEMONIC_ROOT} --path "*/_semantic/decisions/" --glob "*.memory.md"
 ```
 
 ### Limit Output
 
 ```bash
 # First 10 matches only
-rg "pattern" ~/.claude/mnemonic/ --glob "*.memory.md" | head -10
+rg "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md" | head -10
 
 # First matching file only
-rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md" | head -1
+rg -l "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md" | head -1
 ```
 
 ### Use File List Mode
 
 ```bash
 # Get file list first
-FILES=$(rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md")
+FILES=$(rg -l "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md")
 
 # Then read specific files
 for f in $FILES; do
@@ -331,8 +331,8 @@ done
 
 ```bash
 # Search multiple namespaces in parallel
-rg "pattern" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md" &
-rg "pattern" ~/.claude/mnemonic --path "*/_semantic/knowledge/" --glob "*.memory.md" &
+rg "pattern" ${MNEMONIC_ROOT} --path "*/_semantic/decisions/" --glob "*.memory.md" &
+rg "pattern" ${MNEMONIC_ROOT} --path "*/_semantic/knowledge/" --glob "*.memory.md" &
 wait
 ```
 
@@ -344,21 +344,21 @@ wait
 
 ```bash
 echo "=== Auth Decisions ==="
-rg -i "auth" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md" -l
+rg -i "auth" ${MNEMONIC_ROOT} --path "*/_semantic/decisions/" --glob "*.memory.md" -l
 ```
 
 ### Recent Knowledge in Current Project
 
 ```bash
 echo "=== Recent Project Knowledge ==="
-find ~/.claude/mnemonic -path "*/_semantic/knowledge/*" -name "*.memory.md" -mtime -7 -exec basename {} \;
+find ${MNEMONIC_ROOT} -path "*/_semantic/knowledge/*" -name "*.memory.md" -mtime -7 -exec basename {} \;
 ```
 
 ### Episodic Memories From Last Week
 
 ```bash
 echo "=== Last Week's Events ==="
-for f in $(find ~/.claude/mnemonic -path "*/_episodic/*" -name "*.memory.md" -mtime -7 2>/dev/null); do
+for f in $(find ${MNEMONIC_ROOT} -path "*/_episodic/*" -name "*.memory.md" -mtime -7 2>/dev/null); do
     grep "^title:" "$f" | sed 's/^title: "//' | sed 's/"$//'
 done
 ```
@@ -367,7 +367,7 @@ done
 
 ```bash
 echo "=== Trusted Security Knowledge ==="
-for f in $(rg -l "confidence: 0\.9" ~/.claude/mnemonic --path "*/_semantic/knowledge/" --glob "*.memory.md" 2>/dev/null); do
+for f in $(rg -l "confidence: 0\.9" ${MNEMONIC_ROOT} --path "*/_semantic/knowledge/" --glob "*.memory.md" 2>/dev/null); do
     grep "^title:" "$f"
 done
 ```
@@ -376,17 +376,17 @@ done
 
 ```bash
 echo "=== Memories With Code Refs ==="
-rg -l "^code_refs:" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^code_refs:" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Find memories referencing specific file
-rg "file: src/auth" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "file: src/auth" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Memories With Relationships
 
 ```bash
 echo "=== Linked Memories ==="
-rg "\[\[" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "\[\[" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ---
@@ -395,17 +395,17 @@ rg "\[\[" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 
 | Goal | Command |
 |------|---------|
-| All decisions | `rg "^namespace: _semantic/decisions" ~/.claude/mnemonic/ -l` |
-| By tag | `rg -l "^  - tagname" ~/.claude/mnemonic/` |
-| By type | `rg "^type: semantic" ~/.claude/mnemonic/ -l` |
-| Full-text | `rg -i "search term" ~/.claude/mnemonic/` |
-| Recent files | `find ~/.claude/mnemonic -mtime -7` |
-| Titles only | `rg "^title:" ~/.claude/mnemonic/` |
-| High confidence | `rg "confidence: 0\.9" ~/.claude/mnemonic/ -l` |
-| With code refs | `rg "^code_refs:" ~/.claude/mnemonic/ -l` |
-| With citations | `rg "^citations:" ~/.claude/mnemonic/ -l` |
-| Citation type | `rg "type: paper" ~/.claude/mnemonic/ -l` |
-| Citation domain | `rg "url: https://arxiv.org" ~/.claude/mnemonic/ -l` |
+| All decisions | `rg "^namespace: _semantic/decisions" ${MNEMONIC_ROOT}/ -l` |
+| By tag | `rg -l "^  - tagname" ${MNEMONIC_ROOT}/` |
+| By type | `rg "^type: semantic" ${MNEMONIC_ROOT}/ -l` |
+| Full-text | `rg -i "search term" ${MNEMONIC_ROOT}/` |
+| Recent files | `find ${MNEMONIC_ROOT} -mtime -7` |
+| Titles only | `rg "^title:" ${MNEMONIC_ROOT}/` |
+| High confidence | `rg "confidence: 0\.9" ${MNEMONIC_ROOT}/ -l` |
+| With code refs | `rg "^code_refs:" ${MNEMONIC_ROOT}/ -l` |
+| With citations | `rg "^citations:" ${MNEMONIC_ROOT}/ -l` |
+| Citation type | `rg "type: paper" ${MNEMONIC_ROOT}/ -l` |
+| Citation domain | `rg "url: https://arxiv.org" ${MNEMONIC_ROOT}/ -l` |
 | Project only | `rg "pattern"` |
 
 ---
@@ -418,10 +418,10 @@ When searching memories, use progressive disclosure to minimize context usage:
 
 ```bash
 # List matching files first
-rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Then get titles
-for f in $(rg -l "pattern" ~/.claude/mnemonic/ --glob "*.memory.md"); do
+for f in $(rg -l "pattern" ${MNEMONIC_ROOT}/ --glob "*.memory.md"); do
     grep "^title:" "$f" | head -1
 done
 ```

@@ -86,13 +86,13 @@ New team member workflow:
 
 ```bash
 # Day 1: Explore existing decisions
-rg -l "." ~/.claude/mnemonic/default/decisions/user/ | head -20
+rg -l "." ${MNEMONIC_ROOT}/default/decisions/user/ | head -20
 
 # Read architectural context
-cat ~/.claude/mnemonic/default/decisions/user/*postgresql*.memory.md
+cat ${MNEMONIC_ROOT}/default/decisions/user/*postgresql*.memory.md
 
 # Understand patterns
-rg -l "." ~/.claude/mnemonic/default/patterns/user/
+rg -l "." ${MNEMONIC_ROOT}/default/patterns/user/
 ```
 
 **Estimated onboarding reduction:** 40-60% faster context acquisition
@@ -243,14 +243,14 @@ claude settings plugins add /path/to/mnemonic
 
 ```bash
 # Memory usage over time
-git log --oneline ~/.claude/mnemonic | wc -l
+git log --oneline ${MNEMONIC_ROOT} | wc -l
 
 # Most accessed namespaces
-find ~/.claude/mnemonic -name "*.memory.md" | \
+find ${MNEMONIC_ROOT} -name "*.memory.md" | \
   sed 's|.*/\([^/]*\)/[^/]*/.*|\1|' | sort | uniq -c | sort -rn
 
 # Memory growth rate
-du -sh ~/.claude/mnemonic
+du -sh ${MNEMONIC_ROOT}
 ```
 
 ---
@@ -283,10 +283,10 @@ du -sh ~/.claude/mnemonic
 
 ```bash
 # Team shares a patterns repository
-git clone git@github.com:team/shared-patterns ~/.claude/mnemonic/shared
+git clone git@github.com:team/shared-patterns ${MNEMONIC_ROOT}/shared
 
 # Individual contributions
-cd ~/.claude/mnemonic/shared
+cd ${MNEMONIC_ROOT}/shared
 git add new-pattern.memory.md
 git commit -m "Add API pagination pattern"
 git push
@@ -295,7 +295,7 @@ git push
 ### Namespace Strategy for Teams
 
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── org/                    # Organization-wide
 │   ├── decisions/shared/   # Company architectural decisions
 │   ├── patterns/shared/    # Standard code patterns

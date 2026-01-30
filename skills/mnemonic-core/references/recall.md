@@ -6,10 +6,10 @@ Complete workflow for searching and retrieving memories.
 
 ```bash
 # List memories in a namespace
-ls -la ~/.claude/mnemonic/*/_semantic/decisions/*.memory.md 2>/dev/null
+ls -la ${MNEMONIC_ROOT}/*/_semantic/decisions/*.memory.md 2>/dev/null
 
 # Get titles from frontmatter
-for f in ~/.claude/mnemonic/*/_semantic/decisions/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/*/_semantic/decisions/**/*.memory.md; do
     grep "^title:" "$f" 2>/dev/null | head -1
 done
 ```
@@ -18,7 +18,7 @@ done
 
 ```bash
 # Find memories with specific tag
-rg -l "^  - architecture" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^  - architecture" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 rg -l "^  - architecture" --glob "*.memory.md"
 ```
 
@@ -26,18 +26,18 @@ rg -l "^  - architecture" --glob "*.memory.md"
 
 ```bash
 # Recent memories (last 7 days)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7
 find ./.claude/mnemonic -name "*.memory.md" -mtime -7
 
 # By created date in frontmatter
-rg "^created: 2026-01" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^created: 2026-01" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ## Search by Cognitive Type
 
 ```bash
 # Find all episodic memories
-rg "^type: episodic" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: episodic" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 rg "^type: episodic" --glob "*.memory.md" -l
 ```
 
@@ -45,11 +45,11 @@ rg "^type: episodic" --glob "*.memory.md" -l
 
 ```bash
 # Case-insensitive search
-rg -i "postgresql" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "postgresql" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 rg -i "postgresql" --glob "*.memory.md"
 
 # With context lines
-rg -i -C3 "postgresql" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i -C3 "postgresql" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ## Tiered Recall (Progressive Disclosure)

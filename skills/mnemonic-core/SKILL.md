@@ -88,7 +88,7 @@ Users can review captured memories at any time:
 /mnemonic:status
 
 # List recent memories (last 7 days)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 -exec basename {} \;
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 -exec basename {} \;
 
 # Search for specific captures
 /mnemonic:search {keywords}
@@ -110,7 +110,7 @@ Namespaces: `_semantic/decisions` | `_semantic/knowledge` | `_procedural/pattern
 ## Recall
 
 ```bash
-rg -i "{keywords}" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "{keywords}" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ## Minimal Memory Format

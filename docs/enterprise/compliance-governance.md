@@ -16,7 +16,7 @@ Every memory change is tracked with full git history:
 
 ```bash
 # View memory change history
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git log --oneline -20
 
 # See who changed what
@@ -63,8 +63,8 @@ git log -S "authentication" --oneline
 All data stays on your infrastructure:
 
 ```
-~/.claude/mnemonic/           # User-level memories
-~/.claude/mnemonic/           # Project-level memories
+${MNEMONIC_ROOT}/           # User-level memories
+${MNEMONIC_ROOT}/           # Project-level memories
 ```
 
 **No external dependencies:**
@@ -95,7 +95,7 @@ Mnemonic stores plain-text markdown for human readability. For encryption:
 # Windows: BitLocker
 
 # Or use git-crypt for repository encryption
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git-crypt init
 echo "*.memory.md filter=git-crypt diff=git-crypt" >> .gitattributes
 ```
@@ -236,10 +236,10 @@ jobs:
 
 ```bash
 # Restrict access to memory directory
-chmod 700 ~/.claude/mnemonic
+chmod 700 ${MNEMONIC_ROOT}
 
 # Read-only for shared memories
-chmod 444 ~/.claude/mnemonic/shared/*.memory.md
+chmod 444 ${MNEMONIC_ROOT}/shared/*.memory.md
 ```
 
 ### Threat Model
@@ -257,7 +257,7 @@ chmod 444 ~/.claude/mnemonic/shared/*.memory.md
 For tamper-evident audit trails:
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git config commit.gpgsign true
 git config user.signingkey YOUR_KEY_ID
 ```
@@ -280,10 +280,10 @@ Git Server (GitHub Enterprise / GitLab)
 
 ```bash
 # Clone shared memory repository
-git clone git@github.com:org/shared-memories.git ~/.claude/mnemonic/shared
+git clone git@github.com:org/shared-memories.git ${MNEMONIC_ROOT}/shared
 
 # Pull latest shared memories
-cd ~/.claude/mnemonic/shared && git pull
+cd ${MNEMONIC_ROOT}/shared && git pull
 
 # Contribute to shared memories
 git add new-pattern.memory.md
@@ -295,10 +295,10 @@ git push
 
 ```bash
 # Automated backup
-0 2 * * * tar -czf ~/backups/mnemonic-$(date +%Y%m%d).tar.gz ~/.claude/mnemonic/
+0 2 * * * tar -czf ~/backups/mnemonic-$(date +%Y%m%d).tar.gz ${MNEMONIC_ROOT}/
 
 # Git remote backup
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git remote add backup git@backup-server:mnemonic.git
 git push backup main
 ```
@@ -348,21 +348,21 @@ provenance:
 
 ```bash
 # Count memories by namespace
-find ~/.claude/mnemonic -name "*.memory.md" | \
+find ${MNEMONIC_ROOT} -name "*.memory.md" | \
   sed 's|.*/\([^/]*\)/[^/]*/[^/]*$|\1|' | sort | uniq -c
 
 # Check for validation errors
 ./tools/mnemonic-validate --format json | jq '.summary.errors'
 
 # Monitor memory growth
-du -sh ~/.claude/mnemonic/
+du -sh ${MNEMONIC_ROOT}/
 ```
 
 ### Audit Log Export
 
 ```bash
 # Export audit log for compliance review
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git log --pretty=format:'%H,%an,%ae,%ad,%s' --date=iso > audit-log.csv
 ```
 

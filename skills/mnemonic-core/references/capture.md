@@ -57,7 +57,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Determine path
 if [ "$SCOPE" = "project" ]; then
-    MEMORY_DIR="~/.claude/mnemonic/${NAMESPACE}/project"
+    MEMORY_DIR="${MNEMONIC_ROOT}/${NAMESPACE}/project"
 else
     ORG="${ORG:-default}"
     MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}/user"
@@ -89,7 +89,7 @@ MEMORY_EOF
 ## Step 5: Git Commit
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git add -A
 git commit -m "Capture: ${TITLE}"
 cd -

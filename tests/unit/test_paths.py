@@ -27,6 +27,7 @@ def legacy_context():
         project="testproject",
         home_dir=Path("/home/testuser"),
         project_dir=Path("/home/testuser/projects/testproject"),
+        memory_root=Path("/home/testuser/.claude/mnemonic"),
         scheme=PathScheme.LEGACY,
     )
 
@@ -39,6 +40,7 @@ def v2_context():
         project="testproject",
         home_dir=Path("/home/testuser"),
         project_dir=Path("/home/testuser/projects/testproject"),
+        memory_root=Path("/home/testuser/.claude/mnemonic"),
         scheme=PathScheme.V2,
     )
 
@@ -63,14 +65,8 @@ class TestLegacyPathScheme:
     def test_memory_path(self, legacy_context):
         """Test full memory file path."""
         resolver = PathResolver(legacy_context)
-        path = resolver.get_memory_path(
-            "_semantic/decisions",
-            "uuid-test.memory.md",
-            Scope.PROJECT
-        )
-        expected = Path(
-            "/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions/uuid-test.memory.md"
-        )
+        path = resolver.get_memory_path("_semantic/decisions", "uuid-test.memory.md", Scope.PROJECT)
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions/uuid-test.memory.md")
         assert path == expected
 
     def test_blackboard_project(self, legacy_context):
@@ -104,6 +100,7 @@ class TestLegacyPathScheme:
             project="testproject",
             home_dir=tmp_path / "home",
             project_dir=tmp_path / "project",
+            memory_root=tmp_path / "home" / ".claude" / "mnemonic",
             scheme=PathScheme.LEGACY,
         )
 
@@ -126,6 +123,7 @@ class TestLegacyPathScheme:
             project="testproject",
             home_dir=tmp_path / "home",
             project_dir=tmp_path / "project",
+            memory_root=tmp_path / "home" / ".claude" / "mnemonic",
             scheme=PathScheme.LEGACY,
         )
 
@@ -199,16 +197,12 @@ class TestV2PathScheme:
             project="testproject",
             home_dir=tmp_path,
             project_dir=tmp_path / "projects" / "testproject",
+            memory_root=tmp_path / ".claude" / "mnemonic",
             scheme=PathScheme.V2,
         )
 
         resolver = PathResolver(context)
-        paths = resolver.get_search_paths(
-            "_semantic",
-            include_user=True,
-            include_project=True,
-            include_org=True
-        )
+        paths = resolver.get_search_paths("_semantic", include_user=True, include_project=True, include_org=True)
 
         # Should return in priority order: project, org, default
         assert len(paths) == 3
@@ -226,16 +220,12 @@ class TestV2PathScheme:
             project="testproject",
             home_dir=tmp_path,
             project_dir=tmp_path / "projects" / "testproject",
+            memory_root=tmp_path / ".claude" / "mnemonic",
             scheme=PathScheme.V2,
         )
 
         resolver = PathResolver(context)
-        paths = resolver.get_search_paths(
-            "_semantic",
-            include_user=False,
-            include_project=False,
-            include_org=True
-        )
+        paths = resolver.get_search_paths("_semantic", include_user=False, include_project=False, include_org=True)
 
         assert len(paths) == 1
         assert paths[0] == org_dir
@@ -259,6 +249,7 @@ class TestV2PathScheme:
             project="testproject",
             home_dir=tmp_path,
             project_dir=tmp_path / "projects" / "testproject",
+            memory_root=tmp_path / ".claude" / "mnemonic",
             scheme=PathScheme.V2,
         )
 
@@ -274,6 +265,7 @@ class TestConvenienceFunctions:
 
     def test_get_memory_dir(self, monkeypatch, legacy_context):
         """Test convenience get_memory_dir function."""
+
         # Mock the default resolver to use our test context
         def mock_resolver():
             return PathResolver(legacy_context)
@@ -286,6 +278,7 @@ class TestConvenienceFunctions:
 
     def test_get_blackboard_dir(self, monkeypatch, legacy_context):
         """Test convenience get_blackboard_dir function."""
+
         def mock_resolver():
             return PathResolver(legacy_context)
 
@@ -302,13 +295,8 @@ class TestNamespaceHierarchy:
     def test_nested_namespace(self, legacy_context):
         """Test deeply nested namespace paths."""
         resolver = PathResolver(legacy_context)
-        path = resolver.get_memory_dir(
-            "_semantic/decisions/architecture",
-            Scope.PROJECT
-        )
-        expected = Path(
-            "/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions/architecture"
-        )
+        path = resolver.get_memory_dir("_semantic/decisions/architecture", Scope.PROJECT)
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/_semantic/decisions/architecture")
         assert path == expected
 
     def test_root_namespace(self, legacy_context):
@@ -329,6 +317,7 @@ class TestPathContext:
             project="myproject",
             home_dir=Path("/home/user"),
             project_dir=Path("/home/user/code/myproject"),
+            memory_root=Path("/home/user/.claude/mnemonic"),
             scheme=PathScheme.LEGACY,
         )
 
@@ -343,6 +332,7 @@ class TestPathContext:
             project="myproject",
             home_dir=Path("/home/user"),
             project_dir=Path("/home/user/code/myproject"),
+            memory_root=Path("/home/user/.claude/mnemonic"),
             scheme=PathScheme.V2,
         )
 
@@ -366,6 +356,7 @@ class TestEdgeCases:
             project="testproject",
             home_dir=Path("/home/testuser"),
             project_dir=Path("/home/testuser/projects/testproject"),
+            memory_root=Path("/home/testuser/.claude/mnemonic"),
             scheme=PathScheme.LEGACY,
         )
 
@@ -379,7 +370,5 @@ class TestEdgeCases:
         resolver = PathResolver(legacy_context)
         # Path library handles special chars naturally
         path = resolver.get_memory_dir("custom-ns/sub_ns", Scope.PROJECT)
-        expected = Path(
-            "/home/testuser/projects/testproject/.claude/mnemonic/custom-ns/sub_ns"
-        )
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/custom-ns/sub_ns")
         assert path == expected

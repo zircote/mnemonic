@@ -23,10 +23,12 @@ except ImportError:
 
 # Import path resolution from lib
 try:
+    from lib.config import MnemonicConfig
     from lib.paths import PathContext, PathResolver, PathScheme
 
     USE_LIB_PATHS = True
 except ImportError:
+    MnemonicConfig = None
     USE_LIB_PATHS = False
 
 
@@ -39,23 +41,30 @@ def _get_path_resolver() -> "PathResolver | None":
     return PathResolver(context)
 
 
+def _get_memory_root() -> Path:
+    """Get the configured memory root path."""
+    if MnemonicConfig is not None:
+        return MnemonicConfig.load().memory_store_path
+    return Path.home() / ".claude" / "mnemonic"
+
+
 def _get_memory_roots() -> list:
     """Get all memory root paths for searching."""
     resolver = _get_path_resolver()
     if resolver:
         roots = resolver.get_all_memory_roots()
         # Also check legacy paths during migration period
-        home = Path.home()
+        root = _get_memory_root()
         org = resolver.context.org
         legacy_roots = [
-            home / ".claude" / "mnemonic" / org,
-            home / ".claude" / "mnemonic" / "default",
+            root / org,
+            root / "default",
             Path.cwd() / ".claude" / "mnemonic",
         ]
         return list(set(roots + [p for p in legacy_roots if p.exists()]))
 
-    # Fallback to default path
-    mnemonic_dir = Path.home() / ".claude" / "mnemonic"
+    # Fallback to configured path
+    mnemonic_dir = _get_memory_root()
     return [mnemonic_dir] if mnemonic_dir.exists() else []
 
 
@@ -338,7 +347,8 @@ def main():
 
     # Add recall context
     if triggers["recall"] and not relevant_memories:
-        context_lines.append(f"Recall triggered. Search: rg -i '{topic}' ~/.claude/mnemonic/ --glob '*.memory.md'")
+        memory_root = str(_get_memory_root())
+        context_lines.append(f"Recall triggered. Search: rg -i '{topic}' {memory_root}/ --glob '*.memory.md'")
 
     if context_lines:
         output = {

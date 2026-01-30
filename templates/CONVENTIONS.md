@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project uses Mnemonic for persistent memories across coding sessions. Mnemonic stores memories as `.memory.md` files with YAML frontmatter at `~/.claude/mnemonic/`.
+This project uses Mnemonic for persistent memories across coding sessions. Mnemonic stores memories as `.memory.md` files with YAML frontmatter at `${MNEMONIC_ROOT}/`.
 
 ## Before Implementing
 
@@ -10,13 +10,13 @@ Always search for relevant memories:
 
 ```bash
 # Search by topic
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Check decisions
-rg -i "<topic>" ~/.claude/mnemonic/*/decisions/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/*/decisions/ --glob "*.memory.md"
 
 # Check patterns
-rg -i "pattern" ~/.claude/mnemonic/*/patterns/ --glob "*.memory.md"
+rg -i "pattern" ${MNEMONIC_ROOT}/*/patterns/ --glob "*.memory.md"
 ```
 
 ## Capture Requirements
@@ -34,7 +34,7 @@ rg -i "pattern" ~/.claude/mnemonic/*/patterns/ --glob "*.memory.md"
 ### Memory File Location
 
 ```
-~/.claude/mnemonic/default/{namespace}/user/{slug}.memory.md
+${MNEMONIC_ROOT}/default/{namespace}/user/{slug}.memory.md
 ```
 
 ### Memory Format (MIF Level 3)

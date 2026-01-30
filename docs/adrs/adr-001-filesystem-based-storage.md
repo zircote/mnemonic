@@ -169,7 +169,7 @@ Without a defined storage mechanism:
 We will use the filesystem with markdown files (`.memory.md`) containing YAML frontmatter.
 
 The implementation will use:
-- **File path structure**: `~/.claude/mnemonic/{org}/{namespace}/{scope}/{slug}.memory.md`
+- **File path structure**: `${MNEMONIC_ROOT}/{org}/{namespace}/{scope}/{slug}.memory.md`
 - **ripgrep** for fast full-text search
 - **git** for version control and conflict resolution
 - **YAML frontmatter** for structured metadata

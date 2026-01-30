@@ -47,13 +47,13 @@ claude settings plugins add ~/tools/mnemonic
 # Run migration tool
 ./tools/migrate-memory-bank \
   --source ~/your-memory-bank \
-  --target ~/.claude/mnemonic/default \
+  --target ${MNEMONIC_ROOT}/default \
   --namespace learnings
 ```
 
 **Options:**
 - `--source`: Path to existing Memory Bank
-- `--target`: Mnemonic directory (usually `~/.claude/mnemonic/default`)
+- `--target`: Mnemonic directory (usually `${MNEMONIC_ROOT}/default`)
 - `--namespace`: Default namespace for migrated files
 - `--dry-run`: Preview without changes
 - `--preserve-dates`: Use file modification dates for timestamps
@@ -106,7 +106,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 ```bash
 # Example: Converting a decision
-cat > ~/.claude/mnemonic/default/decisions/user/${UUID}-use-jwt.memory.md << 'EOF'
+cat > ${MNEMONIC_ROOT}/default/decisions/user/${UUID}-use-jwt.memory.md << 'EOF'
 ---
 id: YOUR-UUID-HERE
 type: semantic
@@ -139,7 +139,7 @@ Migrate files as you use them.
 1. **Keep both systems running**:
 ```bash
 # Mnemonic for new memories
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 
 # Original for reference
 ~/your-memory-bank/
@@ -257,7 +257,7 @@ done
 **Missing required fields**:
 ```bash
 # Find memories missing provenance
-rg -L "provenance:" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -L "provenance:" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # Add provenance to each
 ```
@@ -265,13 +265,13 @@ rg -L "provenance:" ~/.claude/mnemonic/ --glob "*.memory.md"
 **Invalid timestamps**:
 ```bash
 # Find non-ISO timestamps
-rg "created:.*[^Z]$" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg "created:.*[^Z]$" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 **Duplicate UUIDs**:
 ```bash
 # Check for duplicates
-rg "^id:" ~/.claude/mnemonic/ --glob "*.memory.md" | \
+rg "^id:" ${MNEMONIC_ROOT}/ --glob "*.memory.md" | \
   cut -d: -f2 | sort | uniq -d
 ```
 
@@ -323,7 +323,7 @@ cd ~/your-memory-bank
 git checkout HEAD~1 -- .
 
 # Remove mnemonic memories
-rm -rf ~/.claude/mnemonic/
+rm -rf ${MNEMONIC_ROOT}/
 ```
 
 ---

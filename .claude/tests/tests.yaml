@@ -31,7 +31,7 @@ tests:
       Say: "I've decided we should use Redis for caching in this project"
 
       Then check if a new memory was created in decisions/ namespace.
-      Run: ls -t ~/.claude/mnemonic/*/decisions/user/*.memory.md | head -1
+      Run: ls -t ${MNEMONIC_ROOT}/*/decisions/user/*.memory.md | head -1
 
       The most recent file should have been created within the last
       minute and contain "Redis" or "caching".
@@ -47,7 +47,7 @@ tests:
       Say: "I learned that the API rate limit is 100 requests per minute"
 
       Then check if a new memory was created in learnings/ namespace.
-      Run: ls -t ~/.claude/mnemonic/*/learnings/user/*.memory.md | head -1
+      Run: ls -t ${MNEMONIC_ROOT}/*/learnings/user/*.memory.md | head -1
 
       Verify the file contains "rate limit" or "100 requests".
     expect:
@@ -62,7 +62,7 @@ tests:
       Say: "We should always use snake_case for database column names"
 
       Then check if a new memory was created in patterns/ namespace.
-      Run: ls -t ~/.claude/mnemonic/*/patterns/user/*.memory.md | head -1
+      Run: ls -t ${MNEMONIC_ROOT}/*/patterns/user/*.memory.md | head -1
 
       Verify the file contains "snake_case" or "database".
     expect:
@@ -78,7 +78,7 @@ tests:
       why tokens expire early"
 
       Then check if a new memory was created in blockers/ namespace.
-      Run: ls -t ~/.claude/mnemonic/*/blockers/user/*.memory.md | head -1
+      Run: ls -t ${MNEMONIC_ROOT}/*/blockers/user/*.memory.md | head -1
 
       Verify the file contains "authentication" or "tokens".
     expect:
@@ -93,7 +93,7 @@ tests:
       Say: "Remember this - the staging server password is in 1Password"
 
       Then check if a new memory was created in context/ namespace.
-      Run: ls -t ~/.claude/mnemonic/*/context/user/*.memory.md | head -1
+      Run: ls -t ${MNEMONIC_ROOT}/*/context/user/*.memory.md | head -1
     expect:
       - contains: ".memory.md"
       - not_contains: "No such file"
@@ -148,7 +148,7 @@ tests:
       Say: "Yes, PostgreSQL is the right choice for our database"
 
       Check that only ONE new memory was created about PostgreSQL.
-      Run: rg -l "PostgreSQL" ~/.claude/mnemonic/*/decisions/user/ | wc -l
+      Run: rg -l "PostgreSQL" ${MNEMONIC_ROOT}/*/decisions/user/ | wc -l
     expect:
       - regex: "^1$"
     tags: [natural, capture, dedup]
@@ -177,7 +177,7 @@ tests:
       Say: "The fix was adding a null check before accessing user.email"
 
       Then read the most recent memory in learnings/:
-      Run: ls -t ~/.claude/mnemonic/*/learnings/user/*.memory.md |
+      Run: ls -t ${MNEMONIC_ROOT}/*/learnings/user/*.memory.md |
         head -1 | xargs cat
 
       The memory should contain:
@@ -221,7 +221,7 @@ tests:
       the allowed origins to the config"
 
       Should capture to learnings/ with the resolution.
-      Run: ls -t ~/.claude/mnemonic/*/learnings/user/*.memory.md | head -1
+      Run: ls -t ${MNEMONIC_ROOT}/*/learnings/user/*.memory.md | head -1
     expect:
       - contains: ".memory.md"
       - not_contains: "No such file"

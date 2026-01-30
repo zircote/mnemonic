@@ -5,8 +5,8 @@ Scope Path Migration Script
 Migrates memories from redundant /user/ and /project/ subdirectories
 to the parent namespace directory.
 
-Before: ~/.claude/mnemonic/{org}/{namespace}/user/*.memory.md
-After:  ~/.claude/mnemonic/{org}/{namespace}/*.memory.md
+Before: ${MNEMONIC_ROOT}/{org}/{namespace}/user/*.memory.md
+After:  ${MNEMONIC_ROOT}/{org}/{namespace}/*.memory.md
 
 Before: ./.claude/mnemonic/{namespace}/project/*.memory.md
 After:  ./.claude/mnemonic/{namespace}/*.memory.md

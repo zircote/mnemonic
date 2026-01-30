@@ -358,7 +358,7 @@ def main():
         "path",
         nargs="*",
         default=[],
-        help="Paths to search (default: ~/.claude/mnemonic and ./.claude/mnemonic)",
+        help="Paths to search (default: ${MNEMONIC_ROOT} and ./.claude/mnemonic)",
     )
     parser.add_argument(
         "--type",

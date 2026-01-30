@@ -80,10 +80,10 @@ claude settings plugins add /path/to/mnemonic
 
 ## Directory Structure
 
-All memories are stored under `~/.claude/mnemonic/` with a unified path structure:
+All memories are stored under `${MNEMONIC_ROOT}/` with a unified path structure:
 
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── default/                           # Fallback when org detection fails
 │   └── {namespace}/                   # Cognitive triad namespaces
 ├── {org}/                             # Organization-level
@@ -311,19 +311,19 @@ After running `/mnemonic:setup`, Claude will:
 
 ```bash
 # Full-text search
-rg -i "authentication" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "authentication" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # By namespace
-rg "pattern" ~/.claude/mnemonic/*/_semantic/decisions/ --glob "*.memory.md"
+rg "pattern" ${MNEMONIC_ROOT}/*/_semantic/decisions/ --glob "*.memory.md"
 
 # By tag
-rg -l "^  - security" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -l "^  - security" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 # By type
-rg "^type: episodic" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg "^type: episodic" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 # Recent files (last 7 days)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7
 ```
 
 ## Hooks
@@ -346,10 +346,10 @@ The blackboard enables cross-session coordination:
 
 ```bash
 # Write to blackboard
-echo "## Task started" >> ~/.claude/mnemonic/.blackboard/active-tasks.md
+echo "## Task started" >> ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 
 # Read recent entries
-tail -50 ~/.claude/mnemonic/.blackboard/session-notes.md
+tail -50 ${MNEMONIC_ROOT}/.blackboard/session-notes.md
 ```
 
 ## Git Versioning
@@ -357,7 +357,7 @@ tail -50 ~/.claude/mnemonic/.blackboard/session-notes.md
 All memories are versioned with git:
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git log --oneline -20
 git show HEAD~3:path/to/memory.memory.md
 ```

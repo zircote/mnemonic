@@ -8,7 +8,7 @@ Complete examples of memory capture and recall.
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat > "~/.claude/mnemonic/_semantic/decisions/${UUID}-use-jwt-auth.memory.md" << EOF
+cat > "${MNEMONIC_ROOT}/_semantic/decisions/${UUID}-use-jwt-auth.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Use JWT for API authentication"
@@ -101,7 +101,7 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 sed -i '' "s/^modified: .*/modified: ${DATE}/" "$MEMORY_FILE"
 
 # Commit
-cd ~/.claude/mnemonic && git add -A && git commit -m "Update: JWT auth decision" && cd -
+cd ${MNEMONIC_ROOT} && git add -A && git commit -m "Update: JWT auth decision" && cd -
 ```
 
 ## Example: Status Check
@@ -113,12 +113,12 @@ echo "=== Mnemonic Status ==="
 for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
           _episodic/incidents _episodic/sessions _episodic/blockers \
           _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    count=$(find ~/.claude/mnemonic -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l)
+    count=$(find ${MNEMONIC_ROOT} -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l)
     echo "$ns: $count memories"
 done
 
 # Recent captures
 echo ""
 echo "=== Recent (last 7 days) ==="
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 -exec basename {} \; 2>/dev/null | head -10
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 -exec basename {} \; 2>/dev/null | head -10
 ```

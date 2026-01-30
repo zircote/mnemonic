@@ -11,11 +11,11 @@ Mnemonic is a filesystem-based memory system that persists context across coding
 
 ## Memory Storage
 
-Location: `~/.claude/mnemonic/`
+Location: `${MNEMONIC_ROOT}/`
 
 Structure:
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 └── default/
     ├── decisions/user/
     ├── learnings/user/
@@ -31,7 +31,7 @@ Structure:
 Always search for relevant memories:
 
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### Capture Triggers
@@ -88,7 +88,7 @@ NAMESPACE="decisions"
 TITLE="Your title"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | head -c 50)
 
-cat > ~/.claude/mnemonic/default/${NAMESPACE}/user/${SLUG}.memory.md << 'EOF'
+cat > ${MNEMONIC_ROOT}/default/${NAMESPACE}/user/${SLUG}.memory.md << 'EOF'
 ---
 id: ${UUID}
 type: semantic

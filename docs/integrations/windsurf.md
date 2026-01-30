@@ -16,7 +16,7 @@ Windsurf's Cascade has built-in memory capabilities. This integration configures
 
 ```
 When I ask you to remember something, create a memory file at:
-~/.claude/mnemonic/default/{namespace}/user/
+${MNEMONIC_ROOT}/default/{namespace}/user/
 
 Use MIF Level 3 format with YAML frontmatter:
 - id: UUID
@@ -27,7 +27,7 @@ Use MIF Level 3 format with YAML frontmatter:
 - tags: array
 
 Before implementing features, search for relevant memories:
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 
 Capture decisions to decisions/, learnings to learnings/, patterns to patterns/.
 ```
@@ -71,7 +71,7 @@ Windsurf Cascade generates memories automatically. To sync these with Mnemonic:
 ## Verification
 
 1. Create a test memory: "Remember that this is a test"
-2. Check `~/.claude/mnemonic/default/context/user/` for the file
+2. Check `${MNEMONIC_ROOT}/default/context/user/` for the file
 3. Ask Cascade: "What do you remember about tests?"
 
 ## Limitations
@@ -141,7 +141,7 @@ Sync between Cascade's built-in memories and mnemonic files:
 # Import Cascade memories to mnemonic
 ./tools/import-cascade-memories \
   --source ~/.windsurf/memories/ \
-  --target ~/.claude/mnemonic/default/
+  --target ${MNEMONIC_ROOT}/default/
 ```
 
 ### Project-Specific Configuration
@@ -151,7 +151,7 @@ Create project-level rules in `.windsurfrules`:
 ```markdown
 # Project Memory Configuration
 
-Memory storage: ~/.claude/mnemonic/this-project/
+Memory storage: ${MNEMONIC_ROOT}/this-project/
 
 ## Namespaces
 - decisions/ - Architectural decisions
@@ -171,10 +171,10 @@ Share memories via git:
 
 ```bash
 # Team patterns repository
-git clone git@github.com:team/memories.git ~/.claude/mnemonic/team
+git clone git@github.com:team/memories.git ${MNEMONIC_ROOT}/team
 
 # Reference in Windsurf rules
-Also check ~/.claude/mnemonic/team/ for shared patterns
+Also check ${MNEMONIC_ROOT}/team/ for shared patterns
 ```
 
 ---
@@ -201,7 +201,7 @@ Export via:
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat > ~/.claude/mnemonic/default/context/user/${UUID}-migrated.memory.md << EOF
+cat > ${MNEMONIC_ROOT}/default/context/user/${UUID}-migrated.memory.md << EOF
 ---
 id: ${UUID}
 type: semantic
@@ -232,7 +232,7 @@ Add mnemonic paths to your rules:
 
 ```markdown
 Memory sources (in priority order):
-1. ~/.claude/mnemonic/default/ (mnemonic format)
+1. ${MNEMONIC_ROOT}/default/ (mnemonic format)
 2. .windsurf/memories/ (legacy)
 
 For new memories, always use mnemonic format.
@@ -241,7 +241,7 @@ For new memories, always use mnemonic format.
 ### Step 4: Validate
 
 ```bash
-./tools/mnemonic-validate ~/.claude/mnemonic/default/
+./tools/mnemonic-validate ${MNEMONIC_ROOT}/default/
 ```
 
 See [Migration Guide](../community/migration-from-memory-bank.md) for complete details.
@@ -270,7 +270,7 @@ See [Migration Guide](../community/migration-from-memory-bank.md) for complete d
 3. Check filesystem access permissions
 4. Verify directory exists:
    ```bash
-   mkdir -p ~/.claude/mnemonic/default/context/user/
+   mkdir -p ${MNEMONIC_ROOT}/default/context/user/
    ```
 
 ### Search Not Finding Memories
@@ -281,7 +281,7 @@ See [Migration Guide](../community/migration-from-memory-bank.md) for complete d
 1. Verify memory path in rules
 2. Check file permissions
 3. Ensure `.memory.md` extension
-4. Try: "Search files in ~/.claude/mnemonic/ for X"
+4. Try: "Search files in ${MNEMONIC_ROOT}/ for X"
 
 ### Sync Issues
 

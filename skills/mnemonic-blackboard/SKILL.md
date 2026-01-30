@@ -65,8 +65,8 @@ The blackboard is a shared coordination space for cross-session communication. U
 ### Locations
 
 ```
-~/.claude/mnemonic/.blackboard/     # Global (cross-project)
-~/.claude/mnemonic/.blackboard/     # Project-specific
+${MNEMONIC_ROOT}/.blackboard/     # Global (cross-project)
+${MNEMONIC_ROOT}/.blackboard/     # Project-specific
 ```
 
 ### Topic Files
@@ -120,7 +120,7 @@ SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TOPIC="active-tasks"
 
-cat >> ~/.claude/mnemonic/.blackboard/${TOPIC}.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/${TOPIC}.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -225,7 +225,7 @@ bb_write "shared-context" "Project uses JWT with RS256 signing"
 
 ```bash
 # Full topic file
-cat ~/.claude/mnemonic/.blackboard/active-tasks.md
+cat ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 
 # Project blackboard
 cat.blackboard/shared-context.md
@@ -235,10 +235,10 @@ cat.blackboard/shared-context.md
 
 ```bash
 # Last 50 lines (most recent entries)
-tail -50 ~/.claude/mnemonic/.blackboard/active-tasks.md
+tail -50 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 
 # Last 3 entries (entries separated by ---)
-tac ~/.claude/mnemonic/.blackboard/active-tasks.md | \
+tac ${MNEMONIC_ROOT}/.blackboard/active-tasks.md | \
     awk '/^---$/{count++} count<3' | tac
 ```
 
@@ -248,7 +248,7 @@ tac ~/.claude/mnemonic/.blackboard/active-tasks.md | \
 SESSION_ID="1706012345-12345"
 
 # Find entries from specific session
-grep -A20 "Session: $SESSION_ID" ~/.claude/mnemonic/.blackboard/active-tasks.md
+grep -A20 "Session: $SESSION_ID" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 ```
 
 ### Read Today's Entries
@@ -257,17 +257,17 @@ grep -A20 "Session: $SESSION_ID" ~/.claude/mnemonic/.blackboard/active-tasks.md
 TODAY=$(date +%Y-%m-%d)
 
 # Entries from today
-grep -A20 "Time: ${TODAY}T" ~/.claude/mnemonic/.blackboard/active-tasks.md
+grep -A20 "Time: ${TODAY}T" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 ```
 
 ### Search Across Topics
 
 ```bash
 # Search all blackboard files
-rg "pattern" ~/.claude/mnemonic/.blackboard/
+rg "pattern" ${MNEMONIC_ROOT}/.blackboard/
 
 # List topics mentioning something
-rg -l "authentication" ~/.claude/mnemonic/.blackboard/
+rg -l "authentication" ${MNEMONIC_ROOT}/.blackboard/
 ```
 
 ---
@@ -292,7 +292,7 @@ Create any topic file you need:
 
 ```bash
 # Create new topic
-touch ~/.claude/mnemonic/.blackboard/api-integration.md
+touch ${MNEMONIC_ROOT}/.blackboard/api-integration.md
 
 # Write first entry
 bb_write "api-integration" "Started integrating with Stripe API"
@@ -467,7 +467,7 @@ check_stale_lock() {
 ARCHIVE_DIR="$HOME/.claude/mnemonic/.blackboard/.archive"
 mkdir -p "$ARCHIVE_DIR"
 
-for topic in ~/.claude/mnemonic/.blackboard/*.md; do
+for topic in ${MNEMONIC_ROOT}/.blackboard/*.md; do
     topic_name=$(basename "$topic" .md)
 
     # Extract entries older than 30 days
@@ -481,17 +481,17 @@ done
 ```bash
 # Remove completed entries from active-tasks
 # Keep only entries without "Status: Done"
-grep -v -A10 "Status: Done" ~/.claude/mnemonic/.blackboard/active-tasks.md > \
-    ~/.claude/mnemonic/.blackboard/active-tasks.md.tmp
-mv ~/.claude/mnemonic/.blackboard/active-tasks.md.tmp \
-   ~/.claude/mnemonic/.blackboard/active-tasks.md
+grep -v -A10 "Status: Done" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md > \
+    ${MNEMONIC_ROOT}/.blackboard/active-tasks.md.tmp
+mv ${MNEMONIC_ROOT}/.blackboard/active-tasks.md.tmp \
+   ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 ```
 
 ### Reset Topic
 
 ```bash
 # Clear a topic (keep file, remove content)
-echo "# $(basename $TOPIC .md)" > ~/.claude/mnemonic/.blackboard/$TOPIC.md
+echo "# $(basename $TOPIC .md)" > ${MNEMONIC_ROOT}/.blackboard/$TOPIC.md
 ```
 
 ---
@@ -510,18 +510,18 @@ PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null ||
 
 # Read recent context
 echo "=== Recent Activity ==="
-tail -30 ~/.claude/mnemonic/.blackboard/session-notes.md 2>/dev/null
+tail -30 ${MNEMONIC_ROOT}/.blackboard/session-notes.md 2>/dev/null
 
 echo ""
 echo "=== Active Tasks ==="
-tail -20 ~/.claude/mnemonic/.blackboard/active-tasks.md 2>/dev/null
+tail -20 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md 2>/dev/null
 
 echo ""
 echo "=== Pending Decisions ==="
-tail -20 ~/.claude/mnemonic/.blackboard/pending-decisions.md 2>/dev/null
+tail -20 ${MNEMONIC_ROOT}/.blackboard/pending-decisions.md 2>/dev/null
 
 # Log session start
-cat >> ~/.claude/mnemonic/.blackboard/session-notes.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -560,7 +560,7 @@ read -r -d '' SUMMARY << 'EOF'
 - Continue with Item 3
 EOF
 
-cat >> ~/.claude/mnemonic/.blackboard/session-notes.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
 
 ---
 **Session:** $SESSION_ID
@@ -572,14 +572,14 @@ $SUMMARY
 EOF
 
 # Commit changes
-cd ~/.claude/mnemonic && git add -A && git commit -m "Session $SESSION_ID ended"
+cd ${MNEMONIC_ROOT} && git add -A && git commit -m "Session $SESSION_ID ended"
 ```
 
 ### Example: Quick Task Add
 
 ```bash
 # Add task to todo
-echo "- [ ] $(date +%H:%M) - $*" >> ~/.claude/mnemonic/.blackboard/todo.md
+echo "- [ ] $(date +%H:%M) - $*" >> ${MNEMONIC_ROOT}/.blackboard/todo.md
 ```
 
 ---
@@ -614,13 +614,13 @@ At session start, check blackboard for pending work:
 
 ```bash
 # Read active tasks
-tail -50 ~/.claude/mnemonic/.blackboard/active-tasks.md
+tail -50 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 
 # Read pending decisions
-tail -30 ~/.claude/mnemonic/.blackboard/pending-decisions.md
+tail -30 ${MNEMONIC_ROOT}/.blackboard/pending-decisions.md
 
 # Read last session notes
-tail -50 ~/.claude/mnemonic/.blackboard/session-notes.md
+tail -50 ${MNEMONIC_ROOT}/.blackboard/session-notes.md
 ```
 
 Create Task tool entries for active items that need continuation.

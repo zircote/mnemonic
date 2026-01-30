@@ -76,10 +76,10 @@ Content in markdown...
 
 ## Memory Storage
 
-All memories are stored at `~/.claude/mnemonic/` with this structure:
+All memories are stored at `${MNEMONIC_ROOT}/` with this structure:
 
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 └── {org}/                  # Organization from git remote (or "default")
     ├── apis/user/          # API documentation
     ├── blockers/user/      # Issues encountered

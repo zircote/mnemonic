@@ -56,8 +56,8 @@ class OntologyLoader:
     Resolution order:
     1. MIF submodule (mif/ontologies/)
     2. Fallback directory (skills/ontology/fallback/)
-    3. User ontology (~/.claude/mnemonic/{org}/{project}/ontology.yaml)
-    4. Project ontology (~/.claude/mnemonic/ontology.yaml)
+    3. User ontology (${MNEMONIC_ROOT}/{org}/{project}/ontology.yaml)
+    4. Project ontology (${MNEMONIC_ROOT}/ontology.yaml)
     """
 
     def __init__(self, plugin_root: Optional[Path] = None):

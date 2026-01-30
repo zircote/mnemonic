@@ -38,7 +38,7 @@ claude settings plugins add ~/tools/mnemonic
 
 This creates:
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── default/
 │   ├── decisions/user/
 │   ├── learnings/user/
@@ -56,12 +56,12 @@ This creates:
 
 ```bash
 # Quick migration - copy your existing memory files
-cp ~/your-memory-bank/*.md ~/.claude/mnemonic/default/context/user/
+cp ~/your-memory-bank/*.md ${MNEMONIC_ROOT}/default/context/user/
 
 # Or use the migration tool for proper conversion
 ./tools/migrate-memory-bank \
   --source ~/your-memory-bank \
-  --target ~/.claude/mnemonic/default
+  --target ${MNEMONIC_ROOT}/default
 ```
 
 ### Step 4: Start Using It
@@ -171,11 +171,11 @@ We decided to use JWT tokens because:
 
 **Before**: `~/project-a/memory-bank/`
 
-**After**: `~/.claude/mnemonic/project-a/decisions/user/`
+**After**: `${MNEMONIC_ROOT}/project-a/decisions/user/`
 
 ```bash
 # Create project-specific namespace
-mkdir -p ~/.claude/mnemonic/project-a/{decisions,patterns,learnings}/user
+mkdir -p ${MNEMONIC_ROOT}/project-a/{decisions,patterns,learnings}/user
 ```
 
 ### Pattern 3: Unstructured Notes → Typed Memories
@@ -194,7 +194,7 @@ mkdir -p ~/.claude/mnemonic/project-a/{decisions,patterns,learnings}/user
 You don't have to choose. Mnemonic can coexist with your current approach:
 
 ```
-~/.claude/mnemonic/           # Mnemonic memories
+${MNEMONIC_ROOT}/           # Mnemonic memories
 ~/your-memory-bank/           # Keep your existing setup
 
 # Mnemonic reads both if you configure it

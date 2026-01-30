@@ -9,7 +9,7 @@ The `mnemonic-validate` tool validates memory files against the MIF Level 3 sche
 ./tools/mnemonic-validate
 
 # Validate specific directory
-./tools/mnemonic-validate ~/.claude/mnemonic
+./tools/mnemonic-validate ${MNEMONIC_ROOT}
 
 # JSON output for CI/CD
 ./tools/mnemonic-validate --format json
@@ -44,8 +44,8 @@ Options:
 ### Default Paths
 
 If no path is specified, the tool searches:
-1. `~/.claude/mnemonic/` (global memories)
-2. `~/.claude/mnemonic/` (project memories)
+1. `${MNEMONIC_ROOT}/` (global memories)
+2. `${MNEMONIC_ROOT}/` (project memories)
 
 ## Validation Checks
 

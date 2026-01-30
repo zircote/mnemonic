@@ -20,10 +20,10 @@ cat > ~/.gemini/instructions.md << 'EOF'
 # Mnemonic Memory System
 
 ## Memory Location
-All memories are stored at `~/.claude/mnemonic/` as `.memory.md` files.
+All memories are stored at `${MNEMONIC_ROOT}/` as `.memory.md` files.
 
 ## Required Behavior
-1. Search memories before implementing: `rg -i "<topic>" ~/.claude/mnemonic/`
+1. Search memories before implementing: `rg -i "<topic>" ${MNEMONIC_ROOT}/`
 2. Capture decisions, learnings, patterns immediately
 3. Use MIF Level 3 format with YAML frontmatter
 
@@ -60,7 +60,7 @@ Add to `~/.gemini/settings.json`:
   "mcpServers": {
     "mnemonic": {
       "command": "/path/to/mnemonic-mcp-server",
-      "args": ["--memory-path", "~/.claude/mnemonic"],
+      "args": ["--memory-path", "${MNEMONIC_ROOT}"],
       "timeout": 30000,
       "trust": true
     }

@@ -37,15 +37,19 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Optional
 
+from lib.config import MnemonicConfig
+
 
 class PathScheme(Enum):
     """Path scheme versions for migration support."""
+
     LEGACY = "legacy"  # Current: dual location, flat namespace
     V2 = "v2"  # Target: unified user-level, project hierarchy
 
 
 class Scope(Enum):
     """Memory scope for organization."""
+
     USER = "user"  # Cross-project memories
     PROJECT = "project"  # Project-specific memories
     ORG = "org"  # Organization-wide memories (V2 only)
@@ -54,21 +58,25 @@ class Scope(Enum):
 @dataclass
 class PathContext:
     """Context information for path resolution."""
+
     org: str
     project: str
     home_dir: Path
     project_dir: Path
+    memory_root: Path
     scheme: PathScheme = PathScheme.LEGACY
 
     @classmethod
     def detect(cls, scheme: PathScheme = PathScheme.LEGACY) -> "PathContext":
         """Detect context from environment."""
+        config = MnemonicConfig.load()
         return cls(
             org=_detect_org(),
             project=_detect_project(),
             home_dir=Path.home(),
             project_dir=Path.cwd(),
-            scheme=scheme
+            memory_root=config.memory_store_path,
+            scheme=scheme,
         )
 
 
@@ -113,11 +121,11 @@ class PathResolver:
 
             # V2 scheme, project scope
             get_memory_dir("_semantic/decisions", Scope.PROJECT)
-            # => ~/.claude/mnemonic/{org}/{project}/semantic/decisions
+            # => {memory_root}/{org}/{project}/semantic/decisions
 
             # V2 scheme, org scope
             get_memory_dir("_semantic/decisions", Scope.ORG)
-            # => ~/.claude/mnemonic/{org}/semantic/decisions
+            # => {memory_root}/{org}/semantic/decisions
         """
         if self.context.scheme == PathScheme.LEGACY:
             return self._get_legacy_memory_dir(namespace, scope)
@@ -169,13 +177,9 @@ class PathResolver:
             List of paths to search, in priority order
         """
         if self.context.scheme == PathScheme.LEGACY:
-            return self._get_legacy_search_paths(
-                namespace, include_user, include_project
-            )
+            return self._get_legacy_search_paths(namespace, include_user, include_project)
         else:
-            return self._get_v2_search_paths(
-                namespace, include_user, include_project, include_org
-            )
+            return self._get_v2_search_paths(namespace, include_user, include_project, include_org)
 
     def get_blackboard_dir(
         self,
@@ -194,13 +198,13 @@ class PathResolver:
             if scope == Scope.PROJECT:
                 return self.context.project_dir / ".claude" / "mnemonic" / ".blackboard"
             else:
-                return self.context.home_dir / ".claude" / "mnemonic" / ".blackboard"
+                return self.context.memory_root / ".blackboard"
         else:
             if scope == Scope.PROJECT:
-                base = self.context.home_dir / ".claude" / "mnemonic" / self.context.org / self.context.project
+                base = self.context.memory_root / self.context.org / self.context.project
                 return base / ".blackboard"
             else:
-                return self.context.home_dir / ".claude" / "mnemonic" / self.context.org / ".blackboard"
+                return self.context.memory_root / self.context.org / ".blackboard"
 
     def get_ontology_paths(self) -> List[Path]:
         """
@@ -216,24 +220,15 @@ class PathResolver:
 
         # Project ontology
         if self.context.scheme == PathScheme.LEGACY:
-            paths.append(
-                self.context.project_dir / ".claude" / "mnemonic" / "ontology.yaml"
-            )
+            paths.append(self.context.project_dir / ".claude" / "mnemonic" / "ontology.yaml")
         else:
-            base = self.context.home_dir / ".claude" / "mnemonic"
-            paths.append(
-                base / self.context.org / self.context.project / "ontology.yaml"
-            )
+            paths.append(self.context.memory_root / self.context.org / self.context.project / "ontology.yaml")
 
         # User/org ontology
         if self.context.scheme == PathScheme.LEGACY:
-            paths.append(
-                self.context.home_dir / ".claude" / "mnemonic" / "ontology.yaml"
-            )
+            paths.append(self.context.memory_root / "ontology.yaml")
         else:
-            paths.append(
-                self.context.home_dir / ".claude" / "mnemonic" / self.context.org / "ontology.yaml"
-            )
+            paths.append(self.context.memory_root / self.context.org / "ontology.yaml")
 
         return paths
 
@@ -251,7 +246,7 @@ class PathResolver:
         """
         if self.context.scheme == PathScheme.LEGACY:
             roots = []
-            user_base = self.context.home_dir / ".claude" / "mnemonic"
+            user_base = self.context.memory_root
 
             # User org directory
             org_path = user_base / self.context.org
@@ -270,8 +265,8 @@ class PathResolver:
 
             return roots
         else:
-            # V2: Everything is under user home
-            base = self.context.home_dir / ".claude" / "mnemonic" / self.context.org
+            # V2: Everything is under memory_root
+            base = self.context.memory_root / self.context.org
             return [base] if base.exists() else []
 
     # Legacy scheme implementations
@@ -281,10 +276,7 @@ class PathResolver:
         if scope == Scope.PROJECT:
             return self.context.project_dir / ".claude" / "mnemonic" / namespace
         else:
-            return (
-                self.context.home_dir / ".claude" / "mnemonic"
-                / self.context.org / namespace
-            )
+            return self.context.memory_root / self.context.org / namespace
 
     def _get_legacy_search_paths(
         self,
@@ -303,7 +295,7 @@ class PathResolver:
                 paths.append(project_base)
 
         if include_user:
-            user_base = self.context.home_dir / ".claude" / "mnemonic"
+            user_base = self.context.memory_root
 
             # Org-specific memories
             org_base = user_base / self.context.org
@@ -325,7 +317,7 @@ class PathResolver:
 
     def _get_v2_memory_dir(self, namespace: str, scope: Scope) -> Path:
         """Get memory directory using V2 path scheme."""
-        base = self.context.home_dir / ".claude" / "mnemonic" / self.context.org
+        base = self.context.memory_root / self.context.org
 
         if scope == Scope.PROJECT:
             return base / self.context.project / namespace
@@ -343,7 +335,7 @@ class PathResolver:
     ) -> List[Path]:
         """Get search paths using V2 scheme."""
         paths = []
-        base = self.context.home_dir / ".claude" / "mnemonic" / self.context.org
+        base = self.context.memory_root / self.context.org
 
         # Project-specific (highest priority)
         if include_project:
@@ -362,7 +354,7 @@ class PathResolver:
 
         # Default fallback (for backward compatibility)
         if include_user:
-            default_base = self.context.home_dir / ".claude" / "mnemonic" / "default"
+            default_base = self.context.memory_root / "default"
             if namespace:
                 paths.append(default_base / namespace)
             else:
@@ -372,6 +364,7 @@ class PathResolver:
 
 
 # Helper functions for context detection
+
 
 def _detect_org() -> str:
     """
@@ -384,12 +377,7 @@ def _detect_org() -> str:
         Organization name or "default"
     """
     try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             url = result.stdout.strip()
             # Handle both SSH and HTTPS URLs
@@ -414,12 +402,7 @@ def _detect_project() -> str:
         Project name
     """
     try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
+        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             url = result.stdout.strip()
             return url.rstrip(".git").split("/")[-1]
@@ -429,6 +412,7 @@ def _detect_project() -> str:
 
 
 # Convenience functions for backward compatibility
+
 
 def get_default_resolver() -> PathResolver:
     """Get default path resolver with auto-detected context."""

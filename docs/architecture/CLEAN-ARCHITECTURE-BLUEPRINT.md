@@ -28,8 +28,8 @@ This blueprint implements a **centralized path resolution system** that:
 
 **User-level** (cross-project):
 ```
-~/.claude/mnemonic/{org}/{namespace}/
-~/.claude/mnemonic/default/{namespace}/
+${MNEMONIC_ROOT}/{org}/{namespace}/
+${MNEMONIC_ROOT}/default/{namespace}/
 ```
 
 **Project-level** (codebase-specific):
@@ -48,9 +48,9 @@ This blueprint implements a **centralized path resolution system** that:
 
 **Unified user-level** (everything in home):
 ```
-~/.claude/mnemonic/{org}/{project}/{semantic,episodic,procedural}/{sub-namespace}/
-~/.claude/mnemonic/{org}/{semantic,episodic,procedural}/{sub-namespace}/
-~/.claude/mnemonic/{org}/{project}/.blackboard/
+${MNEMONIC_ROOT}/{org}/{project}/{semantic,episodic,procedural}/{sub-namespace}/
+${MNEMONIC_ROOT}/{org}/{semantic,episodic,procedural}/{sub-namespace}/
+${MNEMONIC_ROOT}/{org}/{project}/.blackboard/
 ```
 
 **Benefits**:
@@ -302,7 +302,7 @@ Convert Bash commands to Python for better path handling:
 
 ### Phase 4: V2 Scheme Enablement (Week 4)
 
-**Configuration File** (`~/.claude/mnemonic/config.yaml`):
+**Configuration File** (`${MNEMONIC_ROOT}/config.yaml`):
 ```yaml
 # Path scheme configuration
 paths:
@@ -358,7 +358,7 @@ Command/Hook
     │        └─► Compute path based on scheme
     │                 │
     │                 ├─► LEGACY: ./.claude/mnemonic/{namespace}
-    │                 └─► V2: ~/.claude/mnemonic/{org}/{project}/{namespace}
+    │                 └─► V2: ${MNEMONIC_ROOT}/{org}/{project}/{namespace}
     │
     ├─► Create directory (mkdir -p)
     │

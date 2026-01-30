@@ -799,7 +799,7 @@ for ENTITY_TYPE in $(echo $PATTERNS | jq -r 'keys[]'); do
     PATTERN=$(echo $PATTERNS | jq -r ".[\"$ENTITY_TYPE\"]")
 
     # Find matches using ripgrep
-    MATCHES=$(rg -i "$PATTERN" ~/.claude/mnemonic/ ./.claude/mnemonic/ \
+    MATCHES=$(rg -i "$PATTERN" ${MNEMONIC_ROOT}/ ./.claude/mnemonic/ \
         --glob "*.memory.md" -o | sort | uniq -c | sort -rn | head -10)
 
     echo "Potential $ENTITY_TYPE entities:"
@@ -842,7 +842,7 @@ When user confirms:
 
 ```bash
 # Find memories mentioning the entity
-MEMORIES=$(rg -l "$ENTITY_NAME" ~/.claude/mnemonic/ --glob "*.memory.md")
+MEMORIES=$(rg -l "$ENTITY_NAME" ${MNEMONIC_ROOT}/ --glob "*.memory.md")
 
 for MEMORY in $MEMORIES; do
     # Add entity_links to frontmatter

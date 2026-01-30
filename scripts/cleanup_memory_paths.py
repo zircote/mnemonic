@@ -2,7 +2,7 @@
 """
 Cleanup Memory Paths Script
 
-Fixes the messed up directory structure in ~/.claude/mnemonic:
+Fixes the messed up directory structure in ${MNEMONIC_ROOT}:
 1. Removes double-nested paths (semantic/semantic/decisions → semantic/decisions)
 2. Cleans up stray root-level directories that should be under an org
 3. Removes empty files and directories

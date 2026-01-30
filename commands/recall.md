@@ -60,7 +60,7 @@ SEARCH_PATHS=""
 PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
 [ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
 
-# All memories are under ~/.claude/mnemonic/
+# All memories are under ${MNEMONIC_ROOT}/
 # Path structure:
 #   {org}/{project}/ - project-specific memories
 #   {org}/ - org-wide memories (shared across projects)

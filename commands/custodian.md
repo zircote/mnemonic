@@ -57,7 +57,7 @@ Move memories when project or org names change. Auto-updates all cross-reference
 Example:
 ```bash
 # Project renamed from old-api to new-api
-/mnemonic:custodian relocate ~/.claude/mnemonic/zircote/old-api ~/.claude/mnemonic/zircote/new-api
+/mnemonic:custodian relocate ${MNEMONIC_ROOT}/zircote/old-api ${MNEMONIC_ROOT}/zircote/new-api
 ```
 
 Steps:
@@ -152,7 +152,7 @@ If Python execution fails, fall back to manual execution of each subcommand usin
 /mnemonic:custodian decay --commit
 
 # Move project memories after rename
-/mnemonic:custodian relocate ~/.claude/mnemonic/org/old-name ~/.claude/mnemonic/org/new-name --commit
+/mnemonic:custodian relocate ${MNEMONIC_ROOT}/org/old-name ${MNEMONIC_ROOT}/org/new-name --commit
 
 # JSON output for programmatic use
 /mnemonic:custodian audit --json

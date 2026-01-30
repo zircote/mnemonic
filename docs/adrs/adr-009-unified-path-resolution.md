@@ -27,7 +27,7 @@ This creates several problems:
 
 **User-level** (cross-project memories):
 ```
-~/.claude/mnemonic/{org}/{namespace}/
+${MNEMONIC_ROOT}/{org}/{namespace}/
 ```
 
 **Project-level** (project-specific memories):
@@ -39,9 +39,9 @@ This creates several problems:
 
 **Unified user-level** (everything in home directory):
 ```
-~/.claude/mnemonic/{org}/{project}/{semantic,episodic,procedural}/{sub-namespace}/
-~/.claude/mnemonic/{org}/{semantic,episodic,procedural}/{sub-namespace}/  # org-wide
-~/.claude/mnemonic/{org}/{project}/.blackboard/
+${MNEMONIC_ROOT}/{org}/{project}/{semantic,episodic,procedural}/{sub-namespace}/
+${MNEMONIC_ROOT}/{org}/{semantic,episodic,procedural}/{sub-namespace}/  # org-wide
+${MNEMONIC_ROOT}/{org}/{project}/.blackboard/
 ```
 
 ### Pain Points
@@ -257,13 +257,13 @@ export MNEMONIC_PROJECT_DIR="./.claude/mnemonic"
 
 ### Alternative 3: Configuration File
 
-Store all paths in `~/.claude/mnemonic/config.yaml`:
+Store all paths in `${MNEMONIC_ROOT}/config.yaml`:
 
 ```yaml
 paths:
-  user_base: "~/.claude/mnemonic/{org}"
+  user_base: "${MNEMONIC_ROOT}/{org}"
   project_base: "./.claude/mnemonic"
-  blackboard: "~/.claude/mnemonic/.blackboard"
+  blackboard: "${MNEMONIC_ROOT}/.blackboard"
 ```
 
 **Pros**:

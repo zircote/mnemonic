@@ -55,7 +55,7 @@ for ns in _semantic/decisions _semantic/knowledge _procedural/patterns; do
     echo "=== Checking $ns for conflicts ==="
 
     # Get all titles
-    titles=$(rg "^title:" ~/.claude/mnemonic --path "*/$ns/" --glob "*.memory.md" -o 2>/dev/null | \
+    titles=$(rg "^title:" ${MNEMONIC_ROOT} --path "*/$ns/" --glob "*.memory.md" -o 2>/dev/null | \
              sed 's/.*title: "//' | sed 's/"$//' | sort)
 
     # Find near-duplicates (simplified)
@@ -74,8 +74,8 @@ Identify memories that are effectively duplicates:
 
 ```bash
 # Find files with very similar content
-for f1 in ~/.claude/mnemonic/**/*.memory.md; do
-    for f2 in ~/.claude/mnemonic/**/*.memory.md; do
+for f1 in ${MNEMONIC_ROOT}/**/*.memory.md; do
+    for f2 in ${MNEMONIC_ROOT}/**/*.memory.md; do
         [ "$f1" = "$f2" ] && continue
 
         # Compare content similarity (excluding frontmatter)
@@ -147,13 +147,13 @@ Verify all memory links are valid:
 
 ```bash
 # Find all memory references
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     # Extract [[id]] references
     refs=$(grep -oE '\[\[[a-f0-9-]+\]\]' "$f" | tr -d '[]')
 
     for ref in $refs; do
         # Check if referenced memory exists
-        if ! ls ~/.claude/mnemonic/**/${ref}*.memory.md 2>/dev/null | head -1; then
+        if ! ls ${MNEMONIC_ROOT}/**/${ref}*.memory.md 2>/dev/null | head -1; then
             echo "Broken link in $f: [[${ref}]]"
         fi
     done
@@ -173,7 +173,7 @@ Archive or remove expired content:
 # Find memories past TTL
 NOW=$(date +%s)
 
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     TTL=$(grep "ttl:" "$f" | sed 's/.*ttl: P\([0-9]*\)D/\1/')
     CREATED=$(grep "created:" "$f" | sed 's/created: //')
 

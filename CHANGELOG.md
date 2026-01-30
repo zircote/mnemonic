@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **[Configurable Memory Store]**: Memory store path is now user-configurable
+  - Config stored at `~/.config/mnemonic/config.json` (XDG-compliant, fixed location)
+  - New `lib/config.py` module with `MnemonicConfig` class (load/save/defaults)
+  - `lib/paths.py` `PathContext` gains `memory_root` field, resolved from config
+  - `hooks/session_start.py` injects `MNEMONIC_ROOT` into session context
+  - `hooks/user_prompt_submit.py` uses configured path for recall triggers
+  - `commands/setup.md` prompts user for path, creates config, supports auto-migration
+  - `skills/mnemonic-setup/SKILL.md` updated with config step and migration support
+  - All 77 files with hardcoded `~/.claude/mnemonic` updated to use `${MNEMONIC_ROOT}`
+  - Default remains `~/.claude/mnemonic` for backward compatibility
+
 ### Planned
 
 - Semantic search with embeddings

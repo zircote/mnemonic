@@ -242,7 +242,7 @@ class TestMemorySearch(unittest.TestCase):
     def test_search_both_paths(self):
         """Test that search includes both user and project memories."""
         # Verify the search command searches both paths
-        search_cmd = 'rg -i "test" ~/.claude/mnemonic/ ./.claude/mnemonic/ --glob "*.memory.md" -l'
+        search_cmd = 'rg -i "test" ${MNEMONIC_ROOT}/ ./.claude/mnemonic/ --glob "*.memory.md" -l'
 
         result = subprocess.run(
             ["bash", "-c", search_cmd],

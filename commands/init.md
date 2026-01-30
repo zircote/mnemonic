@@ -44,41 +44,41 @@ PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
 
 ### Step 2: Create Unified Directory Structure
 
-All memories are stored under `~/.claude/mnemonic/` with the V2 path structure:
+All memories are stored under `${MNEMONIC_ROOT}/` with the V2 path structure:
 
 ```bash
 # Base directories
-mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"
-mkdir -p ~/.claude/mnemonic/"$ORG"  # For org-wide memories
+mkdir -p ${MNEMONIC_ROOT}/"$ORG"/"$PROJECT"
+mkdir -p ${MNEMONIC_ROOT}/"$ORG"  # For org-wide memories
 
 # Cognitive triad namespaces (project-specific, prefixed with _ for disambiguation)
 for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
           _episodic/incidents _episodic/sessions _episodic/blockers \
           _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/"$ns"
+    mkdir -p ${MNEMONIC_ROOT}/"$ORG"/"$PROJECT"/"$ns"
 done
 
 # Org-wide namespaces (shared across projects)
 for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
           _episodic/incidents _episodic/sessions _episodic/blockers \
           _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    mkdir -p ~/.claude/mnemonic/"$ORG"/"$ns"
+    mkdir -p ${MNEMONIC_ROOT}/"$ORG"/"$ns"
 done
 
 # Blackboard for session coordination (per-project)
-mkdir -p ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard
+mkdir -p ${MNEMONIC_ROOT}/"$ORG"/"$PROJECT"/.blackboard
 
 # Initialize standard blackboard topics
-touch ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard/active-tasks.md
-touch ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard/session-notes.md
-touch ~/.claude/mnemonic/"$ORG"/"$PROJECT"/.blackboard/shared-context.md
+touch ${MNEMONIC_ROOT}/"$ORG"/"$PROJECT"/.blackboard/active-tasks.md
+touch ${MNEMONIC_ROOT}/"$ORG"/"$PROJECT"/.blackboard/session-notes.md
+touch ${MNEMONIC_ROOT}/"$ORG"/"$PROJECT"/.blackboard/shared-context.md
 ```
 
 ### Step 3: Initialize Git Repository
 
 ```bash
-if [ ! -d ~/.claude/mnemonic/.git ]; then
-    cd ~/.claude/mnemonic
+if [ ! -d ${MNEMONIC_ROOT}/.git ]; then
+    cd ${MNEMONIC_ROOT}
     git init
 
     cat > .gitignore << 'EOF'
@@ -108,7 +108,7 @@ echo "=== Mnemonic Initialized ==="
 echo "Organization: $ORG"
 echo "Project: $PROJECT"
 echo ""
-echo "Memory path: ~/.claude/mnemonic/$ORG/$PROJECT/"
+echo "Memory path: ${MNEMONIC_ROOT}/$ORG/$PROJECT/"
 echo ""
 echo "Namespaces:"
 echo "  _semantic/decisions   - Architectural choices"
@@ -127,6 +127,6 @@ echo "  _procedural/migrations - Migration steps"
 Display:
 - Detected/configured organization
 - Detected project name
-- Memory path (unified under ~/.claude/mnemonic/)
+- Memory path (unified under ${MNEMONIC_ROOT}/)
 - Namespace list with descriptions
 - Git status

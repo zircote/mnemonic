@@ -120,7 +120,7 @@ Enum defining memory scope:
 
 **User memories**:
 ```
-~/.claude/mnemonic/{org}/{namespace}/
+${MNEMONIC_ROOT}/{org}/{namespace}/
 ```
 
 **Project memories**:
@@ -130,7 +130,7 @@ Enum defining memory scope:
 
 **Example**:
 ```
-~/.claude/mnemonic/myorg/_semantic/decisions/
+${MNEMONIC_ROOT}/myorg/_semantic/decisions/
 ./.claude/mnemonic/_semantic/decisions/
 ```
 
@@ -138,18 +138,18 @@ Enum defining memory scope:
 
 **Project memories**:
 ```
-~/.claude/mnemonic/{org}/{project}/{namespace}/
+${MNEMONIC_ROOT}/{org}/{project}/{namespace}/
 ```
 
 **Org-wide memories**:
 ```
-~/.claude/mnemonic/{org}/{namespace}/
+${MNEMONIC_ROOT}/{org}/{namespace}/
 ```
 
 **Example**:
 ```
-~/.claude/mnemonic/myorg/myproject/_semantic/decisions/
-~/.claude/mnemonic/myorg/_semantic/decisions/
+${MNEMONIC_ROOT}/myorg/myproject/_semantic/decisions/
+${MNEMONIC_ROOT}/myorg/_semantic/decisions/
 ```
 
 ## Testing

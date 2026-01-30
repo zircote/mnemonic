@@ -36,14 +36,14 @@ alwaysApply: true
 # Mnemonic Memory System
 
 ## Memory Storage
-All memories stored at `~/.claude/mnemonic/` as `.memory.md` files.
+All memories stored at `${MNEMONIC_ROOT}/` as `.memory.md` files.
 
 ## Required Behavior
 
 ### Before Implementing
 Search for relevant memories:
 ```bash
-rg -i "<topic>" ~/.claude/mnemonic/ --glob "*.memory.md"
+rg -i "<topic>" ${MNEMONIC_ROOT}/ --glob "*.memory.md"
 ```
 
 ### Capture Triggers
@@ -151,14 +151,14 @@ When switching between projects:
 
 ```bash
 # Each project can have its own namespace
-~/.claude/mnemonic/project-a/decisions/user/
-~/.claude/mnemonic/project-b/decisions/user/
+${MNEMONIC_ROOT}/project-a/decisions/user/
+${MNEMONIC_ROOT}/project-b/decisions/user/
 ```
 
 Configure rule to use project-specific paths:
 
 ```markdown
-Memory path for this project: ~/.claude/mnemonic/project-a/
+Memory path for this project: ${MNEMONIC_ROOT}/project-a/
 ```
 
 ### Team Patterns
@@ -167,12 +167,12 @@ Share patterns across team:
 
 ```bash
 # Clone shared patterns
-git clone git@github.com:team/patterns.git ~/.claude/mnemonic/shared
+git clone git@github.com:team/patterns.git ${MNEMONIC_ROOT}/shared
 
 # Rule references both personal and shared
 Memory paths:
-- Personal: ~/.claude/mnemonic/default/
-- Shared: ~/.claude/mnemonic/shared/
+- Personal: ${MNEMONIC_ROOT}/default/
+- Shared: ${MNEMONIC_ROOT}/shared/
 ```
 
 ---
@@ -194,7 +194,7 @@ Your Memory Bank files are typically in:
 # Use migration tool
 ./tools/migrate-memory-bank \
   --source .cursor/memory-bank \
-  --target ~/.claude/mnemonic/default \
+  --target ${MNEMONIC_ROOT}/default \
   --namespace context
 ```
 
@@ -209,7 +209,7 @@ Check .cursor/memory-bank/ for context
 
 **After:**
 ```markdown
-Check ~/.claude/mnemonic/default/ for context
+Check ${MNEMONIC_ROOT}/default/ for context
 Use MIF Level 3 format for new memories
 ```
 
@@ -217,7 +217,7 @@ Use MIF Level 3 format for new memories
 
 ```bash
 # Validate converted memories
-./tools/mnemonic-validate ~/.claude/mnemonic/default/
+./tools/mnemonic-validate ${MNEMONIC_ROOT}/default/
 
 # Test in Cursor
 "What do we know about [topic from old memory bank]?"
@@ -246,7 +246,7 @@ See [Migration Guide](../community/migration-from-memory-bank.md) for complete d
 **Solutions**:
 1. Verify memory directory exists:
    ```bash
-   ls -la ~/.claude/mnemonic/
+   ls -la ${MNEMONIC_ROOT}/
    ```
 2. Check file permissions
 3. Ensure `.memory.md` extension

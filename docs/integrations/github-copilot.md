@@ -36,7 +36,7 @@ Required fields: id, type, namespace, created, title, tags.
 
 ## How It Works
 
-1. **Recall**: Copilot searches `~/.claude/mnemonic/` before implementing features
+1. **Recall**: Copilot searches `${MNEMONIC_ROOT}/` before implementing features
 2. **Capture**: Copilot creates memory files when decisions are made
 3. **Format**: All memories use MIF Level 3 format with YAML frontmatter
 
@@ -115,8 +115,8 @@ This is a [type] project using [stack].
 
 ## Memory References
 Before implementing features, check:
-- ~/.claude/mnemonic/this-project/decisions/
-- ~/.claude/mnemonic/this-project/patterns/
+- ${MNEMONIC_ROOT}/this-project/decisions/
+- ${MNEMONIC_ROOT}/this-project/patterns/
 
 ## Capture Requirements
 Document all:
@@ -136,7 +136,7 @@ applyTo: ["**/api/**/*.ts"]
 ---
 
 Check API decisions before implementing:
-- ~/.claude/mnemonic/default/apis/
+- ${MNEMONIC_ROOT}/default/apis/
 
 Document new endpoints in apis/ namespace.
 ```
@@ -148,7 +148,7 @@ applyTo: ["**/*.test.ts", "**/*.spec.ts"]
 ---
 
 Reference testing patterns:
-- ~/.claude/mnemonic/default/testing/
+- ${MNEMONIC_ROOT}/default/testing/
 
 Document testing strategies discovered.
 ```
@@ -167,7 +167,7 @@ Also check: ~/shared-memories/org/
 Check: ~/shared-memories/team-platform/
 
 ## Project-Specific
-Primary: ~/.claude/mnemonic/this-project/
+Primary: ${MNEMONIC_ROOT}/this-project/
 ```
 
 ### Copilot Workspace Integration
@@ -215,7 +215,7 @@ If you have existing markdown memory files:
 # Migrate existing files
 ./tools/migrate-memory-bank \
   --source ./docs/memory/ \
-  --target ~/.claude/mnemonic/default \
+  --target ${MNEMONIC_ROOT}/default \
   --namespace context
 
 # Update copilot-instructions.md with new paths
@@ -269,7 +269,7 @@ See [Migration Guide](../community/migration-from-memory-bank.md) for detailed s
 3. Consider project-relative paths:
    ```markdown
    For this project: ./mnemonic/
-   For personal: ~/.claude/mnemonic/
+   For personal: ${MNEMONIC_ROOT}/
    ```
 
 ### Format Inconsistencies

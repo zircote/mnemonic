@@ -73,9 +73,9 @@ conflicts:
 
 ## Directory Structure
 
-**Unified structure** (`~/.claude/mnemonic/`):
+**Unified structure** (`${MNEMONIC_ROOT}/`):
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── {org}/                     # Organization-level
 │   ├── _semantic/             # Org-wide facts/knowledge
 │   │   ├── decisions/

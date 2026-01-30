@@ -186,7 +186,7 @@ class MarkerParser:
         legacy_usage_patterns = [
             r"rg\s+-[il].*mnemonic",  # rg command searching mnemonic
             r"/mnemonic:capture\s+\w",  # capture command with namespace
-            r"~/.claude/mnemonic/\w",  # path with actual content after
+            r"${MNEMONIC_ROOT}/\w",  # path with actual content after
         ]
 
         return any(re.search(pattern, content_no_code) for pattern in legacy_usage_patterns)

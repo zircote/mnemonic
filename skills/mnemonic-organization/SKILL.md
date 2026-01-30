@@ -41,12 +41,12 @@ This skill covers the organizational structure of mnemonic, including directory 
 
 ## Directory Structure
 
-All memories are stored under `~/.claude/mnemonic/` with a unified path structure.
+All memories are stored under `${MNEMONIC_ROOT}/` with a unified path structure.
 
 ### Unified Storage Layout
 
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── default/                           # Fallback when org detection fails
 │   └── {namespace}/                   # Cognitive namespaces
 ├── {org}/                             # Organization-level
@@ -190,8 +190,8 @@ The blackboard is a shared coordination space for cross-session communication.
 
 ### Location
 
-- Project: `~/.claude/mnemonic/{org}/{project}/.blackboard/`
-- Organization: `~/.claude/mnemonic/{org}/.blackboard/`
+- Project: `${MNEMONIC_ROOT}/{org}/{project}/.blackboard/`
+- Organization: `${MNEMONIC_ROOT}/{org}/.blackboard/`
 
 ### Structure
 
@@ -212,7 +212,7 @@ One markdown file per topic:
 SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat >> ~/.claude/mnemonic/.blackboard/active-tasks.md << EOF
+cat >> ${MNEMONIC_ROOT}/.blackboard/active-tasks.md << EOF
 
 ---
 ## Session: $SESSION_ID
@@ -228,10 +228,10 @@ EOF
 
 ```bash
 # Recent entries
-tail -50 ~/.claude/mnemonic/.blackboard/active-tasks.md
+tail -50 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 
 # Entries from specific session
-grep -A20 "Session: $SESSION_ID" ~/.claude/mnemonic/.blackboard/active-tasks.md
+grep -A20 "Session: $SESSION_ID" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
 ```
 
 ### Topic Conventions
@@ -251,7 +251,7 @@ grep -A20 "Session: $SESSION_ID" ~/.claude/mnemonic/.blackboard/active-tasks.md
 ### Initialize Repository
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 
 # Initialize if needed
 [ ! -d .git ] && git init
@@ -273,7 +273,7 @@ git commit -m "Initialize mnemonic memory system"
 ### Commit Changes
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git add -A
 git commit -m "Memory update: $(date +%Y-%m-%d)"
 ```
@@ -281,7 +281,7 @@ git commit -m "Memory update: $(date +%Y-%m-%d)"
 ### View History
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 
 # Recent commits
 git log --oneline -20
@@ -296,7 +296,7 @@ git show HEAD~3:zircote/_semantic/decisions/abc123-use-jwt.memory.md
 ### Restore Previous Version
 
 ```bash
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 
 # Restore specific file from history
 git checkout HEAD~1 -- zircote/_semantic/decisions/abc123-use-jwt.memory.md
@@ -317,7 +317,7 @@ git commit -m "Restore: memory title"
 NOW=$(date +%s)
 
 # Find memories with ttl field
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     TTL=$(grep "^  ttl:" "$f" 2>/dev/null | sed 's/.*ttl: //')
     CREATED=$(grep "^created:" "$f" 2>/dev/null | sed 's/created: //')
 
@@ -334,7 +334,7 @@ done
 # Update decay strength based on last access
 # strength = initial * (0.5 ^ (days_since_access / half_life_days))
 
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     LAST_ACCESS=$(grep "last_accessed:" "$f" 2>/dev/null | sed 's/.*last_accessed: //')
     HALF_LIFE=$(grep "half_life:" "$f" 2>/dev/null | sed 's/.*half_life: //')
 
@@ -349,10 +349,10 @@ done
 
 ```bash
 # Move memories with strength < 0.2 to archive
-ARCHIVE_DIR=~/.claude/mnemonic/.archive/$(date +%Y-%m)
+ARCHIVE_DIR=${MNEMONIC_ROOT}/.archive/$(date +%Y-%m)
 mkdir -p "$ARCHIVE_DIR"
 
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     STRENGTH=$(grep "strength:" "$f" 2>/dev/null | sed 's/.*strength: //')
     if [ -n "$STRENGTH" ]; then
         # Compare strength (bash can't do float comparison easily)
@@ -368,13 +368,13 @@ done
 
 ```bash
 # Find and delete truly expired memories (past TTL + grace period)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime +365 -type f
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +365 -type f
 
 # Dry run
-find ~/.claude/mnemonic -name "*.memory.md" -mtime +365 -type f -exec echo "Would delete: {}" \;
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +365 -type f -exec echo "Would delete: {}" \;
 
 # Actual delete (with confirmation)
-find ~/.claude/mnemonic -name "*.memory.md" -mtime +365 -type f -exec rm -i {} \;
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +365 -type f -exec rm -i {} \;
 ```
 
 ---
@@ -386,7 +386,7 @@ find ~/.claude/mnemonic -name "*.memory.md" -mtime +365 -type f -exec rm -i {} \
 ```bash
 # Search for memories with similar titles
 TITLE="authentication"
-rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
+rg -i "^title:.*$TITLE" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 
 ### Detect Contradictions
@@ -396,7 +396,7 @@ rg -i "^title:.*$TITLE" ~/.claude/mnemonic/ --glob "*.memory.md" -l
 # Look for opposite patterns in same namespace
 
 # Example: Find all auth decisions
-AUTH_DECISIONS=$(rg -l "auth" ~/.claude/mnemonic --path "*/_semantic/decisions/" --glob "*.memory.md" 2>/dev/null)
+AUTH_DECISIONS=$(rg -l "auth" ${MNEMONIC_ROOT} --path "*/_semantic/decisions/" --glob "*.memory.md" 2>/dev/null)
 
 echo "Review these for potential conflicts:"
 for f in $AUTH_DECISIONS; do
@@ -432,19 +432,19 @@ conflicts:
 echo "=== Mnemonic Health Check ==="
 
 # Directory exists
-test -d ~/.claude/mnemonic && echo "✓ User mnemonic exists" || echo "✗ User mnemonic missing"
+test -d ${MNEMONIC_ROOT} && echo "✓ User mnemonic exists" || echo "✗ User mnemonic missing"
 
 # Git status
-cd ~/.claude/mnemonic
+cd ${MNEMONIC_ROOT}
 git status --short 2>/dev/null || echo "✗ Git not initialized"
 cd - > /dev/null
 
 # Memory counts by cognitive type
 echo ""
 echo "=== Memory Counts by Type ==="
-SEMANTIC=$(find ~/.claude/mnemonic -path "*/_semantic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-EPISODIC=$(find ~/.claude/mnemonic -path "*/_episodic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-PROCEDURAL=$(find ~/.claude/mnemonic -path "*/_procedural/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+SEMANTIC=$(find ${MNEMONIC_ROOT} -path "*/_semantic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+EPISODIC=$(find ${MNEMONIC_ROOT} -path "*/_episodic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+PROCEDURAL=$(find ${MNEMONIC_ROOT} -path "*/_procedural/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
 echo "_semantic: $SEMANTIC"
 echo "_episodic: $EPISODIC"
 echo "_procedural: $PROCEDURAL"
@@ -455,45 +455,45 @@ echo "=== Memory Counts by Namespace ==="
 for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
           _episodic/incidents _episodic/sessions _episodic/blockers \
           _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    count=$(find ~/.claude/mnemonic -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+    count=$(find ${MNEMONIC_ROOT} -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
     [ "$count" -gt 0 ] && echo "$ns: $count"
 done
 
 # Recent activity
 echo ""
 echo "=== Recent Captures (7 days) ==="
-find ~/.claude/mnemonic -name "*.memory.md" -mtime -7 2>/dev/null | wc -l | tr -d ' '
+find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 2>/dev/null | wc -l | tr -d ' '
 ```
 
 ### Rebuild Index (if needed)
 
 ```bash
 # Generate manifest of all memories
-cat > ~/.claude/mnemonic/.manifest.json << 'EOF'
+cat > ${MNEMONIC_ROOT}/.manifest.json << 'EOF'
 {
   "generated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "memories": [
 EOF
 
 first=true
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     id=$(grep "^id:" "$f" | sed 's/id: //')
     title=$(grep "^title:" "$f" | sed 's/title: "//' | sed 's/"$//')
     ns=$(grep "^namespace:" "$f" | sed 's/namespace: //')
 
-    [ "$first" = true ] && first=false || echo "," >> ~/.claude/mnemonic/.manifest.json
-    echo "    {\"id\": \"$id\", \"title\": \"$title\", \"namespace\": \"$ns\", \"file\": \"$f\"}" >> ~/.claude/mnemonic/.manifest.json
+    [ "$first" = true ] && first=false || echo "," >> ${MNEMONIC_ROOT}/.manifest.json
+    echo "    {\"id\": \"$id\", \"title\": \"$title\", \"namespace\": \"$ns\", \"file\": \"$f\"}" >> ${MNEMONIC_ROOT}/.manifest.json
 done
 
-echo "  ]" >> ~/.claude/mnemonic/.manifest.json
-echo "}" >> ~/.claude/mnemonic/.manifest.json
+echo "  ]" >> ${MNEMONIC_ROOT}/.manifest.json
+echo "}" >> ${MNEMONIC_ROOT}/.manifest.json
 ```
 
 ### Validate Memories
 
 ```bash
 # Check all memories have required fields
-for f in ~/.claude/mnemonic/**/*.memory.md; do
+for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
     VALID=true
     grep -q "^id:" "$f" || VALID=false
     grep -q "^type:" "$f" || VALID=false

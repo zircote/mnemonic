@@ -304,7 +304,7 @@ Finds old marker-less integrations and replaces them with marker-wrapped version
 
 **Detection patterns for migration:**
 - `## Memory Operations` or `## Memory` section without markers
-- Content containing `rg -i`, `/mnemonic:capture`, `~/.claude/mnemonic/`
+- Content containing `rg -i`, `/mnemonic:capture`, `${MNEMONIC_ROOT}/`
 
 ### Analyze Only Mode
 
@@ -479,7 +479,7 @@ When invoked, this skill:
 1. **List components** - Find all commands, skills, agents, hooks
 2. **For each component:**
    - Detect old patterns: `## Memory Operations` or `## Memory` without markers
-   - Detect content indicators: `rg -i`, `/mnemonic:capture`, `~/.claude/mnemonic/`
+   - Detect content indicators: `rg -i`, `/mnemonic:capture`, `${MNEMONIC_ROOT}/`
    - Replace old section with marker-wrapped version from template
 3. **Commit changes** - Create git commit
 4. **Report results** - Summarize migrated files

@@ -22,10 +22,12 @@ except ImportError:
 
 # Import path resolution from lib
 try:
+    from lib.config import MnemonicConfig
     from lib.paths import PathContext, PathResolver, PathScheme, Scope
 
     USE_LIB_PATHS = True
 except ImportError:
+    MnemonicConfig = None
     USE_LIB_PATHS = False
 
 
@@ -38,11 +40,19 @@ def _get_path_resolver() -> "PathResolver | None":
     return PathResolver(context)
 
 
-def _get_legacy_paths(home: Path, org: str) -> list:
+def _get_memory_root() -> Path:
+    """Get the configured memory root path."""
+    if MnemonicConfig is not None:
+        return MnemonicConfig.load().memory_store_path
+    return Path.home() / ".claude" / "mnemonic"
+
+
+def _get_legacy_paths(org: str) -> list:
     """Get memory paths using legacy hardcoded logic (fallback)."""
+    root = _get_memory_root()
     return [
-        home / ".claude" / "mnemonic" / org,
-        home / ".claude" / "mnemonic" / "default",
+        root / org,
+        root / "default",
         Path.cwd() / ".claude" / "mnemonic",
     ]
 
@@ -96,12 +106,12 @@ def get_memory_roots() -> list:
     if resolver:
         roots = resolver.get_all_memory_roots()
         # Also check legacy paths during migration period
-        legacy_roots = _get_legacy_paths(Path.home(), resolver.context.org)
+        legacy_roots = _get_legacy_paths(resolver.context.org)
         return list(set(roots + [p for p in legacy_roots if p.exists()]))
 
     # Fallback to legacy logic
     org = get_org()
-    return [p for p in _get_legacy_paths(Path.home(), org) if p.exists()]
+    return [p for p in _get_legacy_paths(org) if p.exists()]
 
 
 def get_blackboard_path() -> Path:
@@ -468,7 +478,7 @@ def run_filename_migration() -> Optional[dict]:
     try:
         from lib.migrate_filenames import migrate_all, migration_summary
 
-        mnemonic_root = Path.home() / ".claude" / "mnemonic"
+        mnemonic_root = _get_memory_root()
         if not mnemonic_root.exists():
             return None
 
@@ -595,11 +605,16 @@ def main():
             # Show just filename for brevity
             context_lines.append(f"  - {Path(mem).name}")
 
+    # Resolve memory root for context injection
+    memory_root = str(_get_memory_root())
+
     # Add memory-first protocol
+    context_lines.append("")
+    context_lines.append(f"MNEMONIC_ROOT: {memory_root}")
     context_lines.append("")
     context_lines.append("**MEMORY-FIRST PROTOCOL:**")
     context_lines.append("Before researching or implementing:")
-    context_lines.append('1. Search mnemonic: rg -i "{topic}" ~/.claude/mnemonic/ --glob "*.memory.md"')
+    context_lines.append(f'1. Search mnemonic: rg -i "{{topic}}" {memory_root}/ --glob "*.memory.md"')
     context_lines.append("2. If found: Read memory, use Level 1 (Quick Answer) first")
     context_lines.append("3. Expand to Level 2 (Context) or Level 3 (Full Detail) only if needed")
     context_lines.append("4. Research externally only if memory is insufficient")

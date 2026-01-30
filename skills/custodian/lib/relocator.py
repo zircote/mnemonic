@@ -19,8 +19,8 @@ def relocate(
     """Relocate memories from old_root to new_root, updating all references.
 
     Args:
-        old_root: Source directory (e.g. ~/.claude/mnemonic/old-org/old-project)
-        new_root: Target directory (e.g. ~/.claude/mnemonic/new-org/new-project)
+        old_root: Source directory (e.g. ${MNEMONIC_ROOT}/old-org/old-project)
+        new_root: Target directory (e.g. ${MNEMONIC_ROOT}/new-org/new-project)
         all_roots: All memory roots (for updating cross-references)
         report: Report to accumulate findings
         dry_run: Preview without changes

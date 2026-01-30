@@ -46,7 +46,7 @@ echo ""
 # Check directories
 echo "Directories:"
 if [ -d "$HOME/.claude/mnemonic" ]; then
-    echo "  ✓ User mnemonic: ~/.claude/mnemonic/"
+    echo "  ✓ User mnemonic: ${MNEMONIC_ROOT}/"
 else
     echo "  ✗ User mnemonic: NOT FOUND"
 fi

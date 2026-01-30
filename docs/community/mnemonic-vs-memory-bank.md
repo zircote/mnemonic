@@ -147,7 +147,7 @@ Load time: 5s → 200ms
 ### Mnemonic Organization
 
 ```
-~/.claude/mnemonic/
+${MNEMONIC_ROOT}/
 ├── default/                    # Organization
 │   ├── decisions/
 │   │   ├── user/               # Personal decisions
@@ -185,10 +185,10 @@ grep -r "authentication" ~/memory-bank/
 /mnemonic:search "authentication"
 
 # Namespace-specific
-rg -i "authentication" ~/.claude/mnemonic/*/decisions/
+rg -i "authentication" ${MNEMONIC_ROOT}/*/decisions/
 
 # By memory type
-rg "^type: episodic" ~/.claude/mnemonic/ -l
+rg "^type: episodic" ${MNEMONIC_ROOT}/ -l
 ```
 
 ### Capture

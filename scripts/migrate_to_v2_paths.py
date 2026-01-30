@@ -3,15 +3,15 @@
 Migrate Mnemonic Memories from Legacy to V2 Path Scheme
 
 Migrates memories from the legacy dual-location structure to the unified
-V2 path structure where everything is stored under ~/.claude/mnemonic.
+V2 path structure where everything is stored under ${MNEMONIC_ROOT}.
 
 Legacy Structure:
-    ~/.claude/mnemonic/{org}/{namespace}/
+    ${MNEMONIC_ROOT}/{org}/{namespace}/
     ./.claude/mnemonic/{namespace}/
 
 V2 Structure:
-    ~/.claude/mnemonic/{org}/{project}/{namespace}/
-    ~/.claude/mnemonic/{org}/{namespace}/  # org-wide
+    ${MNEMONIC_ROOT}/{org}/{project}/{namespace}/
+    ${MNEMONIC_ROOT}/{org}/{namespace}/  # org-wide
 
 Usage:
     python scripts/migrate_to_v2_paths.py --dry-run  # Preview changes
