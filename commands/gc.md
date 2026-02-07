@@ -1,5 +1,4 @@
 ---
-name: gc
 allowed-tools:
 - Bash
 - Read

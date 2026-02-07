@@ -1,5 +1,4 @@
 ---
-name: recall
 allowed-tools:
 - Bash
 - Read

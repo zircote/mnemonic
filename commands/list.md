@@ -1,5 +1,4 @@
 ---
-name: list
 allowed-tools:
 - Bash
 - Read

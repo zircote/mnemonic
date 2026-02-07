@@ -1,5 +1,4 @@
 ---
-name: init
 allowed-tools:
 - Bash
 - Write
