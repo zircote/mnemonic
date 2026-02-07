@@ -1,4 +1,5 @@
 ---
+name: capture
 allowed-tools:
 - Bash
 - Write

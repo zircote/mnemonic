@@ -1,4 +1,5 @@
 ---
+name: integrate
 description: Wire mnemonic memory operations into other Claude Code plugins
 argument-hint: "<plugin_path> [--analyze|--dry-run|--remove|--migrate|--verify|--rollback]"
 allowed-tools:
