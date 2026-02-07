@@ -1,4 +1,5 @@
 ---
+name: search
 allowed-tools:
 - Bash
 - Read

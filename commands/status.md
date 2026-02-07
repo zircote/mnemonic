@@ -1,4 +1,5 @@
 ---
+name: status
 allowed-tools:
 - Bash
 - Read
