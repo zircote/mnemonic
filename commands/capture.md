@@ -1,5 +1,4 @@
 ---
-name: capture
 allowed-tools:
 - Bash
 - Write
@@ -91,27 +90,19 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 ### Step 4: Determine Path
 
 ```bash
-# Resolve MNEMONIC_ROOT from config
-if [ -f "$HOME/.config/mnemonic/config.json" ]; then
-    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
-    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
-else
-    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
-fi
 # Get project name from git remote or directory
-PROJECT=$(git remote get-url origin 2>/dev/null | sed 's|\.git$||' | sed 's|.*/||')
-[ -z "$PROJECT" ] && PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
-[ -z "$PROJECT" ] && PROJECT=$(basename "$PWD")
+PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
+[ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
 
 # All memories are stored under ${MNEMONIC_ROOT}/
 # Path structure: {org}/{project}/{namespace}/ for project scope
 #                 {org}/{namespace}/ for org scope (when --scope org)
 if [ "$SCOPE" = "org" ]; then
     # Org-wide memory (shared across projects in org)
-    MEMORY_DIR="$MNEMONIC_ROOT/${ORG}/${NAMESPACE}"
+    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}"
 else
     # Project-specific memory (default)
-    MEMORY_DIR="$MNEMONIC_ROOT/${ORG}/${PROJECT}/${NAMESPACE}"
+    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${PROJECT}/${NAMESPACE}"
 fi
 
 mkdir -p "$MEMORY_DIR"

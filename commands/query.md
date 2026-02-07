@@ -1,5 +1,4 @@
 ---
-name: query
 allowed-tools:
 - Bash
 - Read

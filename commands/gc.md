@@ -1,5 +1,4 @@
 ---
-name: gc
 allowed-tools:
 - Bash
 - Read
@@ -39,13 +38,6 @@ Garbage collect expired memories based on TTL and decay, with optional compressi
 ### Step 1: Parse Arguments
 
 ```bash
-# Resolve MNEMONIC_ROOT from config
-if [ -f "$HOME/.config/mnemonic/config.json" ]; then
-    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
-    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
-else
-    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
-fi
 DRY_RUN="${DRY_RUN:-false}"
 ARCHIVE="${ARCHIVE:-true}"
 FORCE="${FORCE:-false}"
@@ -55,7 +47,7 @@ MAX_AGE="${MAX_AGE:-365}"
 ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|' | sed 's|\.git$||')
 [ -z "$ORG" ] && ORG="default"
 
-ARCHIVE_DIR="$MNEMONIC_ROOT/.archive/$(date +%Y-%m)"
+ARCHIVE_DIR="$HOME/.claude/mnemonic/.archive/$(date +%Y-%m)"
 ```
 
 ### Step 2: Find Candidates
@@ -67,7 +59,7 @@ echo "=== Finding GC Candidates ==="
 echo ""
 
 echo "Old memories (> $MAX_AGE days):"
-OLD_FILES=$(find "$MNEMONIC_ROOT/$ORG" "$MNEMONIC_ROOT" -name "*.memory.md" -mtime +$MAX_AGE 2>/dev/null)
+OLD_FILES=$(find "$HOME/.claude/mnemonic/$ORG" "./.claude/mnemonic" -name "*.memory.md" -mtime +$MAX_AGE 2>/dev/null)
 OLD_COUNT=$(echo "$OLD_FILES" | grep -c . 2>/dev/null || echo 0)
 echo "  Found: $OLD_COUNT"
 ```
@@ -80,7 +72,7 @@ echo "Expired TTL:"
 NOW=$(date +%s)
 TTL_EXPIRED=""
 
-for f in $(find "$MNEMONIC_ROOT/$ORG" "$MNEMONIC_ROOT" -name "*.memory.md" 2>/dev/null); do
+for f in $(find "$HOME/.claude/mnemonic/$ORG" "./.claude/mnemonic" -name "*.memory.md" 2>/dev/null); do
     TTL=$(grep "^  ttl:" "$f" 2>/dev/null | sed 's/.*ttl: //')
     CREATED=$(grep "^created:" "$f" 2>/dev/null | sed 's/created: //')
 
@@ -109,7 +101,7 @@ echo ""
 echo "Low strength (< $MIN_STRENGTH):"
 LOW_STRENGTH=""
 
-for f in $(find "$MNEMONIC_ROOT/$ORG" "$MNEMONIC_ROOT" -name "*.memory.md" 2>/dev/null); do
+for f in $(find "$HOME/.claude/mnemonic/$ORG" "./.claude/mnemonic" -name "*.memory.md" 2>/dev/null); do
     STRENGTH=$(grep "strength:" "$f" 2>/dev/null | sed 's/.*strength: //')
 
     if [ -n "$STRENGTH" ]; then
@@ -151,7 +143,7 @@ if [ "$COMPRESS" = "true" ] || [ "$COMPRESS_ONLY" = "true" ]; then
     echo "=== Finding Compression Candidates ==="
     echo "Threshold: > $COMPRESS_THRESHOLD lines"
 
-    for f in $(find "$MNEMONIC_ROOT/$ORG" "$MNEMONIC_ROOT" -name "*.memory.md" 2>/dev/null); do
+    for f in $(find "$HOME/.claude/mnemonic/$ORG" "./.claude/mnemonic" -name "*.memory.md" 2>/dev/null); do
         # Skip if already has summary
         if grep -q "^summary:" "$f" 2>/dev/null; then
             continue
@@ -250,7 +242,7 @@ if [ "$COMPRESS_ONLY" = "true" ]; then
     echo "Skipping archive/delete steps"
 
     # Commit compression changes
-    cd "$MNEMONIC_ROOT"
+    cd "$HOME/.claude/mnemonic"
     git add -A
     git commit -m "GC: Compressed $COMPRESS_COUNT memories"
     cd -
@@ -308,7 +300,7 @@ fi
 echo ""
 echo "Updating decay scores..."
 
-for f in $(find "$MNEMONIC_ROOT/$ORG" "$MNEMONIC_ROOT" -name "*.memory.md" 2>/dev/null); do
+for f in $(find "$HOME/.claude/mnemonic/$ORG" "./.claude/mnemonic" -name "*.memory.md" 2>/dev/null); do
     LAST_ACCESS=$(grep "last_accessed:" "$f" 2>/dev/null | sed 's/.*last_accessed: //')
     HALF_LIFE=$(grep "half_life:" "$f" 2>/dev/null | sed 's/.*half_life: //')
     CURRENT_STRENGTH=$(grep "strength:" "$f" 2>/dev/null | sed 's/.*strength: //')
@@ -327,7 +319,7 @@ done
 ```bash
 echo ""
 echo "Committing changes..."
-cd "$MNEMONIC_ROOT"
+cd "$HOME/.claude/mnemonic"
 git add -A
 git commit -m "GC: Archived/removed $TOTAL memories"
 cd -

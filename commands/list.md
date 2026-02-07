@@ -1,5 +1,4 @@
 ---
-name: list
 allowed-tools:
 - Bash
 - Read
@@ -50,22 +49,15 @@ python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_registry.py" ${ARGS}
 If the Python script is not available, use the Read tool to display ontology files:
 
 ```bash
-# Resolve MNEMONIC_ROOT from config
-if [ -f "$HOME/.config/mnemonic/config.json" ]; then
-    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
-    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
-else
-    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
-fi
 # Read base ontology from MIF
 cat "${PLUGIN_DIR}/mif/ontologies/mif-base.ontology.yaml" 2>/dev/null || \
 cat "${PLUGIN_DIR}/skills/ontology/fallback/ontologies/mif-base.ontology.yaml" 2>/dev/null
 
 # Read project ontology
-cat "$MNEMONIC_ROOT/ontology.yaml" 2>/dev/null
+cat ".claude/mnemonic/ontology.yaml" 2>/dev/null
 
 # Read user ontology
-cat "$MNEMONIC_ROOT/ontology.yaml" 2>/dev/null
+cat "$HOME/.claude/mnemonic/ontology.yaml" 2>/dev/null
 ```
 
 ## Example Output

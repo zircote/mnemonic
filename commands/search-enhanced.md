@@ -1,5 +1,4 @@
 ---
-name: search-enhanced
 allowed-tools:
 - Task
 - Bash
