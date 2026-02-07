@@ -1,4 +1,5 @@
 ---
+name: setup
 allowed-tools:
 - Bash
 - Read

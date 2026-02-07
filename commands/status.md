@@ -1,4 +1,5 @@
 ---
+name: status
 allowed-tools:
 - Bash
 - Read
@@ -22,14 +23,27 @@ Display status and statistics for the mnemonic memory system.
 
 ## Procedure
 
-### Step 1: Detect Context
+### Step 1: Detect Context and Resolve Paths
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
+
+# Organization from git remote
 ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|' | sed 's|\.git$||')
 [ -z "$ORG" ] && ORG="default"
 
-PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
+# Project from git remote, then toplevel, then cwd
+PROJECT=$(git remote get-url origin 2>/dev/null | sed 's|\.git$||' | sed 's|.*/||')
+[ -z "$PROJECT" ] && PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
 [ -z "$PROJECT" ] && PROJECT=$(basename "$PWD")
+
+PROJECT_DIR="$MNEMONIC_ROOT/$ORG/$PROJECT"
 ```
 
 ### Step 2: Check Installation
@@ -38,23 +52,36 @@ PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
 echo "=== Mnemonic Status ==="
 echo ""
 
-echo "Configuration:"
-echo "  Organization: $ORG"
-echo "  Project: $PROJECT"
+echo "  Configuration:"
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    echo "    Config: ~/.config/mnemonic/config.json"
+    echo "    Store:  $MNEMONIC_ROOT"
+else
+    echo "    Config: NOT FOUND (using default)"
+    echo "    Store:  $MNEMONIC_ROOT"
+fi
+echo "    Organization: $ORG"
+echo "    Project: $PROJECT"
 echo ""
 
 # Check directories
-echo "Directories:"
-if [ -d "$HOME/.claude/mnemonic" ]; then
-    echo "  ✓ User mnemonic: ${MNEMONIC_ROOT}/"
+echo "  Directories:"
+if [ -d "$MNEMONIC_ROOT" ]; then
+    echo "    ✓ Memory store: $MNEMONIC_ROOT/"
 else
-    echo "  ✗ User mnemonic: NOT FOUND"
+    echo "    ✗ Memory store: NOT FOUND"
 fi
 
-if [ -d "./.claude/mnemonic" ]; then
-    echo "  ✓ Project mnemonic:"
+if [ -d "$MNEMONIC_ROOT/$ORG" ]; then
+    echo "    ✓ Org directory: $MNEMONIC_ROOT/$ORG/"
 else
-    echo "  ✗ Project mnemonic: NOT FOUND"
+    echo "    ✗ Org directory: NOT FOUND"
+fi
+
+if [ -d "$PROJECT_DIR" ]; then
+    echo "    ✓ Project directory: $PROJECT_DIR/"
+else
+    echo "    ✗ Project directory: NOT FOUND"
 fi
 echo ""
 ```
@@ -62,20 +89,20 @@ echo ""
 ### Step 3: Git Status
 
 ```bash
-echo "Version Control:"
-if [ -d "$HOME/.claude/mnemonic/.git" ]; then
-    cd "$HOME/.claude/mnemonic"
+echo "  Version Control:"
+if [ -d "$MNEMONIC_ROOT/.git" ]; then
+    cd "$MNEMONIC_ROOT"
     BRANCH=$(git branch --show-current 2>/dev/null)
     COMMITS=$(git rev-list --count HEAD 2>/dev/null)
     UNCOMMITTED=$(git status --short 2>/dev/null | wc -l | tr -d ' ')
     cd - > /dev/null
 
-    echo "  ✓ Git initialized"
-    echo "    Branch: $BRANCH"
-    echo "    Commits: $COMMITS"
-    echo "    Uncommitted changes: $UNCOMMITTED"
+    STATUS="✓ Git initialized ($BRANCH, $COMMITS commits"
+    [ "$UNCOMMITTED" -gt 0 ] && STATUS="$STATUS, $UNCOMMITTED uncommitted"
+    STATUS="$STATUS)"
+    echo "    $STATUS"
 else
-    echo "  ✗ Git: NOT INITIALIZED"
+    echo "    ✗ Git: NOT INITIALIZED"
 fi
 echo ""
 ```
@@ -83,113 +110,79 @@ echo ""
 ### Step 4: Memory Counts
 
 ```bash
-echo "Memory Counts by Cognitive Type:"
-SEMANTIC=$(find "$HOME/.claude/mnemonic" -path "*/_semantic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-EPISODIC=$(find "$HOME/.claude/mnemonic" -path "*/_episodic/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-PROCEDURAL=$(find "$HOME/.claude/mnemonic" -path "*/_procedural/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-echo "  _semantic: $SEMANTIC"
-echo "  _episodic: $EPISODIC"
-echo "  _procedural: $PROCEDURAL"
-echo "  TOTAL: $((SEMANTIC + EPISODIC + PROCEDURAL))"
-echo ""
+echo "  Memory Counts:"
 
-echo "Memory Counts by Namespace:"
-TOTAL=0
-for ns in _semantic/decisions _semantic/knowledge _semantic/entities \
-          _episodic/incidents _episodic/sessions _episodic/blockers \
-          _procedural/runbooks _procedural/patterns _procedural/migrations; do
-    count=$(find "$HOME/.claude/mnemonic" -path "*/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-    TOTAL=$((TOTAL + count))
-    [ "$count" -gt 0 ] && echo "  $ns: $count"
+# Count by cognitive type with sub-namespace breakdown
+for type in _semantic _episodic _procedural; do
+    TYPE_TOTAL=$(find "$MNEMONIC_ROOT" -path "*/$type/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+    DETAILS=""
+    for ns in $(find "$MNEMONIC_ROOT" -path "*/$type/*" -name "*.memory.md" 2>/dev/null | \
+                sed "s|.*/$type/||" | sed 's|/.*||' | sort -u); do
+        count=$(find "$MNEMONIC_ROOT" -path "*/$type/$ns/*" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+        [ -n "$DETAILS" ] && DETAILS="$DETAILS, "
+        DETAILS="$DETAILS$ns: $count"
+    done
+    [ -n "$DETAILS" ] && echo "    $type: $TYPE_TOTAL  ($DETAILS)" || echo "    $type: $TYPE_TOTAL"
 done
+
+TOTAL=$(find "$MNEMONIC_ROOT" -name "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
+echo "    TOTAL: $TOTAL"
 echo ""
 ```
 
 ### Step 5: Recent Activity
 
 ```bash
-echo "Recent Captures (last 7 days):"
-RECENT=$(find "$HOME/.claude/mnemonic" "./.claude/mnemonic" -name "*.memory.md" -mtime -7 2>/dev/null | wc -l | tr -d ' ')
-echo "  Count: $RECENT"
-echo ""
-
-echo "Latest Memories:"
-find "$HOME/.claude/mnemonic" "./.claude/mnemonic" -name "*.memory.md" -mtime -7 2>/dev/null | \
-    while read f; do
-        title=$(grep "^title:" "$f" 2>/dev/null | head -1 | sed 's/^title: "//' | sed 's/"$//')
-        mtime=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$f" 2>/dev/null || stat -c "%y" "$f" 2>/dev/null | cut -d'.' -f1)
-        echo "  [$mtime] $title"
-    done | head -5
+echo "  Recent: $(find "$MNEMONIC_ROOT" -name "*.memory.md" -mtime -7 2>/dev/null | wc -l | tr -d ' ') memories modified in last 7 days"
 echo ""
 ```
 
-### Step 6: Type Distribution
+### Step 6: Blackboard Status
 
 ```bash
-echo "Memory Types:"
-SEMANTIC=$(rg -l "^type: semantic" "$HOME/.claude/mnemonic" "./.claude/mnemonic" --glob "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-EPISODIC=$(rg -l "^type: episodic" "$HOME/.claude/mnemonic" "./.claude/mnemonic" --glob "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-PROCEDURAL=$(rg -l "^type: procedural" "$HOME/.claude/mnemonic" "./.claude/mnemonic" --glob "*.memory.md" 2>/dev/null | wc -l | tr -d ' ')
-
-echo "  Semantic: $SEMANTIC"
-echo "  Episodic: $EPISODIC"
-echo "  Procedural: $PROCEDURAL"
-echo ""
-```
-
-### Step 7: Blackboard Status
-
-```bash
-echo "Blackboard:"
-if [ -d "$HOME/.claude/mnemonic/.blackboard" ]; then
-    BB_FILES=$(ls "$HOME/.claude/mnemonic/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
-    echo "  Global: $BB_FILES topic files"
-    ls "$HOME/.claude/mnemonic/.blackboard"/*.md 2>/dev/null | while read f; do
-        echo "    - $(basename "$f")"
-    done
+echo "  Blackboard:"
+BB_MSG=""
+if [ -d "$MNEMONIC_ROOT/.blackboard" ]; then
+    BB_FILES=$(ls "$MNEMONIC_ROOT/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
+    BB_MSG="$BB_FILES global topic files"
 else
-    echo "  Global: NOT FOUND"
+    BB_MSG="No global blackboard"
 fi
 
-if [ -d "$HOME/.claude/mnemonic/$ORG/$PROJECT/.blackboard" ]; then
-    BB_FILES=$(ls "$HOME/.claude/mnemonic/$ORG/$PROJECT/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
-    echo "  Project: $BB_FILES topic files"
+if [ -d "$PROJECT_DIR/.blackboard" ]; then
+    PBB_FILES=$(ls "$PROJECT_DIR/.blackboard"/*.md 2>/dev/null | wc -l | tr -d ' ')
+    BB_MSG="$BB_MSG | $PBB_FILES project topic files"
 else
-    echo "  Project: NOT FOUND"
+    BB_MSG="$BB_MSG | No project blackboard"
+fi
+echo "    $BB_MSG"
+echo ""
+```
+
+### Step 7: CLAUDE.md Status
+
+```bash
+echo "  CLAUDE.md:"
+if grep -q "Mnemonic" "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+    echo "    ✓ Configured"
+else
+    echo "    ✗ mnemonic section missing"
 fi
 echo ""
 ```
 
-### Step 8: CLAUDE.md Status
+### Step 8: Health Summary
 
 ```bash
-echo "CLAUDE.md Configuration:"
-if grep -q "Mnemonic Memory System" "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
-    echo "  ✓ User CLAUDE.md configured"
-else
-    echo "  ✗ User CLAUDE.md: mnemonic section missing"
-fi
-
-if grep -q "Mnemonic - Project Memory" "./CLAUDE.md" 2>/dev/null; then
-    echo "  ✓ Project CLAUDE.md configured"
-else
-    echo "  ✗ Project CLAUDE.md: mnemonic section missing"
-fi
-echo ""
-```
-
-### Step 9: Health Summary
-
-```bash
-echo "=== Health Summary ==="
 ISSUES=0
 
-[ ! -d "$HOME/.claude/mnemonic" ] && echo "  ⚠ User mnemonic directory missing" && ISSUES=$((ISSUES + 1))
-[ ! -d "$HOME/.claude/mnemonic/.git" ] && echo "  ⚠ Git not initialized" && ISSUES=$((ISSUES + 1))
-[ "$UNCOMMITTED" -gt 10 ] && echo "  ⚠ Many uncommitted changes ($UNCOMMITTED)" && ISSUES=$((ISSUES + 1))
+[ ! -d "$MNEMONIC_ROOT" ] && echo "  ⚠ Memory store directory missing" && ISSUES=$((ISSUES + 1))
+[ ! -d "$MNEMONIC_ROOT/.git" ] && echo "  ⚠ Git not initialized" && ISSUES=$((ISSUES + 1))
+[ -n "$UNCOMMITTED" ] && [ "$UNCOMMITTED" -gt 10 ] && echo "  ⚠ Many uncommitted changes ($UNCOMMITTED)" && ISSUES=$((ISSUES + 1))
+[ ! -f "$HOME/.config/mnemonic/config.json" ] && echo "  ⚠ No config file (using defaults)" && ISSUES=$((ISSUES + 1))
 
 if [ $ISSUES -eq 0 ]; then
-    echo "  ✓ All systems healthy"
+    echo "  Health: ✓ All systems healthy"
 else
     echo ""
     echo "  Run /mnemonic:setup to fix issues"
@@ -199,12 +192,11 @@ fi
 ## Output
 
 Displays:
-- Configuration (org, project)
-- Directory status
+- Configuration (config path, store path, org, project)
+- Directory status (store, org, project — all under unified ${MNEMONIC_ROOT})
 - Git status (branch, commits, uncommitted)
-- Memory counts by namespace
+- Memory counts by cognitive type and namespace
 - Recent activity
-- Type distribution
-- Blackboard status
+- Blackboard status (global and project)
 - CLAUDE.md configuration status
 - Health summary

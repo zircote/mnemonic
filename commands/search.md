@@ -1,4 +1,5 @@
 ---
+name: search
 allowed-tools:
 - Bash
 - Read
@@ -68,17 +69,24 @@ RG_CMD="$RG_CMD --glob '*.memory.md'"
 ### Step 3: Determine Search Paths
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
 SEARCH_PATHS=""
 
 case "$SCOPE" in
     user)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG"
+        SEARCH_PATHS="$MNEMONIC_ROOT/$ORG"
         ;;
     project)
-        SEARCH_PATHS="./.claude/mnemonic"
+        SEARCH_PATHS="$MNEMONIC_ROOT"
         ;;
     all|*)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG ./.claude/mnemonic"
+        SEARCH_PATHS="$MNEMONIC_ROOT/$ORG $MNEMONIC_ROOT"
         ;;
 esac
 

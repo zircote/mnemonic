@@ -1,4 +1,5 @@
 ---
+name: mnemonic-search
 allowed-tools:
 - Bash
 - Read

@@ -1,4 +1,5 @@
 ---
+name: recall
 allowed-tools:
 - Bash
 - Read
@@ -54,11 +55,19 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 ### Step 2: Build Search Paths
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
 SEARCH_PATHS=""
 
 # Get project name from git remote or directory
-PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
-[ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
+PROJECT=$(git remote get-url origin 2>/dev/null | sed 's|\.git$||' | sed 's|.*/||')
+[ -z "$PROJECT" ] && PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
+[ -z "$PROJECT" ] && PROJECT=$(basename "$PWD")
 
 # All memories are under ${MNEMONIC_ROOT}/
 # Path structure:
@@ -67,14 +76,14 @@ PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|
 #   default/ - fallback when org detection fails
 case "$SCOPE" in
     project)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG/$PROJECT"
+        SEARCH_PATHS="$MNEMONIC_ROOT/$ORG/$PROJECT"
         ;;
     org)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG"
+        SEARCH_PATHS="$MNEMONIC_ROOT/$ORG"
         ;;
     all|*)
         # Search project-specific, then org-wide, then default
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG/$PROJECT $HOME/.claude/mnemonic/$ORG $HOME/.claude/mnemonic/default"
+        SEARCH_PATHS="$MNEMONIC_ROOT/$ORG/$PROJECT $MNEMONIC_ROOT/$ORG $MNEMONIC_ROOT/default"
         ;;
 esac
 
