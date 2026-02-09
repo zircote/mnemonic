@@ -1,6 +1,6 @@
 # CLI Usage Guide
 
-Access and manage mnemonic memories using standard Unix command-line tools. No AI assistant required.
+Command-line operations for mnemonic memories.
 
 ## Overview
 
@@ -26,41 +26,41 @@ ${MNEMONIC_ROOT}/{namespace}/{scope}/*.memory.md
 
 ```bash
 # Search all memories for a keyword
-rg "postgresql" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
+rg "postgresql" $MNEMONIC_ROOT --glob "*.memory.md"
 
 # Case-insensitive search
-rg -i "authentication" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
+rg -i "authentication" $MNEMONIC_ROOT --glob "*.memory.md"
 
 # Search with context (3 lines before/after)
-rg -C3 "api endpoint" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
+rg -C3 "api endpoint" $MNEMONIC_ROOT --glob "*.memory.md"
 
 # List files only (no content)
-rg -l "database" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md"
+rg -l "database" $MNEMONIC_ROOT --glob "*.memory.md"
 
 # Search in specific namespace
-rg "pattern" ${MNEMONIC_ROOT}/*/decisionsdecisions/project --glob "*.memory.md"
+rg "pattern" $MNEMONIC_ROOT/*/_semantic/decisions --glob "*.memory.md"
 
 # Search project-level only
-rg "bug fix" ./.claude/mnemonic --glob "*.memory.md"
+rg "bug fix" $MNEMONIC_ROOT --glob "*.memory.md"
 ```
 
 ### Search by Frontmatter Fields
 
 ```bash
 # Find all semantic memories
-rg "^type: semantic" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^type: semantic" $MNEMONIC_ROOT --glob "*.memory.md" -l
 
 # Find memories with specific tag
-rg "^  - architecture" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^  - architecture" $MNEMONIC_ROOT --glob "*.memory.md" -l
 
 # Find memories from a date range
-rg "^created: 2026-01" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^created: 2026-01" $MNEMONIC_ROOT --glob "*.memory.md" -l
 
 # Find high-confidence memories
-rg "confidence: 0.9" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
+rg "confidence: 0.9" $MNEMONIC_ROOT --glob "*.memory.md" -l
 
 # Find memories by title
-rg "^title:.*PostgreSQL" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -l
+rg "^title:.*PostgreSQL" $MNEMONIC_ROOT --glob "*.memory.md" -l
 ```
 
 ### Using find for File Operations
@@ -104,7 +104,7 @@ sed '1,/^---$/d;/^---$/,$!d;/^---$/d' path/to/memory.memory.md
 grep "^id:" ${MNEMONIC_ROOT}/**/*.memory.md | cut -d: -f3 | tr -d ' '
 
 # Get all unique tags
-rg "^  - " ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -o | sort -u
+rg "^  - " $MNEMONIC_ROOT --glob "*.memory.md" -o | sort -u
 
 # List all titles
 grep "^title:" ${MNEMONIC_ROOT}/**/*.memory.md | sed 's/.*title: "//' | sed 's/"$//'
@@ -168,7 +168,7 @@ UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-' | head -c 50)
 
-MEMORY_DIR="$HOME/.claude/mnemonic/$ORG/$NAMESPACE/user"
+MEMORY_DIR="$MNEMONIC_ROOT/$ORG/$NAMESPACE/user"
 mkdir -p "$MEMORY_DIR"
 MEMORY_FILE="$MEMORY_DIR/${SLUG}.memory.md"
 
@@ -253,7 +253,7 @@ find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +365
 find ${MNEMONIC_ROOT} -name "*.memory.md" -size -100c
 
 # Count memories by type
-rg "^type:" ${MNEMONIC_ROOT} ./.claude/mnemonic --glob "*.memory.md" -o | cut -d: -f2 | sort | uniq -c
+rg "^type:" $MNEMONIC_ROOT --glob "*.memory.md" -o | cut -d: -f2 | sort | uniq -c
 
 # Find duplicate titles
 grep "^title:" ${MNEMONIC_ROOT}/**/*.memory.md | cut -d: -f3- | sort | uniq -d
@@ -317,7 +317,7 @@ alias mdir='cd ${MNEMONIC_ROOT} && ls'
 
 # Search by namespace
 mns() {
-    rg -i "$1" ${MNEMONIC_ROOT}/*/"$2""$2"/project --glob "*.memory.md"
+    rg -i "$1" ${MNEMONIC_ROOT}/*/"$2" --glob "*.memory.md"
 }
 # Usage: mns "pattern" decisions
 ```

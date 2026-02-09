@@ -125,27 +125,15 @@ Next time similar issue occurs:
 
 ## Multi-Tool Flexibility
 
-### Vendor Independence
+### Open Format
 
-Mnemonic works with 9+ AI coding assistants:
-
-| Tool | Integration | Same Memories |
-|------|-------------|---------------|
-| Claude Code | Native plugin | ✓ |
-| GitHub Copilot | Instructions file | ✓ |
-| Cursor | Rules | ✓ |
-| Windsurf | Memories/Rules | ✓ |
-| Aider | CONVENTIONS.md | ✓ |
-| Continue | config.yaml | ✓ |
-| Codex CLI | AGENTS.md | ✓ |
-| Gemini CLI | Instructions | ✓ |
-| OpenCode | Skills | ✓ |
+All memories are plain markdown with YAML frontmatter — no proprietary storage:
 
 **Benefits:**
-- Switch tools without losing context
-- Use different tools for different tasks
-- No vendor lock-in
-- Team members can use preferred tools
+- Human-readable and editable with any text editor
+- Git-versioned with meaningful diffs
+- No vendor lock-in — standard filesystem storage
+- Portable MIF Level 3 format
 
 ### Standardized Format (MIF Level 3)
 

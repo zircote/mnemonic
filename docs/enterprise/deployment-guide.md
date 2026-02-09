@@ -392,7 +392,7 @@ done
 #!/bin/bash
 # health-check.sh
 
-MEMORY_DIR="$HOME/.claude/mnemonic"
+MEMORY_DIR="$MNEMONIC_ROOT"
 
 # Count by namespace
 echo "=== Memory Counts ==="

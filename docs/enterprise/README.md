@@ -9,7 +9,7 @@ Enterprise-grade AI memory with complete audit trails, data sovereignty, and res
 | **Accuracy** | 74.0% vs 68.5% for competitors | [Letta LoCoMo Benchmark](https://www.letta.com/blog/benchmarking-ai-agent-memory) |
 | **Audit Trail** | Complete git history | Every change tracked with who, when, what |
 | **Data Sovereignty** | 100% local storage | No cloud, no third-party dependencies |
-| **Tool Integrations** | 9+ AI coding assistants | Cursor, Windsurf, GitHub Copilot, and more |
+| **Integration** | Claude Code plugin | Native integration with Claude Code |
 | **Format** | MIF Level 3 | Open standard, human-readable |
 
 ---
@@ -54,7 +54,7 @@ Read more: ["From Everything is a File to Files Are All You Need"](https://arxiv
 
 **Mnemonic delivers:**
 - Cross-session memory reduces context switching overhead
-- Multi-tool support prevents vendor lock-in (9+ integrations)
+- Open format prevents vendor lock-in
 - Shared patterns namespace accelerates team onboarding
 - Episodic memory reduces repeated debugging efforts
 - Zero infrastructure costs—pure filesystem storage

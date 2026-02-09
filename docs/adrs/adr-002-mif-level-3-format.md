@@ -52,7 +52,7 @@ Without a standardized format:
 1. **Structured Metadata**: Must support type, timestamps, tags in consistent structure
 2. **Temporal Awareness**: Must distinguish validity periods from recording time
 3. **Provenance Tracking**: Must track source and confidence level
-4. **Interoperability**: Must enable exchange with other AI memory systems
+4. **Structured Format**: Must support structured metadata for search and relationship tracking
 
 ### Secondary Decision Drivers
 
@@ -187,7 +187,7 @@ Markdown content...
 ### Positive
 
 1. **Standardized**: Following a specification ensures consistency across implementations
-2. **Interoperable**: Other MIF-compliant tools can read/write memories
+2. **Structured Format**: MIF supports structured metadata and relationships
 3. **Rich Metadata**: Temporal and provenance data enable intelligent retrieval
 4. **Extensible**: Additional fields can be added without breaking compatibility
 
@@ -208,7 +208,7 @@ MIF Level 3 adoption achieves our primary objectives:
 - Comprehensive structured metadata
 - Full bi-temporal tracking
 - Provenance and confidence scoring
-- Standard format for interoperability
+- Structured metadata and relationships
 
 Mitigations for negative consequences:
 - Provide templates and skills for correct format generation

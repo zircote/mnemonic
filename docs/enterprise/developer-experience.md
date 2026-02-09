@@ -73,18 +73,6 @@ We decided to use PostgreSQL because:
 - Mature ecosystem with great tooling
 ```
 
-### Edit With Any Tool
-
-```bash
-# Your favorite editor
-vim ${MNEMONIC_ROOT}/default/decisions/user/memory.memory.md
-code ${MNEMONIC_ROOT}/
-nano ${MNEMONIC_ROOT}/default/learnings/user/new.memory.md
-
-# Batch operations
-sed -i 's/old-tag/new-tag/g' ${MNEMONIC_ROOT}/**/*.memory.md
-```
-
 ### Version Control Built-in
 
 ```bash
@@ -178,44 +166,6 @@ rg "^title:" ${MNEMONIC_ROOT}/ | sed 's/.*title: "//' | sed 's/"$//'
 for f in ${MNEMONIC_ROOT}/**/*.memory.md; do
   yq -f extract '.title, .type, .created' "$f"
 done
-```
-
----
-
-## Cross-Tool Portability
-
-### MIF Level 3 Standard
-
-Your memories use the [Memory Interchange Format](https://github.com/zircote/MIF), an open standard for AI memory:
-
-- **Portable**: Move between any MIF-compatible tool
-- **Interoperable**: Share with team members using different tools
-- **Future-proof**: Not tied to any vendor
-
-### Works With 9+ Tools
-
-Same memories, same format, any AI coding assistant:
-
-| Tool | Status | Your Memories |
-|------|--------|---------------|
-| Claude Code | Native | Same files |
-| GitHub Copilot | Supported | Same files |
-| Cursor | Supported | Same files |
-| Windsurf | Supported | Same files |
-| Aider | Supported | Same files |
-| Continue | Supported | Same files |
-| Codex CLI | Supported | Same files |
-| Gemini CLI | Supported | Same files |
-| OpenCode | Supported | Same files |
-
-### Switch Tools Freely
-
-```bash
-# Morning: Use Cursor
-# Afternoon: Switch to GitHub Copilot
-# Evening: Use Claude Code CLI
-
-# All access the same memories at ${MNEMONIC_ROOT}/
 ```
 
 ---
@@ -415,7 +365,7 @@ du -sh ${MNEMONIC_ROOT}/
 |---------|---------------|----------|
 | Structure | Ad-hoc | Standardized |
 | Validation | None | Schema validation |
-| Cross-tool | Manual | Automatic |
+| Integration | Manual | Claude Code plugin |
 | Search | Basic grep | Intelligent recall |
 | Metadata | None | Rich frontmatter |
 

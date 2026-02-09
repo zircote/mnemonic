@@ -39,7 +39,7 @@ Mnemonic is a filesystem-based memory system for Claude Code. Research should fo
 - mem0 (formerly MemGPT)
 - Zep
 - LangChain Memory modules
-- Native tool memories (Cursor, Windsurf)
+- Native tool memories
 - Vector database solutions
 
 ## Research Priorities
