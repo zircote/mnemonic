@@ -7,6 +7,8 @@ Tests path resolution logic in isolation with mocked context.
 
 import pytest
 from pathlib import Path
+import json
+
 from lib.paths import (
     PathResolver,
     PathContext,
@@ -16,6 +18,9 @@ from lib.paths import (
     get_memory_dir,
     get_search_paths,
     get_blackboard_dir,
+    get_session_blackboard_dir,
+    get_handoff_dir,
+    migrate_blackboard_to_session_scoped,
 )
 
 
@@ -371,4 +376,239 @@ class TestEdgeCases:
         # Path library handles special chars naturally
         path = resolver.get_memory_dir("custom-ns/sub_ns", Scope.PROJECT)
         expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/custom-ns/sub_ns")
+        assert path == expected
+
+
+class TestSessionBlackboard:
+    """Test session-scoped blackboard methods on PathResolver."""
+
+    def test_session_blackboard_dir_legacy(self, legacy_context):
+        """Test session blackboard path under legacy scheme."""
+        resolver = PathResolver(legacy_context)
+        path = resolver.get_session_blackboard_dir("sess-123", Scope.PROJECT)
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/.blackboard/sessions/sess-123")
+        assert path == expected
+
+    def test_session_blackboard_dir_v2(self, v2_context):
+        """Test session blackboard path under V2 scheme."""
+        resolver = PathResolver(v2_context)
+        path = resolver.get_session_blackboard_dir("sess-456", Scope.PROJECT)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/testproject/.blackboard/sessions/sess-456")
+        assert path == expected
+
+    def test_session_blackboard_dir_org_scope(self, v2_context):
+        """Test session blackboard at org scope."""
+        resolver = PathResolver(v2_context)
+        path = resolver.get_session_blackboard_dir("sess-789", Scope.ORG)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/.blackboard/sessions/sess-789")
+        assert path == expected
+
+    def test_handoff_dir_legacy(self, legacy_context):
+        """Test handoff directory under legacy scheme."""
+        resolver = PathResolver(legacy_context)
+        path = resolver.get_handoff_dir(Scope.PROJECT)
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/.blackboard/handoff")
+        assert path == expected
+
+    def test_handoff_dir_v2(self, v2_context):
+        """Test handoff directory under V2 scheme."""
+        resolver = PathResolver(v2_context)
+        path = resolver.get_handoff_dir(Scope.PROJECT)
+        expected = Path("/home/testuser/.claude/mnemonic/testorg/testproject/.blackboard/handoff")
+        assert path == expected
+
+    def test_legacy_blackboard_dir(self, legacy_context):
+        """Test legacy blackboard subdirectory path."""
+        resolver = PathResolver(legacy_context)
+        path = resolver.get_legacy_blackboard_dir(Scope.PROJECT)
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/.blackboard/_legacy")
+        assert path == expected
+
+    def test_list_session_blackboards_empty(self, tmp_path):
+        """Test listing sessions when sessions dir does not exist."""
+        context = PathContext(
+            org="testorg",
+            project="testproject",
+            home_dir=tmp_path / "home",
+            project_dir=tmp_path / "project",
+            memory_root=tmp_path / "home" / ".claude" / "mnemonic",
+            scheme=PathScheme.LEGACY,
+        )
+        resolver = PathResolver(context)
+        assert resolver.list_session_blackboards() == []
+
+    def test_list_session_blackboards_all(self, tmp_path):
+        """Test listing all session directories."""
+        bb = tmp_path / "project" / ".claude" / "mnemonic" / ".blackboard" / "sessions"
+        (bb / "sess-a").mkdir(parents=True)
+        (bb / "sess-b").mkdir(parents=True)
+        # Create a file that should be excluded (not a dir)
+        (bb / "stray-file.txt").write_text("not a dir")
+
+        context = PathContext(
+            org="testorg",
+            project="testproject",
+            home_dir=tmp_path / "home",
+            project_dir=tmp_path / "project",
+            memory_root=tmp_path / "home" / ".claude" / "mnemonic",
+            scheme=PathScheme.LEGACY,
+        )
+        resolver = PathResolver(context)
+        dirs = resolver.list_session_blackboards()
+        assert len(dirs) == 2
+        names = [d.name for d in dirs]
+        assert "sess-a" in names
+        assert "sess-b" in names
+
+    def test_list_session_blackboards_active_only(self, tmp_path):
+        """Test listing only active sessions based on _meta.json."""
+        bb = tmp_path / "project" / ".claude" / "mnemonic" / ".blackboard" / "sessions"
+
+        # Active session
+        (bb / "sess-active").mkdir(parents=True)
+        (bb / "sess-active" / "_meta.json").write_text(json.dumps({"status": "active", "session_id": "sess-active"}))
+
+        # Ended session
+        (bb / "sess-ended").mkdir(parents=True)
+        (bb / "sess-ended" / "_meta.json").write_text(json.dumps({"status": "ended", "session_id": "sess-ended"}))
+
+        # Session with no meta (excluded from active filter)
+        (bb / "sess-nometa").mkdir(parents=True)
+
+        context = PathContext(
+            org="testorg",
+            project="testproject",
+            home_dir=tmp_path / "home",
+            project_dir=tmp_path / "project",
+            memory_root=tmp_path / "home" / ".claude" / "mnemonic",
+            scheme=PathScheme.LEGACY,
+        )
+        resolver = PathResolver(context)
+
+        active = resolver.list_session_blackboards(active_only=True)
+        assert len(active) == 1
+        assert active[0].name == "sess-active"
+
+        all_dirs = resolver.list_session_blackboards(active_only=False)
+        assert len(all_dirs) == 3
+
+
+class TestBlackboardMigration:
+    """Test migrate_blackboard_to_session_scoped function."""
+
+    def test_creates_structure_from_empty(self, tmp_path):
+        """Test migration on empty blackboard creates sessions/ and handoff/."""
+        bb = tmp_path / "bb"
+        bb.mkdir()
+
+        result = migrate_blackboard_to_session_scoped(bb)
+        assert result is True
+        assert (bb / "sessions").is_dir()
+        assert (bb / "handoff").is_dir()
+        # No _legacy since there were no files to migrate
+        assert not (bb / "_legacy").exists()
+
+    def test_moves_md_files_to_legacy(self, tmp_path):
+        """Test migration moves existing .md files into _legacy/."""
+        bb = tmp_path / "bb"
+        bb.mkdir()
+        (bb / "active-tasks.md").write_text("# Tasks\n")
+        (bb / "shared-context.md").write_text("# Context\n")
+
+        result = migrate_blackboard_to_session_scoped(bb)
+        assert result is True
+        assert (bb / "_legacy" / "active-tasks.md").exists()
+        assert (bb / "_legacy" / "shared-context.md").exists()
+        # Originals should be gone
+        assert not (bb / "active-tasks.md").exists()
+        assert not (bb / "shared-context.md").exists()
+
+    def test_extracts_latest_handoff(self, tmp_path):
+        """Test migration extracts latest entry from session-notes.md."""
+        bb = tmp_path / "bb"
+        bb.mkdir()
+        (bb / "session-notes.md").write_text("# Notes\n---\nOld entry\n---\nLatest entry here\n")
+
+        migrate_blackboard_to_session_scoped(bb)
+
+        handoff = bb / "handoff" / "latest-handoff.md"
+        assert handoff.exists()
+        content = handoff.read_text()
+        assert "Latest entry here" in content
+        assert "Old entry" not in content
+
+    def test_idempotent_returns_false(self, tmp_path):
+        """Test migration is idempotent: returns False if _legacy/ exists."""
+        bb = tmp_path / "bb"
+        bb.mkdir()
+        (bb / "some-file.md").write_text("data")
+
+        first = migrate_blackboard_to_session_scoped(bb)
+        assert first is True
+
+        second = migrate_blackboard_to_session_scoped(bb)
+        assert second is False
+
+    def test_no_handoff_without_session_notes(self, tmp_path):
+        """Test migration skips handoff extraction when no session-notes.md."""
+        bb = tmp_path / "bb"
+        bb.mkdir()
+        (bb / "active-tasks.md").write_text("# Tasks\n")
+
+        migrate_blackboard_to_session_scoped(bb)
+
+        assert not (bb / "handoff" / "latest-handoff.md").exists()
+
+    def test_preserves_non_md_files(self, tmp_path):
+        """Test migration only moves .md files, leaving others in place."""
+        bb = tmp_path / "bb"
+        bb.mkdir()
+        (bb / "data.md").write_text("markdown")
+        (bb / "config.json").write_text("{}")
+
+        migrate_blackboard_to_session_scoped(bb)
+
+        # .md moved to _legacy
+        assert (bb / "_legacy" / "data.md").exists()
+        # .json left in place
+        assert (bb / "config.json").exists()
+
+
+class TestNewConvenienceFunctions:
+    """Test module-level convenience functions for session blackboard."""
+
+    def test_get_session_blackboard_dir(self, monkeypatch, legacy_context):
+        """Test convenience get_session_blackboard_dir function."""
+
+        def mock_resolver():
+            return PathResolver(legacy_context)
+
+        monkeypatch.setattr("lib.paths.get_default_resolver", mock_resolver)
+
+        path = get_session_blackboard_dir("my-session", "project")
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/.blackboard/sessions/my-session")
+        assert path == expected
+
+    def test_get_handoff_dir(self, monkeypatch, legacy_context):
+        """Test convenience get_handoff_dir function."""
+
+        def mock_resolver():
+            return PathResolver(legacy_context)
+
+        monkeypatch.setattr("lib.paths.get_default_resolver", mock_resolver)
+
+        path = get_handoff_dir("project")
+        expected = Path("/home/testuser/projects/testproject/.claude/mnemonic/.blackboard/handoff")
+        assert path == expected
+
+    def test_get_session_blackboard_dir_user_scope(self, monkeypatch, legacy_context):
+        """Test convenience function with user scope."""
+
+        def mock_resolver():
+            return PathResolver(legacy_context)
+
+        monkeypatch.setattr("lib.paths.get_default_resolver", mock_resolver)
+
+        path = get_session_blackboard_dir("sess-1", "user")
+        expected = Path("/home/testuser/.claude/mnemonic/.blackboard/sessions/sess-1")
         assert path == expected
