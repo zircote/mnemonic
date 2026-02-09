@@ -47,11 +47,6 @@ class MnemonicConfig:
         return self._memory_store_path
 
     @classmethod
-    def get_config_path(cls) -> Path:
-        """Return the fixed config file path."""
-        return CONFIG_FILE
-
-    @classmethod
     def load(cls) -> "MnemonicConfig":
         """Load config from ~/.config/mnemonic/config.json.
 
@@ -69,23 +64,29 @@ class MnemonicConfig:
             pass
         return cls()
 
-    def save(self) -> None:
-        """Write config to ~/.config/mnemonic/config.json.
-
-        Creates the config directory if it doesn't exist.
-        """
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        data = {
-            "version": self.version,
-            "memory_store_path": self._memory_store_path,
-        }
-        with open(CONFIG_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-            f.write("\n")
-
     def to_dict(self) -> dict:
         """Return config as a dictionary."""
         return {
             "version": self.version,
             "memory_store_path": self._memory_store_path,
         }
+
+    def save(self) -> None:
+        """Write config to ~/.config/mnemonic/config.json.
+
+        Creates the config directory if it doesn't exist.
+        """
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(self.to_dict(), f, indent=2)
+            f.write("\n")
+
+
+def get_memory_root() -> Path:
+    """Return the resolved memory store path from config.
+
+    This is the canonical way to get the memory root path.
+    Loads config from disk (with default fallback) and returns
+    the tilde-expanded Path.
+    """
+    return MnemonicConfig.load().memory_store_path

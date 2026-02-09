@@ -14,6 +14,54 @@ from .paths import (
     get_memory_dir,
     get_search_paths,
     get_blackboard_dir,
+    get_session_blackboard_dir,
+    get_handoff_dir,
+    get_v2_resolver,
+    get_all_memory_roots_with_legacy,
+    migrate_blackboard_to_session_scoped,
+)
+
+from .ontology import (
+    get_ontology_file,
+    load_ontology_data,
+    load_file_patterns,
+    load_content_patterns,
+    load_ontology_namespaces,
+    get_fallback_file_patterns,
+    get_fallback_content_patterns,
+    get_ontology_info,
+)
+
+from .search import (
+    search_memories,
+    find_related_memories,
+    find_related_memories_scored,
+    find_memories_for_context,
+    detect_file_context,
+    detect_namespace_for_file,
+    extract_keywords_from_path,
+    extract_topic,
+    infer_relationship_type,
+    REL_RELATES_TO,
+    REL_SUPERSEDES,
+    REL_DERIVED_FROM,
+    SCORE_NAMESPACE_TYPE,
+    SCORE_NAMESPACE_EXACT,
+    SCORE_TAG_OVERLAP,
+    SCORE_TITLE_KEYWORD,
+    SCORE_CONTENT_KEYWORD,
+    SCORE_MIN_THRESHOLD,
+)
+
+from .memory_reader import (
+    get_memory_summary,
+    get_memory_metadata,
+)
+
+from .relationships import (
+    add_relationship,
+    add_bidirectional_relationship,
+    RECIPROCAL_TYPES,
 )
 
 __all__ = [
@@ -22,11 +70,53 @@ __all__ = [
     "PathContext",
     "PathScheme",
     "Scope",
-    # Convenience functions
+    # Path convenience functions
     "get_default_resolver",
     "get_memory_dir",
     "get_search_paths",
     "get_blackboard_dir",
+    "get_session_blackboard_dir",
+    "get_handoff_dir",
+    "get_v2_resolver",
+    "get_all_memory_roots_with_legacy",
+    "migrate_blackboard_to_session_scoped",
+    # Ontology functions
+    "get_ontology_file",
+    "load_ontology_data",
+    "load_file_patterns",
+    "load_content_patterns",
+    "load_ontology_namespaces",
+    "get_fallback_file_patterns",
+    "get_fallback_content_patterns",
+    "get_ontology_info",
+    # Search functions
+    "search_memories",
+    "find_related_memories",
+    "find_related_memories_scored",
+    "find_memories_for_context",
+    "detect_file_context",
+    "detect_namespace_for_file",
+    "extract_keywords_from_path",
+    "extract_topic",
+    "infer_relationship_type",
+    # Relationship type constants
+    "REL_RELATES_TO",
+    "REL_SUPERSEDES",
+    "REL_DERIVED_FROM",
+    # Scoring weight constants
+    "SCORE_NAMESPACE_TYPE",
+    "SCORE_NAMESPACE_EXACT",
+    "SCORE_TAG_OVERLAP",
+    "SCORE_TITLE_KEYWORD",
+    "SCORE_CONTENT_KEYWORD",
+    "SCORE_MIN_THRESHOLD",
+    # Memory reader functions
+    "get_memory_summary",
+    "get_memory_metadata",
+    # Relationship writer functions
+    "add_relationship",
+    "add_bidirectional_relationship",
+    "RECIPROCAL_TYPES",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"

@@ -70,9 +70,10 @@ class PathContext:
     def detect(cls, scheme: PathScheme = PathScheme.LEGACY) -> "PathContext":
         """Detect context from environment."""
         config = MnemonicConfig.load()
+        remote_url = _get_git_remote_url()
         return cls(
-            org=_detect_org(),
-            project=_detect_project(),
+            org=_detect_org(remote_url),
+            project=_detect_project(remote_url),
             home_dir=Path.home(),
             project_dir=Path.cwd(),
             memory_root=config.memory_store_path,
@@ -205,6 +206,44 @@ class PathResolver:
                 return base / ".blackboard"
             else:
                 return self.context.memory_root / self.context.org / ".blackboard"
+
+    def get_session_blackboard_dir(self, session_id: str, scope: Scope = Scope.PROJECT) -> Path:
+        """Get session-scoped blackboard directory."""
+        bb = self.get_blackboard_dir(scope)
+        return bb / "sessions" / session_id
+
+    def get_handoff_dir(self, scope: Scope = Scope.PROJECT) -> Path:
+        """Get handoff directory for session handoffs."""
+        bb = self.get_blackboard_dir(scope)
+        return bb / "handoff"
+
+    def get_legacy_blackboard_dir(self, scope: Scope = Scope.PROJECT) -> Path:
+        """Get legacy blackboard directory (for migration)."""
+        bb = self.get_blackboard_dir(scope)
+        return bb / "_legacy"
+
+    def list_session_blackboards(self, scope: Scope = Scope.PROJECT, active_only: bool = False) -> list:
+        """List session blackboard directories."""
+        bb = self.get_blackboard_dir(scope)
+        sessions_dir = bb / "sessions"
+        if not sessions_dir.exists():
+            return []
+        dirs = sorted(sessions_dir.iterdir())
+        if active_only:
+            import json
+
+            active = []
+            for d in dirs:
+                meta = d / "_meta.json"
+                if meta.exists():
+                    try:
+                        data = json.loads(meta.read_text())
+                        if data.get("status") == "active":
+                            active.append(d)
+                    except Exception:
+                        pass
+            return active
+        return [d for d in dirs if d.is_dir()]
 
     def get_ontology_paths(self) -> List[Path]:
         """
@@ -366,52 +405,74 @@ class PathResolver:
 # Helper functions for context detection
 
 
-def _detect_org() -> str:
-    """
-    Detect organization from git remote.
-
-    Extracts organization name from git remote URL.
-    Falls back to "default" if detection fails.
-
-    Returns:
-        Organization name or "default"
-    """
+def _get_git_remote_url() -> Optional[str]:
+    """Get the git remote origin URL, or None if unavailable."""
     try:
-        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
         if result.returncode == 0:
-            url = result.stdout.strip()
-            # Handle both SSH and HTTPS URLs
-            if ":" in url and "@" in url:
-                # SSH format: git@github.com:org/repo.git
-                org = url.split(":")[-1].split("/")[0]
-            else:
-                # HTTPS format: https://github.com/org/repo.git
-                parts = url.rstrip(".git").split("/")
-                org = parts[-2] if len(parts) >= 2 else "default"
-            return org.replace(".git", "")
+            return result.stdout.strip()
     except Exception:
         pass
-    return "default"
+    return None
 
 
-def _detect_project() -> str:
-    """
-    Detect project name from git or directory.
+def _parse_org_from_url(url: str) -> str:
+    """Extract organization name from a git remote URL."""
+    if ":" in url and "@" in url:
+        # SSH format: git@github.com:org/repo.git
+        return url.split(":")[-1].split("/")[0].replace(".git", "")
+    # HTTPS format: https://github.com/org/repo.git
+    parts = url.rstrip(".git").split("/")
+    return parts[-2] if len(parts) >= 2 else "default"
 
-    Returns:
-        Project name
-    """
+
+def _parse_project_from_url(url: str) -> str:
+    """Extract project name from a git remote URL."""
+    return url.rstrip(".git").split("/")[-1]
+
+
+def _detect_org(remote_url: Optional[str] = None) -> str:
+    """Detect organization from git remote. Falls back to 'default'."""
+    url = remote_url if remote_url is not None else _get_git_remote_url()
+    return _parse_org_from_url(url) if url else "default"
+
+
+def _detect_project(remote_url: Optional[str] = None) -> str:
+    """Detect project name from git remote, toplevel dir, or cwd."""
+    url = remote_url if remote_url is not None else _get_git_remote_url()
+    if url:
+        return _parse_project_from_url(url)
     try:
-        result = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
         if result.returncode == 0:
-            url = result.stdout.strip()
-            return url.rstrip(".git").split("/")[-1]
+            return Path(result.stdout.strip()).name
     except Exception:
         pass
     return Path.cwd().name
 
 
 # Convenience functions for backward compatibility
+
+_SCOPE_MAP = {
+    "user": Scope.USER,
+    "project": Scope.PROJECT,
+    "org": Scope.ORG,
+}
+
+
+def _parse_scope(scope: str, default: Scope = Scope.PROJECT) -> Scope:
+    """Convert a scope string to Scope enum."""
+    return _SCOPE_MAP.get(scope, default)
 
 
 def get_default_resolver() -> PathResolver:
@@ -420,19 +481,8 @@ def get_default_resolver() -> PathResolver:
 
 
 def get_memory_dir(namespace: str, scope: str = "project") -> Path:
-    """
-    Convenience function for getting memory directory.
-
-    Args:
-        namespace: Hierarchical namespace
-        scope: "user", "project", or "org"
-
-    Returns:
-        Path to memory directory
-    """
-    resolver = get_default_resolver()
-    scope_enum = Scope.PROJECT if scope == "project" else Scope.USER if scope == "user" else Scope.ORG
-    return resolver.get_memory_dir(namespace, scope_enum)
+    """Convenience function for getting memory directory."""
+    return get_default_resolver().get_memory_dir(namespace, _parse_scope(scope))
 
 
 def get_search_paths(
@@ -440,31 +490,97 @@ def get_search_paths(
     include_user: bool = True,
     include_project: bool = True,
 ) -> List[Path]:
-    """
-    Convenience function for getting search paths.
-
-    Args:
-        namespace: Optional namespace filter
-        include_user: Include user-scope paths
-        include_project: Include project-scope paths
-
-    Returns:
-        List of search paths in priority order
-    """
-    resolver = get_default_resolver()
-    return resolver.get_search_paths(namespace, include_user, include_project)
+    """Convenience function for getting search paths."""
+    return get_default_resolver().get_search_paths(namespace, include_user, include_project)
 
 
 def get_blackboard_dir(scope: str = "project") -> Path:
-    """
-    Convenience function for getting blackboard directory.
+    """Convenience function for getting blackboard directory."""
+    return get_default_resolver().get_blackboard_dir(_parse_scope(scope))
 
-    Args:
-        scope: "project" or "org"
 
-    Returns:
-        Path to blackboard directory
+def get_session_blackboard_dir(session_id: str, scope: str = "project") -> Path:
+    """Convenience function for getting session blackboard directory."""
+    return get_default_resolver().get_session_blackboard_dir(session_id, _parse_scope(scope))
+
+
+def get_handoff_dir(scope: str = "project") -> Path:
+    """Convenience function for getting handoff directory."""
+    return get_default_resolver().get_handoff_dir(_parse_scope(scope))
+
+
+# Blackboard migration
+
+
+def migrate_blackboard_to_session_scoped(bb_root: Path) -> bool:
+    """Migrate flat blackboard to session-scoped structure.
+
+    Idempotent: returns False if already migrated (_legacy/ exists).
     """
-    resolver = get_default_resolver()
-    scope_enum = Scope.PROJECT if scope == "project" else Scope.ORG
-    return resolver.get_blackboard_dir(scope_enum)
+    legacy_dir = bb_root / "_legacy"
+    if legacy_dir.exists():
+        return False  # Already migrated
+
+    # Check if there's anything to migrate
+    md_files = list(bb_root.glob("*.md"))
+    if not md_files:
+        # Nothing to migrate, just create the structure
+        (bb_root / "sessions").mkdir(parents=True, exist_ok=True)
+        (bb_root / "handoff").mkdir(parents=True, exist_ok=True)
+        return True
+
+    # Create new structure
+    legacy_dir.mkdir(parents=True, exist_ok=True)
+    (bb_root / "sessions").mkdir(parents=True, exist_ok=True)
+    (bb_root / "handoff").mkdir(parents=True, exist_ok=True)
+
+    # Move existing md files to _legacy/
+    for md_file in md_files:
+        dest = legacy_dir / md_file.name
+        md_file.rename(dest)
+
+    # Extract latest handoff from legacy session-notes.md
+    legacy_notes = legacy_dir / "session-notes.md"
+    if legacy_notes.exists():
+        try:
+            content = legacy_notes.read_text()
+            # Find last entry (after last ---)
+            parts = content.split("---")
+            if len(parts) > 1:
+                last_entry = parts[-1].strip()
+                if last_entry:
+                    handoff_content = f"# Latest Handoff (migrated from legacy)\n\n---\n{last_entry}\n"
+                    (bb_root / "handoff" / "latest-handoff.md").write_text(handoff_content)
+        except Exception:
+            pass
+
+    return True
+
+
+# Shared V2 resolver for hooks and tools
+
+_v2_resolver: Optional[PathResolver] = None
+
+
+def get_v2_resolver() -> PathResolver:
+    """Get or create a shared V2-scheme PathResolver instance."""
+    global _v2_resolver
+    if _v2_resolver is None:
+        context = PathContext.detect(scheme=PathScheme.V2)
+        _v2_resolver = PathResolver(context)
+    return _v2_resolver
+
+
+def get_all_memory_roots_with_legacy() -> List[Path]:
+    """Get all memory root paths, including legacy paths during migration.
+
+    Combines PathResolver.get_all_memory_roots() with legacy org/default dirs.
+    """
+    resolver = get_v2_resolver()
+    root = MnemonicConfig.load().memory_store_path
+    roots = resolver.get_all_memory_roots()
+    legacy_roots = [
+        root / resolver.context.org,
+        root / "default",
+    ]
+    return list(set(roots + [p for p in legacy_roots if p.exists()]))
