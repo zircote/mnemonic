@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""mnemonic-paths: Path resolution CLI for mnemonic memory system."""
+import argparse
+import os
+import sys
+from pathlib import Path
+
+# Add project root for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from lib.config import get_memory_root
+from lib.paths import get_v2_resolver
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Mnemonic path resolution")
+    sub = parser.add_subparsers(dest="command")
+
+    sub.add_parser("root", help="Print MNEMONIC_ROOT")
+    sub.add_parser("blackboard", help="Print blackboard directory")
+
+    session_bb = sub.add_parser("session-bb", help="Print session blackboard dir")
+    session_bb.add_argument("--session-id", default=os.environ.get("CLAUDE_SESSION_ID", "default"))
+
+    sub.add_parser("search-paths", help="Print search paths")
+    sub.add_parser("org", help="Print detected organization")
+    sub.add_parser("project", help="Print detected project name")
+
+    args = parser.parse_args()
+    resolver = get_v2_resolver()
+
+    if args.command == "root":
+        print(get_memory_root())
+    elif args.command == "blackboard":
+        print(resolver.get_blackboard_dir())
+    elif args.command == "session-bb":
+        print(resolver.get_session_blackboard_dir(args.session_id))
+    elif args.command == "search-paths":
+        for p in resolver.get_search_paths():
+            print(p)
+    elif args.command == "org":
+        print(resolver.context.org)
+    elif args.command == "project":
+        print(resolver.context.project)
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

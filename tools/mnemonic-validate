@@ -21,7 +21,6 @@ Options:
 
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys
@@ -31,7 +30,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+# Add project root to path for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import yaml
+
+from lib.config import get_memory_root
 
 
 @dataclass
@@ -131,39 +135,12 @@ def parse_mif_schema(skill_path: Path) -> MIFSchema:
     if not schema.required_fields:
         schema.required_fields = ["id", "type", "namespace", "created", "title"]
 
-    # Extract type enum values - look for semantic|episodic|procedural pattern
-    type_match = re.search(r"`(semantic|episodic|procedural)`", content)
-    if type_match:
-        schema.type_values = ["semantic", "episodic", "procedural"]
-    else:
-        schema.type_values = ["semantic", "episodic", "procedural"]
-
-    # Extract source_type enum values
-    source_match = re.search(r"`(user_explicit|inferred|conversation)`", content)
-    if source_match:
-        schema.source_types = ["user_explicit", "inferred", "conversation"]
-    else:
-        schema.source_types = ["user_explicit", "inferred", "conversation"]
-
-    # Code reference types
-    schema.code_ref_types = [
-        "function",
-        "class",
-        "method",
-        "variable",
-        "type",
-        "module",
-    ]
-
-    # Citation types
-    schema.citation_types = [
-        "paper",
-        "documentation",
-        "blog",
-        "github",
-        "stackoverflow",
-        "article",
-    ]
+    # These enums are fixed by the MIF spec; the regex checks above were
+    # aspirational (both branches assigned the same values). Assign directly.
+    schema.type_values = ["semantic", "episodic", "procedural"]
+    schema.source_types = ["user_explicit", "inferred", "conversation"]
+    schema.code_ref_types = ["function", "class", "method", "variable", "type", "module"]
+    schema.citation_types = ["paper", "documentation", "blog", "github", "stackoverflow", "article"]
 
     return schema
 
@@ -188,7 +165,7 @@ def parse_frontmatter(content: str) -> tuple[Optional[dict], str, int]:
     try:
         frontmatter = yaml.safe_load(frontmatter_text)
         return frontmatter, body, frontmatter_end_line
-    except yaml.YAMLError as e:
+    except yaml.YAMLError:
         return None, content, 0
 
 
@@ -218,8 +195,8 @@ def validate_url(value: str) -> bool:
 
 
 def validate_namespace(value: str) -> bool:
-    """Validate namespace format: {namespace}/{scope}."""
-    namespace_pattern = r"^[a-z]+/[a-z]+$"
+    """Validate namespace format: _?{namespace}/{scope}."""
+    namespace_pattern = r"^_?[a-z]+/[a-z]+$"
     return bool(re.match(namespace_pattern, value))
 
 
@@ -529,12 +506,19 @@ def find_memory_files(
     return files
 
 
+def _summarize(results: list[ValidationResult]) -> dict:
+    """Compute summary statistics for validation results."""
+    return {
+        "total": len(results),
+        "valid": sum(1 for r in results if r.valid),
+        "errors": sum(len(r.errors) for r in results),
+        "warnings": sum(len(r.warnings) for r in results),
+    }
+
+
 def format_markdown(results: list[ValidationResult]) -> str:
     """Format results as markdown."""
-    total = len(results)
-    errors_count = sum(len(r.errors) for r in results)
-    warnings_count = sum(len(r.warnings) for r in results)
-    valid_count = sum(1 for r in results if r.valid)
+    s = _summarize(results)
 
     lines = [
         "# Mnemonic Validation Report",
@@ -543,10 +527,10 @@ def format_markdown(results: list[ValidationResult]) -> str:
         "",
         "## Summary",
         "",
-        f"- **Memories validated:** {total}",
-        f"- **Valid:** {valid_count}",
-        f"- **Errors:** {errors_count}",
-        f"- **Warnings:** {warnings_count}",
+        f"- **Memories validated:** {s['total']}",
+        f"- **Valid:** {s['valid']}",
+        f"- **Errors:** {s['errors']}",
+        f"- **Warnings:** {s['warnings']}",
         "",
     ]
 
@@ -587,22 +571,11 @@ def format_markdown(results: list[ValidationResult]) -> str:
 
 def format_json(results: list[ValidationResult]) -> str:
     """Format results as JSON."""
-    total = len(results)
-    errors_count = sum(len(r.errors) for r in results)
-    warnings_count = sum(len(r.warnings) for r in results)
-    valid_count = sum(1 for r in results if r.valid)
-
     output = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "summary": {
-            "total": total,
-            "valid": valid_count,
-            "errors": errors_count,
-            "warnings": warnings_count,
-        },
+        "summary": _summarize(results),
         "results": [r.to_dict() for r in results if r.errors or r.warnings],
     }
-
     return json.dumps(output, indent=2)
 
 
@@ -610,10 +583,7 @@ def capture_as_memory(
     results: list[ValidationResult], mnemonic_path: Path
 ) -> Path:
     """Capture validation run as episodic memory."""
-    total = len(results)
-    errors_count = sum(len(r.errors) for r in results)
-    warnings_count = sum(len(r.warnings) for r in results)
-    valid_count = sum(1 for r in results if r.valid)
+    s = _summarize(results)
 
     now = datetime.now(timezone.utc)
     memory_id = str(uuid.uuid4())
@@ -621,7 +591,7 @@ def capture_as_memory(
     timestamp = now.isoformat().replace("+00:00", "Z")
 
     # Choose namespace based on errors
-    namespace = "blockers/project" if errors_count > 0 else "_episodic/project"
+    namespace = "blockers/project" if s["errors"] > 0 else "_episodic/project"
 
     # Build memory content
     content_lines = [
@@ -647,10 +617,10 @@ def capture_as_memory(
         "",
         "## Summary",
         "",
-        f"- **Memories validated:** {total}",
-        f"- **Valid:** {valid_count}",
-        f"- **Errors:** {errors_count}",
-        f"- **Warnings:** {warnings_count}",
+        f"- **Memories validated:** {s['total']}",
+        f"- **Valid:** {s['valid']}",
+        f"- **Errors:** {s['errors']}",
+        f"- **Warnings:** {s['warnings']}",
         "",
     ]
 
@@ -681,7 +651,7 @@ def capture_as_memory(
     content = "\n".join(content_lines)
 
     # Write memory file
-    ns_path = mnemonic_path / namespace.replace("/", "/")
+    ns_path = mnemonic_path / namespace
     ns_path.mkdir(parents=True, exist_ok=True)
 
     slug = f"validation-run-{date_str}"[:50]
@@ -743,18 +713,13 @@ def main():
     schema = parse_mif_schema(skill_path)
 
     # Determine search paths
+    memory_root = get_memory_root()
     if args.path:
         search_paths = [Path(p) for p in args.path]
     else:
         search_paths = []
-        # Global mnemonic directory
-        global_mnemonic = Path.home() / ".claude" / "mnemonic"
-        if global_mnemonic.exists():
-            search_paths.append(global_mnemonic)
-        # Project mnemonic directory
-        project_mnemonic = Path.cwd() / ".claude" / "mnemonic"
-        if project_mnemonic.exists():
-            search_paths.append(project_mnemonic)
+        if memory_root.exists():
+            search_paths.append(memory_root)
 
     if not search_paths and not args.changed:
         print("No mnemonic directories found", file=sys.stderr)
@@ -809,12 +774,8 @@ def main():
 
     # Capture as memory if requested
     if args.capture:
-        mnemonic_path = Path.home() / ".claude" / "mnemonic"
-        if not mnemonic_path.exists():
-            mnemonic_path = Path.cwd() / ".claude" / "mnemonic"
-
-        if mnemonic_path.exists():
-            memory_path = capture_as_memory(results, mnemonic_path)
+        if memory_root.exists():
+            memory_path = capture_as_memory(results, memory_root)
             print(f"\nCaptured validation run as: {memory_path}", file=sys.stderr)
 
     # Exit code based on errors

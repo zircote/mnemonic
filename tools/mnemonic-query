@@ -41,7 +41,7 @@ Examples:
 
 import argparse
 import json
-import os
+import operator as op
 import re
 import shutil
 import subprocess
@@ -49,6 +49,11 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
+
+# Add project root to path for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from lib.paths import get_v2_resolver
 
 
 @dataclass
@@ -109,15 +114,17 @@ def parse_operator(value: str) -> tuple[str, str, Optional[str]]:
     return "=", value, None
 
 
-def get_frontmatter_value(file_path: Path, field: str) -> Optional[str]:
-    """Extract a frontmatter field value using yq."""
+def _extract_frontmatter(file_path: Path) -> Optional[str]:
+    """Extract raw YAML frontmatter text from a memory file.
+
+    Returns the frontmatter string (without --- delimiters), or None
+    if the file has no valid frontmatter.
+    """
     try:
-        # Extract frontmatter between --- markers
         content = file_path.read_text()
         if not content.startswith("---"):
             return None
 
-        # Find end of frontmatter (skip first ---)
         lines = content.split("\n")
         frontmatter_lines = []
         in_frontmatter = False
@@ -131,19 +138,24 @@ def get_frontmatter_value(file_path: Path, field: str) -> Optional[str]:
             if in_frontmatter:
                 frontmatter_lines.append(line)
 
-        if not frontmatter_lines:
-            return None
+        return "\n".join(frontmatter_lines) if frontmatter_lines else None
+    except Exception:
+        return None
 
-        frontmatter = "\n".join(frontmatter_lines)
 
-        # Use yq to extract field
+def get_frontmatter_value(file_path: Path, field: str) -> Optional[str]:
+    """Extract a frontmatter field value using yq."""
+    frontmatter = _extract_frontmatter(file_path)
+    if frontmatter is None:
+        return None
+
+    try:
         result = subprocess.run(
             ["yq", f".{field}"],
             input=frontmatter,
             capture_output=True,
             text=True,
         )
-
         if result.returncode == 0:
             value = result.stdout.strip()
             if value and value != "null":
@@ -155,37 +167,17 @@ def get_frontmatter_value(file_path: Path, field: str) -> Optional[str]:
 
 def get_frontmatter_tags(file_path: Path) -> list[str]:
     """Extract tags array from frontmatter using yq."""
+    frontmatter = _extract_frontmatter(file_path)
+    if frontmatter is None:
+        return []
+
     try:
-        content = file_path.read_text()
-        if not content.startswith("---"):
-            return []
-
-        # Find end of frontmatter (skip first ---)
-        lines = content.split("\n")
-        frontmatter_lines = []
-        in_frontmatter = False
-        for line in lines:
-            if line.strip() == "---":
-                if not in_frontmatter:
-                    in_frontmatter = True
-                    continue
-                else:
-                    break
-            if in_frontmatter:
-                frontmatter_lines.append(line)
-
-        if not frontmatter_lines:
-            return []
-
-        frontmatter = "\n".join(frontmatter_lines)
-
         result = subprocess.run(
             ["yq", ".tags[]"],
             input=frontmatter,
             capture_output=True,
             text=True,
         )
-
         if result.returncode == 0:
             return [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
         return []
@@ -223,29 +215,12 @@ def match_filter(file_path: Path, qf: QueryFilter) -> bool:
         return value.lower() != qf.value.lower()
 
     elif qf.operator in (">", ">=", "<", "<="):
-        # Numeric comparison for confidence
+        _OPS = {">": op.gt, ">=": op.ge, "<": op.lt, "<=": op.le}
+        cmp = _OPS[qf.operator]
         try:
-            num_value = float(value)
-            num_filter = float(qf.value)
-            if qf.operator == ">":
-                return num_value > num_filter
-            elif qf.operator == ">=":
-                return num_value >= num_filter
-            elif qf.operator == "<":
-                return num_value < num_filter
-            elif qf.operator == "<=":
-                return num_value <= num_filter
+            return cmp(float(value), float(qf.value))
         except ValueError:
-            # String comparison for dates
-            if qf.operator == ">":
-                return value > qf.value
-            elif qf.operator == ">=":
-                return value >= qf.value
-            elif qf.operator == "<":
-                return value < qf.value
-            elif qf.operator == "<=":
-                return value <= qf.value
-        return False
+            return cmp(value, qf.value)
 
     elif qf.operator == "range":
         # Range comparison
@@ -272,44 +247,13 @@ def find_memory_files(paths: list[Path]) -> list[Path]:
     return sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
 
 
-def get_git_org() -> str:
-    """Get organization from git remote."""
-    try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0:
-            url = result.stdout.strip()
-            # Extract org from URL patterns
-            match = re.search(r"[:/]([^/]+)/[^/]+\.git$", url)
-            if match:
-                return match.group(1)
-            match = re.search(r"[:/]([^/]+)/[^/]+$", url)
-            if match:
-                return match.group(1)
-    except Exception:
-        pass
-    return "default"
-
-
-def get_search_paths(scope: str) -> list[Path]:
-    """Get search paths based on scope."""
-    paths = []
-    org = get_git_org()
-
-    if scope in ("user", "all"):
-        user_path = Path.home() / ".claude" / "mnemonic" / org
-        if user_path.exists():
-            paths.append(user_path)
-
-    if scope in ("project", "all"):
-        project_path = Path.cwd() / ".claude" / "mnemonic"
-        if project_path.exists():
-            paths.append(project_path)
-
-    return paths
+def resolve_search_paths(scope: str) -> list[Path]:
+    """Get search paths based on scope using PathResolver."""
+    return get_v2_resolver().get_search_paths(
+        include_user=(scope in ("user", "all")),
+        include_project=(scope in ("project", "all")),
+        include_org=(scope == "all"),
+    )
 
 
 def format_output(
@@ -323,10 +267,7 @@ def format_output(
         return "\n".join(r.path for r in results)
 
     elif output_format == "titles":
-        lines = []
-        for r in results:
-            lines.append(f"{r.title}")
-        return "\n".join(lines)
+        return "\n".join(r.title for r in results)
 
     elif output_format == "json":
         data = []
@@ -421,28 +362,28 @@ def main():
     filters = []
 
     if args.memory_type:
-        op, val, val_end = parse_operator(args.memory_type)
-        filters.append(QueryFilter("type", op, val, val_end))
+        oper, val, val_end = parse_operator(args.memory_type)
+        filters.append(QueryFilter("type", oper, val, val_end))
 
     if args.namespace:
-        op, val, val_end = parse_operator(args.namespace)
-        filters.append(QueryFilter("namespace", op, val, val_end))
+        oper, val, val_end = parse_operator(args.namespace)
+        filters.append(QueryFilter("namespace", oper, val, val_end))
 
     for tag in args.tag:
-        op, val, val_end = parse_operator(tag)
-        filters.append(QueryFilter("tag", op, val, val_end))
+        oper, val, val_end = parse_operator(tag)
+        filters.append(QueryFilter("tag", oper, val, val_end))
 
     if args.confidence:
-        op, val, val_end = parse_operator(args.confidence)
-        filters.append(QueryFilter("provenance.confidence", op, val, val_end))
+        oper, val, val_end = parse_operator(args.confidence)
+        filters.append(QueryFilter("provenance.confidence", oper, val, val_end))
 
     if args.created:
-        op, val, val_end = parse_operator(args.created)
-        filters.append(QueryFilter("created", op, val, val_end))
+        oper, val, val_end = parse_operator(args.created)
+        filters.append(QueryFilter("created", oper, val, val_end))
 
     if args.modified:
-        op, val, val_end = parse_operator(args.modified)
-        filters.append(QueryFilter("modified", op, val, val_end))
+        oper, val, val_end = parse_operator(args.modified)
+        filters.append(QueryFilter("modified", oper, val, val_end))
 
     if args.title:
         filters.append(QueryFilter("title", "=", args.title))
@@ -451,7 +392,7 @@ def main():
     if args.path:
         search_paths = [Path(p) for p in args.path]
     else:
-        search_paths = get_search_paths(args.scope)
+        search_paths = resolve_search_paths(args.scope)
 
     if not search_paths:
         print("No mnemonic directories found", file=sys.stderr)
@@ -470,34 +411,30 @@ def main():
     results = []
     for file_path in files:
         # Apply all filters (AND logic)
-        matches = True
-        for f in filters:
-            if not match_filter(file_path, f):
-                matches = False
-                break
+        if not all(match_filter(file_path, f) for f in filters):
+            continue
 
-        if matches:
-            # Extract result metadata
-            title = get_frontmatter_value(file_path, "title") or ""
-            title = title.strip('"')
-            memory_type = get_frontmatter_value(file_path, "type") or ""
-            namespace = get_frontmatter_value(file_path, "namespace") or ""
-            confidence_str = get_frontmatter_value(file_path, "provenance.confidence")
-            confidence = float(confidence_str) if confidence_str else None
-            created = get_frontmatter_value(file_path, "created")
-            tags = get_frontmatter_tags(file_path)
+        # Extract result metadata
+        title = get_frontmatter_value(file_path, "title") or ""
+        title = title.strip('"')
+        memory_type = get_frontmatter_value(file_path, "type") or ""
+        namespace = get_frontmatter_value(file_path, "namespace") or ""
+        confidence_str = get_frontmatter_value(file_path, "provenance.confidence")
+        confidence = float(confidence_str) if confidence_str else None
+        created = get_frontmatter_value(file_path, "created")
+        tags = get_frontmatter_tags(file_path)
 
-            results.append(
-                QueryResult(
-                    path=str(file_path),
-                    title=title,
-                    memory_type=memory_type,
-                    namespace=namespace,
-                    confidence=confidence,
-                    created=created,
-                    tags=tags,
-                )
+        results.append(
+            QueryResult(
+                path=str(file_path),
+                title=title,
+                memory_type=memory_type,
+                namespace=namespace,
+                confidence=confidence,
+                created=created,
+                tags=tags,
             )
+        )
 
     if args.verbose:
         print(f"Matched {len(results)} memories", file=sys.stderr)
