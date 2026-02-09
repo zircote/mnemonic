@@ -58,9 +58,9 @@ def main():
 ```bash
 # OLD: Bash-based path construction
 if [ "$SCOPE" = "project" ]; then
-    MEMORY_DIR="./.claude/mnemonic/${NAMESPACE}"
+    MEMORY_DIR="$MNEMONIC_ROOT/${NAMESPACE}"
 else
-    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}"
+    MEMORY_DIR="$MNEMONIC_ROOT/${ORG}/${NAMESPACE}"
 fi
 ```
 
@@ -104,7 +104,7 @@ def capture_memory(namespace: str, title: str, scope: str = "project"):
 
 ```bash
 # OLD: Manual path construction
-SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG ./.claude/mnemonic"
+SEARCH_PATHS="$MNEMONIC_ROOT/$ORG $MNEMONIC_ROOT"
 ```
 
 #### After (search.md)

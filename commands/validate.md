@@ -29,7 +29,7 @@ Validates an ontology definition file for correctness.
 
 ## Arguments
 
-- `<file>` - Path to ontology YAML file (required). Defaults to `.claude/mnemonic/ontology.yaml`
+- `<file>` - Path to ontology YAML file (required). Defaults to `$MNEMONIC_ROOT/ontology.yaml`
 - `--json` - Output as JSON
 
 ## Checks Performed
@@ -45,7 +45,14 @@ Validates an ontology definition file for correctness.
 ## Procedure
 
 ```bash
-ONTOLOGY_FILE="${1:-.claude/mnemonic/ontology.yaml}"
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
+ONTOLOGY_FILE="${1:-$MNEMONIC_ROOT/ontology.yaml}"
 PLUGIN_DIR="${CLAUDE_PLUGIN_ROOT:-$(dirname $(dirname $0))}"
 
 python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_validator.py" "$ONTOLOGY_FILE" ${ARGS}

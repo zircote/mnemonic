@@ -5,25 +5,13 @@
 [![MIF Level 3](https://img.shields.io/badge/MIF-Level%203-green)](https://github.com/zircote/MIF)
 [![Filesystem Approach](https://img.shields.io/badge/Filesystem-Research%20Validated-brightgreen)](https://www.letta.com/blog/benchmarking-ai-agent-memory)
 
-**Supported Coding Assistants:**
-
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Native-blueviolet?logo=anthropic)](docs/integrations/README.md)
-[![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-Supported-black?logo=github)](docs/integrations/github-copilot.md)
-[![Cursor](https://img.shields.io/badge/Cursor-Supported-blue?logo=cursor)](docs/integrations/cursor.md)
-[![Windsurf](https://img.shields.io/badge/Windsurf-Supported-teal?logo=codeium)](docs/integrations/windsurf.md)
-[![Aider](https://img.shields.io/badge/Aider-Supported-green)](docs/integrations/aider.md)
-[![Continue](https://img.shields.io/badge/Continue-Supported-orange)](docs/integrations/continue.md)
-[![Codex CLI](https://img.shields.io/badge/Codex%20CLI-Supported-red?logo=openai)](docs/integrations/codex-cli.md)
-[![Gemini CLI](https://img.shields.io/badge/Gemini%20CLI-Supported-blue?logo=google)](docs/integrations/gemini-cli.md)
-[![OpenCode](https://img.shields.io/badge/OpenCode-Supported-purple)](docs/integrations/opencode.md)
-
 A pure filesystem-based memory system for Claude Code. No external dependencies - all operations use standard Unix tools and Claude's native capabilities.
 
 <p align="center">
   <img src=".github/readme-infographic.png" alt="Mnemonic Architecture" width="800">
 </p>
 
-> **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification for standardized AI memory storage and interchange. MIF defines a portable, human-readable format for persistent AI memories across different systems and agents.
+> **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification for standardized AI memory storage. MIF defines a portable, human-readable format for persistent AI memories.
 
 ## Features
 
@@ -123,16 +111,7 @@ ${MNEMONIC_ROOT}/
 
 ## Memory Format (MIF Level 3)
 
-Mnemonic implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification. MIF is a proposed standard for portable, human-readable AI memory storage that enables:
-
-- **Interoperability**: Memories can be shared between different AI systems
-- **Human Readability**: Plain markdown with YAML frontmatter
-- **Version Control**: Git-friendly format with clear diffs
-- **Temporal Awareness**: Bi-temporal tracking (valid time vs recorded time)
-- **Decay Modeling**: Configurable relevance decay over time
-- **Citations**: Optional external references (papers, docs, blogs)
-
-Each memory is a `.memory.md` file:
+Each memory is a `.memory.md` file with YAML frontmatter:
 
 ```yaml
 ---
@@ -156,11 +135,12 @@ provenance:
   source_type: conversation
   agent: claude-opus-4
   confidence: 0.95
-citations:
-  - type: documentation
-    title: "PostgreSQL Documentation"
-    url: https://www.postgresql.org/docs/
-    relevance: 0.90
+relationships:
+  - type: relates_to
+    target: a5e46807-6883-4fb2-be45-09872ae1a994
+    label: "Related caching decision"
+  - type: supersedes
+    target: b6f57918-7994-5gc3-cf56-10983bf2b005
 ---
 
 # Use PostgreSQL for Storage
@@ -255,49 +235,17 @@ Autonomous agents for specialized tasks:
 - **compression-worker**: Memory summarization for gc --compress
 - **ontology-discovery**: Discovers entities in codebase based on ontology patterns
 
-## Integrations
-
-Mnemonic works with multiple AI coding assistants beyond Claude Code:
-
-| Tool | Integration | Guide |
-|------|-------------|-------|
-| GitHub Copilot | `.github/copilot-instructions.md` | [Guide](docs/integrations/github-copilot.md) |
-| Cursor | `.cursor/rules/mnemonic.mdc` | [Guide](docs/integrations/cursor.md) |
-| Aider | `CONVENTIONS.md` | [Guide](docs/integrations/aider.md) |
-| Continue Dev | `config.yaml` rules | [Guide](docs/integrations/continue.md) |
-| Codex CLI | `AGENTS.md` + Skills | [Guide](docs/integrations/codex-cli.md) |
-| Gemini CLI | MCP Server | [Guide](docs/integrations/gemini-cli.md) |
-| Windsurf | Memories/Rules | [Guide](docs/integrations/windsurf.md) |
-| OpenCode | Skills | [Guide](docs/integrations/opencode.md) |
-
-See [docs/integrations/](docs/integrations/) for setup guides and templates.
-
 ## Documentation
 
-### For Enterprises
-
-Enterprise-focused documentation for organizations evaluating or deploying mnemonic:
-
-| Guide | Audience | Focus |
-|-------|----------|-------|
-| [Enterprise Overview](docs/enterprise/README.md) | All | Summary and navigation |
-| [Compliance & Governance](docs/enterprise/compliance-governance.md) | Architects | Audit trails, data sovereignty, compliance |
-| [Productivity & ROI](docs/enterprise/productivity-roi.md) | Managers | Team benefits, cost analysis |
-| [Developer Experience](docs/enterprise/developer-experience.md) | Developers | Privacy, customization, power features |
-| [Research Validation](docs/enterprise/research-validation.md) | Technical | Academic backing, benchmarks |
-| [Deployment Guide](docs/enterprise/deployment-guide.md) | DevOps | Installation, backup, team sharing |
-
-### For Memory Bank Users
-
-Migrating from a Memory Bank setup? See our community resources:
-
-| Guide | Description |
-|-------|-------------|
-| [Quick Start](docs/community/quickstart-memory-bank.md) | 5-minute setup for Memory Bank users |
-| [Migration Guide](docs/community/migration-from-memory-bank.md) | Complete migration walkthrough |
-| [Comparison](docs/community/mnemonic-vs-memory-bank.md) | Side-by-side feature comparison |
-| [Adoption Stories](docs/community/adoption-stories.md) | Community experiences |
-| [Contributing](docs/community/CONTRIBUTING-COMMUNITY.md) | Share your experience |
+| Guide | Focus |
+|-------|-------|
+| [Architecture](docs/architecture.md) | System architecture |
+| [Agent Coordination](docs/agent-coordination.md) | Multi-agent patterns |
+| [Ontologies](docs/ontologies.md) | Custom ontology guide |
+| [Validation](docs/validation.md) | Memory validation guide |
+| [CLI Usage](docs/cli-usage.md) | Command-line operations |
+| [ADRs](docs/adrs/) | Architecture decision records |
+| [Enterprise](docs/enterprise/) | Deployment and compliance |
 
 ## Proactive Behavior
 
@@ -381,29 +329,29 @@ mnemonic/
 │   ├── agent-coordination.md  # Multi-agent patterns
 │   ├── ontologies.md       # Custom ontology guide
 │   ├── adrs/               # Architecture decision records
-│   ├── enterprise/         # Enterprise adoption guides
-│   ├── community/          # Memory Bank migration resources
-│   └── integrations/       # Multi-tool integration guides
-│       └── *.md
+│   └── enterprise/         # Enterprise adoption guides
 ├── hooks/
 │   ├── hooks.json          # Hook configuration
 │   └── *.py                # Hook implementations
+├── lib/
+│   ├── paths.py            # Path resolution
+│   ├── config.py           # Configuration
+│   ├── ontology.py         # Ontology loading
+│   ├── search.py           # Memory search and scoring
+│   ├── memory_reader.py    # Memory metadata extraction
+│   └── relationships.py    # Relationship writing
 ├── skills/
 │   ├── */SKILL.md          # Self-contained skills
 │   └── ontology/           # Custom ontology support
 │       ├── SKILL.md
 │       ├── lib/            # Python utilities
 │       └── ontologies/     # Base ontology and examples
-├── templates/              # Integration templates
-│   ├── AGENTS.md           # Universal agent instructions
-│   ├── CONVENTIONS.md      # Aider conventions
-│   ├── copilot-instructions.md
-│   └── cursor-rule.mdc
 ├── tools/
-│   └── mnemonic-validate   # MIF schema validation tool
+│   ├── mnemonic-validate   # MIF schema validation
+│   ├── mnemonic-query      # Structured queries
+│   └── mnemonic-paths      # Path resolution CLI
 ├── tests/
-│   ├── test_validator.py   # Validation tests
-│   └── fixtures/           # Test fixtures
+│   └── unit/               # Unit tests
 ├── CHANGELOG.md
 └── README.md
 ```

@@ -65,83 +65,47 @@ You will receive:
 - **tag_filter**: Optional tag filter
 - **scope**: user, project, or all
 
+## Path Resolution
+
+```bash
+MNEMONIC_ROOT=$(tools/mnemonic-paths root)
+```
+
+Determine search paths based on scope:
+- **user**: `${MNEMONIC_ROOT}/{org}/`
+- **project**: `${MNEMONIC_ROOT}/{org}/{project}/`
+- **all** (default): `${MNEMONIC_ROOT}/{org}/`
+
+Derive `org` and `project` from git remote URL. Apply `namespace_filter` as a subdirectory if provided.
+
 ## Procedure
 
-**Note**: Arguments are passed via the Task tool prompt. Claude extracts these values from the prompt context.
+### Step 1: Execute Search
 
-### Step 0: Extract Arguments from Prompt
-
-```bash
-# These values come from the Task invocation prompt
-# Claude interprets the prompt and assigns:
-QUERY="${QUERY}"                     # User's search query
-ITERATION="${ITERATION:-1}"          # Iteration number
-SEARCH_PATTERN="${SEARCH_PATTERN}"   # Ripgrep pattern
-NAMESPACE_FILTER="${NAMESPACE_FILTER:-}"  # Optional namespace
-TAG_FILTER="${TAG_FILTER:-}"         # Optional tag filter
-SCOPE="${SCOPE:-all}"                # user, project, or all
-```
-
-### Step 1: Determine Search Paths
+Search with the pattern, limiting to 10 files per iteration:
 
 ```bash
-ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|' | sed 's|\.git$||')
-[ -z "$ORG" ] && ORG="default"
-
-case "$SCOPE" in
-    user)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG"
-        ;;
-    project)
-        SEARCH_PATHS="./.claude/mnemonic"
-        ;;
-    all|*)
-        SEARCH_PATHS="$HOME/.claude/mnemonic/$ORG ./.claude/mnemonic"
-        ;;
-esac
-
-# Apply namespace filter
-if [ -n "$NAMESPACE_FILTER" ]; then
-    SEARCH_PATHS=$(for p in $SEARCH_PATHS; do echo "$p/$NAMESPACE_FILTER"; done)
-fi
+rg -i -l "$SEARCH_PATTERN" $SEARCH_PATHS --glob "*.memory.md" | head -10
 ```
 
-### Step 2: Execute Search
-
-```bash
-# Execute ripgrep with pattern (limit to 10 files per iteration)
-FILES_PER_ITERATION=10
-rg -i -l "$SEARCH_PATTERN" $SEARCH_PATHS --glob "*.memory.md" 2>/dev/null | head -${FILES_PER_ITERATION}
-```
-
-### Step 3: Extract Findings
+### Step 2: Extract Findings
 
 For each matching file (up to 10):
 1. Read frontmatter (first 30 lines)
 2. Extract: id, title, namespace, type, tags
-3. Find matching snippet (with context)
+3. Find matching snippet with context (`rg -i -C2`)
 4. Assess relevance: high, medium, low
 
-```bash
-# For each file, extract key metadata
-for f in $MATCHING_FILES; do
-    echo "=== $(basename $f) ==="
-    head -30 "$f"  # Frontmatter + start of content
-    echo "---"
-    rg -i -C2 "$SEARCH_PATTERN" "$f" | head -10  # Matching snippet
-done
-```
-
-### Step 4: Assess Gaps
+### Step 3: Assess Gaps
 
 After reviewing results:
-- Identify namespaces NOT searched
+- Identify namespaces NOT yet searched
 - Suggest alternative patterns
 - Note if too many/few results
 
 ## Output Format
 
-Return a JSON object with this structure:
+Return a JSON object:
 
 ```json
 {
@@ -197,88 +161,6 @@ Base suggestions on:
 - Related terms found in results
 - Tags mentioned in matching memories
 
-## Example Output
-
-For query "What do we know about authentication?" on iteration 1:
-
-```json
-{
-  "iteration": 1,
-  "pattern": "authentication",
-  "namespace_filter": null,
-  "tag_filter": null,
-  "files_searched": 52,
-  "files_matched": 5,
-  "findings": [
-    {
-      "file": "${MNEMONIC_ROOT}/_semantic/decisions/abc123-use-jwt-auth.memory.md",
-      "id": "abc123",
-      "title": "Use JWT for API Authentication",
-      "namespace": "decisions/project",
-      "type": "semantic",
-      "tags": ["authentication", "security", "api"],
-      "relevance": "high",
-      "evidence": "We decided to use JSON Web Tokens (JWT) for API authentication",
-      "citations_count": 0
-    },
-    {
-      "file": "${MNEMONIC_ROOT}/_procedural/patterns/def456-auth-middleware.memory.md",
-      "id": "def456",
-      "title": "Authentication Middleware Pattern",
-      "namespace": "patterns/project",
-      "type": "procedural",
-      "tags": ["authentication", "middleware"],
-      "relevance": "high",
-      "evidence": "Always verify JWT signature before trusting claims",
-      "citations_count": 1
-    }
-  ],
-  "coverage": {
-    "namespaces_searched": ["decisions", "patterns", "learnings", "security"],
-    "namespaces_suggested": ["apis"]
-  },
-  "refinement_suggestions": [
-    "Search apis namespace for endpoint documentation",
-    "Try related term: OAuth",
-    "Try related term: JWT"
-  ]
-}
-```
-
-## Progress Reporting
-
-Optionally report progress to blackboard for monitoring:
-
-```bash
-# Report progress to session-notes.md (if workflow_id provided)
-if [ -n "$WORKFLOW_ID" ]; then
-    BB_DIR="$HOME/.claude/mnemonic/.blackboard"
-    mkdir -p "$BB_DIR"
-
-    cat >> "${BB_DIR}/session-notes.md" << EOF
-
----
-**Session:** ${CLAUDE_SESSION_ID:-unknown}
-**Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-**Agent:** search-subcall-${ITERATION}
-**Status:** active
-
-## Progress Report
-
-### Workflow
-$WORKFLOW_ID
-
-### Progress
-- Iteration: $ITERATION
-- Pattern: $SEARCH_PATTERN
-- Namespace: ${NAMESPACE_FILTER:-all}
-- Files matched: $FILES_MATCHED
-
----
-EOF
-fi
-```
-
 ## Constraints
 
 - Process maximum 10 files per iteration
@@ -287,4 +169,3 @@ fi
 - Do not spawn additional subagents
 - Return valid JSON
 - Focus only on the specific query provided
-- Progress reporting is optional (only if workflow_id provided)

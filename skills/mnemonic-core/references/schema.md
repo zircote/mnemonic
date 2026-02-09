@@ -68,6 +68,16 @@ conflicts:
   - memory_id: xyz789
     resolution: merged
     resolved_at: 2026-01-23T12:00:00Z
+
+# Relationships - links to related memories (optional)
+relationships:
+  - type: relates_to
+    target: a5e46807-6883-4fb2-be45-09872ae1a994
+    label: "Optional human-readable description"
+  - type: supersedes
+    target: b6f57918-7994-5gc3-cf56-10983bf2b005
+  - type: derived_from
+    target: c7g68a29-8aa5-6hd4-dg67-21a94cg3c116
 ---
 ```
 

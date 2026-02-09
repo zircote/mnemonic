@@ -5,6 +5,13 @@ Complete examples of memory capture and recall.
 ## Example: Capture a Decision
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -45,7 +52,7 @@ EOF
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cat > "$HOME/.claude/mnemonic/default/_semantic/knowledge/${UUID}-async-wiring-fix.memory.md" << EOF
+cat > "$MNEMONIC_ROOT/default/_semantic/knowledge/${UUID}-async-wiring-fix.memory.md" << EOF
 ---
 id: ${UUID}
 title: "Async actor wiring must happen after config load"

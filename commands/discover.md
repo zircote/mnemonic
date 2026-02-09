@@ -36,20 +36,27 @@ based on discovery patterns defined in loaded ontologies.
 
 ## Procedure
 
-1. Load ontology from `.claude/mnemonic/ontology.yaml`
+1. Load ontology from `$MNEMONIC_ROOT/ontology.yaml`
 2. Extract discovery patterns
 3. Scan content for pattern matches
 4. Report found entities and suggestions
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
 SCAN_PATH="${1:-.}"
-ONTOLOGY_FILE=".claude/mnemonic/ontology.yaml"
+ONTOLOGY_FILE="$MNEMONIC_ROOT/ontology.yaml"
 
 # Check for ontology
 if [ ! -f "$ONTOLOGY_FILE" ]; then
     echo "No ontology found at $ONTOLOGY_FILE"
     echo "Copy an ontology to enable discovery:"
-    echo "  cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml .claude/mnemonic/ontology.yaml"
+    echo "  cp skills/ontology/ontologies/examples/software-engineering.ontology.yaml $MNEMONIC_ROOT/ontology.yaml"
     exit 1
 fi
 

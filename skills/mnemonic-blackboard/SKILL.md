@@ -1,6 +1,6 @@
 ---
 name: mnemonic-blackboard
-description: Cross-session memory coordination and shared context via blackboard
+description: Cross-session handoff and persistent context via blackboard
 user-invocable: true
 allowed-tools:
   - Bash
@@ -22,759 +22,134 @@ Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontolo
 
 # Mnemonic Blackboard Skill
 
-Cross-session memory coordination and shared context.
+Cross-session handoff and persistent context.
 
 ## Trigger Phrases
 
 - "blackboard"
-- "shared memory"
 - "cross-session"
-- "coordination"
 - "session handoff"
 - "shared context"
 
 ## Overview
 
-The blackboard is a shared coordination space for cross-session communication. Unlike structured memories, blackboard entries are append-only logs organized by topic, enabling sessions to share context, hand off work, and coordinate activities.
+The blackboard provides **cross-session persistence** - the ability to hand off context from one Claude Code session to the next. It is not used for in-session agent coordination, which is handled by Claude Code's native swarm tools (TeamCreate, SendMessage, TaskCreate/TaskUpdate).
+
+### Scope
+
+| Concern | Mechanism |
+|---------|-----------|
+| In-session agent coordination | Native swarm (TeamCreate, SendMessage, TaskCreate) |
+| Cross-session context handoff | Blackboard `handoff/latest-handoff.md` |
+| Persistent knowledge | Mnemonic memories (`*.memory.md`) |
 
 ---
 
-## Blackboard Concept
+## Path Resolution
 
-### Purpose
-
-- **Cross-session coordination**: Share state between separate Claude sessions
-- **Work handoff**: Leave notes for future sessions
-- **Shared context**: Accumulate background information over time
-- **Task tracking**: Log active work items across sessions
-
-### Key Differences from Memories
-
-| Aspect | Memories | Blackboard |
-|--------|----------|------------|
-| Structure | Full MIF frontmatter | Simple timestamped entries |
-| Mutability | Updateable | Append-only |
-| Organization | By namespace/type | By topic |
-| Persistence | Long-term | Session-relevant |
-| Search | Full-text + frontmatter | grep by topic/session |
+```bash
+MNEMONIC_ROOT=$(tools/mnemonic-paths root)
+BLACKBOARD=$(tools/mnemonic-paths blackboard)
+HANDOFF_DIR=${BLACKBOARD}/handoff
+```
 
 ---
 
 ## Directory Structure
 
-### Locations
+```
+${BLACKBOARD}/
+├── _legacy/                      # Pre-migration files (frozen)
+├── sessions/
+│   └── {session_id}/
+│       ├── session-notes.md      # Session activity log
+│       └── _meta.json            # Session lifecycle metadata
+├── handoff/
+│   ├── latest-handoff.md         # Cross-session context (overwritten each session end)
+│   └── handoff-{session_id}.md   # Archived per-session handoffs
+└── .archive/                     # Archived entries
+```
 
-```
-${MNEMONIC_ROOT}/.blackboard/     # Global (cross-project)
-${MNEMONIC_ROOT}/.blackboard/     # Project-specific
-```
-
-### Topic Files
-
-```
-.blackboard/
-├── active-tasks.md        # Current work items
-├── pending-decisions.md   # Decisions awaiting input
-├── shared-context.md      # Background for all sessions
-├── session-notes.md       # Handoff notes
-├── blockers.md            # Known impediments
-└── {custom-topic}.md      # Any topic you define
-```
+The `sessions/` directory provides an audit trail. The `handoff/` directory is the active coordination surface.
 
 ---
 
-## Session Identification
+## Cross-Session Handoff
 
-### Get Session ID
+### How It Works
 
-```bash
-# Use Claude's session ID if available
-SESSION_ID="${CLAUDE_SESSION_ID:-}"
+1. **Session end** (`hooks/stop.py`): Writes a handoff summary to `handoff/latest-handoff.md`
+2. **Session start** (`hooks/session_start.py`): Reads `handoff/latest-handoff.md` to restore context
 
-# Fallback: generate unique ID
-if [ -z "$SESSION_ID" ]; then
-    SESSION_ID="$(date +%s)-$$"
-fi
+This is automatic - hooks handle the lifecycle.
 
-echo "Session: $SESSION_ID"
-```
-
-### Session Metadata
-
-```bash
-# Capture session context
-SESSION_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-SESSION_USER=$(whoami)
-SESSION_HOST=$(hostname -s)
-SESSION_PWD=$(pwd)
-```
-
----
-
-## Write to Blackboard
-
-### Basic Entry
-
-```bash
-SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-TOPIC="active-tasks"
-
-cat >> ${MNEMONIC_ROOT}/.blackboard/${TOPIC}.md << EOF
-
----
-**Session:** $SESSION_ID
-**Time:** $TIMESTAMP
-
-Your content here...
-
-EOF
-```
-
-### Structured Entry Template
+### Handoff Entry Format
 
 ```markdown
----
+# Session Handoff
+
 **Session:** {session_id}
-**Time:** {timestamp}
-**Status:** active | completed | blocked | handed-off
+**Ended:** {timestamp}
+**Project:** {org}/{project}
 
-## Summary
-Brief description of what this entry is about.
+## What Was Accomplished
+- Item 1
+- Item 2
 
-## Details
-- Point 1
-- Point 2
+## In Progress
+- Item 3: current state
+
+## Blocked
+- Blocker: reason
 
 ## Next Steps
 - [ ] Action item 1
 - [ ] Action item 2
 
----
+## Important Context
+- Key context for next session
 ```
 
-### Agent Entry Template
+### Manual Handoff
 
-For multi-agent coordination, use this extended format:
+To explicitly write handoff context for the next session:
 
-```markdown
+```bash
+BLACKBOARD=$(tools/mnemonic-paths blackboard)
+# Write to handoff/latest-handoff.md
+```
+
 ---
-**Session:** {session_id}
-**Time:** {timestamp}
-**Agent:** {agent_id}
-**Status:** active | idle | handoff
-**Capabilities:** [list, of, capabilities]
 
-## Entry Content
+## Session Metadata
 
-Description of agent activity, status update, or handoff context...
+Each session creates `_meta.json` with lifecycle tracking:
 
-### Context (for handoffs)
-- Key context point 1
-- Key context point 2
-
-### State (optional JSON)
 ```json
 {
-  "workflow_id": "...",
-  "iteration": 1,
-  "findings": []
+  "session_id": "abc-123",
+  "started": "2026-01-15T10:00:00Z",
+  "ended": "2026-01-15T11:30:00Z",
+  "project": "zircote/mnemonic",
+  "org": "zircote",
+  "status": "ended"
 }
 ```
 
----
-```
-
-See `mnemonic-agent-coordination` skill for full agent coordination patterns.
-
-### Write Functions
-
-```bash
-# Function to write to blackboard
-bb_write() {
-    local topic="$1"
-    local content="$2"
-    local bb_dir="${3:-$HOME/.claude/mnemonic/.blackboard}"
-
-    mkdir -p "$bb_dir"
-
-    local session_id="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-    cat >> "${bb_dir}/${topic}.md" << EOF
-
----
-**Session:** $session_id
-**Time:** $timestamp
-
-$content
-
-EOF
-}
-
-# Usage
-bb_write "active-tasks" "Started working on authentication module"
-bb_write "shared-context" "Project uses JWT with RS256 signing"
-```
-
----
-
-## Read from Blackboard
-
-### Read Entire Topic
-
-```bash
-# Full topic file
-cat ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
-
-# Project blackboard
-cat.blackboard/shared-context.md
-```
-
-### Read Recent Entries
-
-```bash
-# Last 50 lines (most recent entries)
-tail -50 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
-
-# Last 3 entries (entries separated by ---)
-tac ${MNEMONIC_ROOT}/.blackboard/active-tasks.md | \
-    awk '/^---$/{count++} count<3' | tac
-```
-
-### Read Specific Session
-
-```bash
-SESSION_ID="1706012345-12345"
-
-# Find entries from specific session
-grep -A20 "Session: $SESSION_ID" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
-```
-
-### Read Today's Entries
-
-```bash
-TODAY=$(date +%Y-%m-%d)
-
-# Entries from today
-grep -A20 "Time: ${TODAY}T" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
-```
-
-### Search Across Topics
-
-```bash
-# Search all blackboard files
-rg "pattern" ${MNEMONIC_ROOT}/.blackboard/
-
-# List topics mentioning something
-rg -l "authentication" ${MNEMONIC_ROOT}/.blackboard/
-```
-
----
-
-## Topic Conventions
-
-### Standard Topics
-
-| Topic | Purpose | Typical Content |
-|-------|---------|-----------------|
-| `active-tasks.md` | Current work items | Task descriptions, status |
-| `pending-decisions.md` | Decisions needing input | Options, trade-offs |
-| `shared-context.md` | Background for sessions | Setup, environment, config |
-| `session-notes.md` | Handoff between sessions | Progress, blockers |
-| `blockers.md` | Known impediments | Issues, dependencies |
-| `debug-log.md` | Investigation notes | Steps tried, findings |
-| `todo.md` | Quick task list | Checkbox items |
-
-### Custom Topics
-
-Create any topic file you need:
-
-```bash
-# Create new topic
-touch ${MNEMONIC_ROOT}/.blackboard/api-integration.md
-
-# Write first entry
-bb_write "api-integration" "Started integrating with Stripe API"
-```
-
----
-
-## Coordination Patterns
-
-### Session Handoff
-
-When ending a session, leave notes for the next:
-
-```bash
-bb_write "session-notes" "$(cat << 'EOF'
-## Handoff Notes
-
-### What I Did
-- Implemented user authentication
-- Added JWT token generation
-- Created login endpoint
-
-### What's Left
-- [ ] Add token refresh endpoint
-- [ ] Implement logout
-- [ ] Add rate limiting
-
-### Important Context
-- Using RS256 for signing (see decisions/jwt-signing.memory.md)
-- Token expiry is 15 minutes
-- Refresh tokens stored in httpOnly cookies
-
-### Watch Out For
-- The auth middleware expects Bearer token format
-- Tests require TEST_JWT_SECRET env var
-EOF
-)"
-```
-
-### Work Tracking
-
-Track active work across sessions:
-
-```bash
-# Starting work
-bb_write "active-tasks" "$(cat << 'EOF'
-## Starting: Payment Integration
-
-**Priority:** High
-**Estimate:** Large
-
-### Goals
-- Integrate Stripe checkout
-- Handle webhooks
-- Update order status
-
-### Files to modify
-- src/payments/stripe.ts
-- src/api/webhooks.ts
-- src/models/order.ts
-EOF
-)"
-
-# Completing work
-bb_write "active-tasks" "$(cat << 'EOF'
-## Completed: Payment Integration
-
-**Status:** Done
-
-### Summary
-Stripe integration complete. All tests passing.
-
-### Changes
-- Added Stripe SDK and config
-- Implemented checkout flow
-- Webhook handlers for payment events
-EOF
-)"
-```
-
-### Decision Tracking
-
-Track pending decisions:
-
-```bash
-bb_write "pending-decisions" "$(cat << 'EOF'
-## Decision Needed: Caching Strategy
-
-### Context
-API response times are slow for product listings.
-
-### Options
-1. **Redis** - Fast, but adds infrastructure
-2. **In-memory** - Simple, but not shared across instances
-3. **CDN** - Good for static, limited for dynamic
-
-### Recommendation
-Option 1 (Redis) - already using Redis for sessions
-
-### Awaiting
-Confirmation from team on infrastructure budget
-EOF
-)"
-```
-
----
-
-## Locking (Optional)
-
-For concurrent access safety:
-
-### Simple Lock
-
-```bash
-LOCK_FILE="$HOME/.claude/mnemonic/.blackboard/.lock"
-
-# Acquire lock
-acquire_lock() {
-    local max_wait=10
-    local waited=0
-
-    while [ -f "$LOCK_FILE" ]; do
-        sleep 1
-        waited=$((waited + 1))
-        if [ $waited -ge $max_wait ]; then
-            echo "Lock timeout" >&2
-            return 1
-        fi
-    done
-
-    echo $$ > "$LOCK_FILE"
-    return 0
-}
-
-# Release lock
-release_lock() {
-    rm -f "$LOCK_FILE"
-}
-
-# Usage
-if acquire_lock; then
-    bb_write "active-tasks" "My entry"
-    release_lock
-fi
-```
-
-### Lock with Expiry
-
-```bash
-LOCK_FILE="$HOME/.claude/mnemonic/.blackboard/.lock"
-LOCK_TIMEOUT=60  # seconds
-
-check_stale_lock() {
-    if [ -f "$LOCK_FILE" ]; then
-        local lock_age=$(( $(date +%s) - $(stat -f %m "$LOCK_FILE" 2>/dev/null || echo 0) ))
-        if [ $lock_age -gt $LOCK_TIMEOUT ]; then
-            rm -f "$LOCK_FILE"
-            echo "Removed stale lock"
-        fi
-    fi
-}
-```
-
----
-
-## Cleanup
-
-### Archive Old Entries
-
-```bash
-# Archive entries older than 30 days
-ARCHIVE_DIR="$HOME/.claude/mnemonic/.blackboard/.archive"
-mkdir -p "$ARCHIVE_DIR"
-
-for topic in ${MNEMONIC_ROOT}/.blackboard/*.md; do
-    topic_name=$(basename "$topic" .md)
-
-    # Extract entries older than 30 days
-    # (This is a simplified approach - real implementation needs date parsing)
-    cp "$topic" "$ARCHIVE_DIR/${topic_name}-$(date +%Y%m%d).md"
-done
-```
-
-### Clear Completed Tasks
-
-```bash
-# Remove completed entries from active-tasks
-# Keep only entries without "Status: Done"
-grep -v -A10 "Status: Done" ${MNEMONIC_ROOT}/.blackboard/active-tasks.md > \
-    ${MNEMONIC_ROOT}/.blackboard/active-tasks.md.tmp
-mv ${MNEMONIC_ROOT}/.blackboard/active-tasks.md.tmp \
-   ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
-```
-
-### Reset Topic
-
-```bash
-# Clear a topic (keep file, remove content)
-echo "# $(basename $TOPIC .md)" > ${MNEMONIC_ROOT}/.blackboard/$TOPIC.md
-```
-
----
-
-## Examples
-
-### Example: Start of Session
-
-```bash
-#!/bin/bash
-# session_start.sh - Initialize blackboard for new session
-
-SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-PROJECT=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || basename "$PWD")
-
-# Read recent context
-echo "=== Recent Activity ==="
-tail -30 ${MNEMONIC_ROOT}/.blackboard/session-notes.md 2>/dev/null
-
-echo ""
-echo "=== Active Tasks ==="
-tail -20 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md 2>/dev/null
-
-echo ""
-echo "=== Pending Decisions ==="
-tail -20 ${MNEMONIC_ROOT}/.blackboard/pending-decisions.md 2>/dev/null
-
-# Log session start
-cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
-
----
-**Session:** $SESSION_ID
-**Time:** $TIMESTAMP
-**Project:** $PROJECT
-**Status:** started
-
-Session initialized.
-
-EOF
-```
-
-### Example: End of Session
-
-```bash
-#!/bin/bash
-# session_end.sh - Capture session summary
-
-SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-read -r -d '' SUMMARY << 'EOF'
-## Session Summary
-
-### Completed
-- Item 1
-- Item 2
-
-### In Progress
-- Item 3
-
-### Blocked
-- None
-
-### Notes for Next Session
-- Continue with Item 3
-EOF
-
-cat >> ${MNEMONIC_ROOT}/.blackboard/session-notes.md << EOF
-
----
-**Session:** $SESSION_ID
-**Time:** $TIMESTAMP
-**Status:** ended
-
-$SUMMARY
-
-EOF
-
-# Commit changes
-cd ${MNEMONIC_ROOT} && git add -A && git commit -m "Session $SESSION_ID ended"
-```
-
-### Example: Quick Task Add
-
-```bash
-# Add task to todo
-echo "- [ ] $(date +%H:%M) - $*" >> ${MNEMONIC_ROOT}/.blackboard/todo.md
-```
+Status values: `active` (session running), `ended` (session completed).
 
 ---
 
 ## Best Practices
 
-1. **Keep entries concise** - Blackboard is for coordination, not documentation
-2. **Use consistent formatting** - Makes parsing and searching easier
-3. **Include session ID** - Enables tracking and handoff
-4. **Clean up regularly** - Archive old entries, remove completed tasks
-5. **Use topics wisely** - Don't create too many; consolidate when possible
-6. **Project vs Global** - Use project blackboard for project-specific coordination
+1. **Let hooks handle it** - Handoff is automatic via session_start and stop hooks
+2. **Keep handoffs concise** - Focus on what the next session needs to know
+3. **Use memories for persistence** - If something should survive beyond the next session, capture it as a memory
+4. **Don't use blackboard for in-session coordination** - Use native swarm tools instead
 
 ---
 
-## Plan and Task Persistence
+## Related
 
-### Integration with Claude Code Task Tools
-
-The Claude Code Task tools (`TaskCreate`, `TaskUpdate`, `TaskList`) handle in-session tracking.
-The blackboard persists this state across sessions:
-
-| Aspect | Task Tools | Blackboard |
-|--------|------------|------------|
-| Scope | Current session | Across sessions |
-| Lifecycle | Created → Completed | Persisted until archived |
-| Purpose | Immediate tracking | Cross-session handoff |
-
-### Session Start: Load Active Work
-
-At session start, check blackboard for pending work:
-
-```bash
-# Read active tasks
-tail -50 ${MNEMONIC_ROOT}/.blackboard/active-tasks.md
-
-# Read pending decisions
-tail -30 ${MNEMONIC_ROOT}/.blackboard/pending-decisions.md
-
-# Read last session notes
-tail -50 ${MNEMONIC_ROOT}/.blackboard/session-notes.md
-```
-
-Create Task tool entries for active items that need continuation.
-
-### During Work: Sync to Blackboard
-
-When significant progress is made, update blackboard:
-
-```bash
-bb_write "active-tasks" "$(cat << 'EOF'
-## In Progress: {task_description}
-
-**Started:** {timestamp}
-**Status:** in_progress
-
-### Progress
-- [x] Step 1 completed
-- [ ] Step 2 in progress
-- [ ] Step 3 pending
-
-### Notes
-{Implementation notes for handoff}
-EOF
-)"
-```
-
-### Session End: Capture Handoff
-
-Before session ends, write handoff notes:
-
-```bash
-bb_write "session-notes" "$(cat << 'EOF'
-## Session Handoff
-
-### Completed This Session
-- Task 1: {description}
-- Task 2: {description}
-
-### In Progress
-- {task}: {current state}
-
-### Blocked
-- {blocker}: {reason}
-
-### Next Steps
-1. {next action}
-2. {next action}
-
-### Important Context
-- {key context for next session}
-EOF
-)"
-```
-
-### Plan Persistence
-
-For implementation plans, use `active-plans.md`:
-
-```bash
-bb_write "active-plans" "$(cat << 'EOF'
-## Plan: {plan_title}
-
-**Created:** {timestamp}
-**Status:** in_progress
-**Phase:** {current_phase}
-
-### Overview
-{Brief plan summary}
-
-### Phases
-1. [x] Phase 1: {description}
-2. [->] Phase 2: {description} (current)
-3. [ ] Phase 3: {description}
-
-### Files to Modify
-- {file1}: {change description}
-- {file2}: {change description}
-
-### Decisions Made
-- {decision}: {rationale}
-EOF
-)"
-```
-
-### Task State Mapping
-
-Map Claude Code Task states to blackboard:
-
-| Task Status | Blackboard Entry |
-|-------------|------------------|
-| `pending` | Listed in active-tasks with Status: pending |
-| `in_progress` | Listed with Status: in_progress, current notes |
-| `completed` | Moved to session-notes Completed section |
-| blocked | Listed in blockers.md with reason |
-
-### Automatic Handoff Template
-
-Use this template at session end:
-
-```markdown
-## Session Handoff - {date}
-
-**Session ID:** {session_id}
-**Duration:** {approximate_duration}
-
-### Summary
-{One paragraph summary of what was accomplished}
-
-### Task Progress
-| Task | Status | Notes |
-|------|--------|-------|
-| {task1} | completed | {notes} |
-| {task2} | in_progress | {current state} |
-| {task3} | blocked | {blocker} |
-
-### Key Decisions Made
-1. {decision}: {brief rationale}
-
-### Files Modified
-- {file1}: {what changed}
-- {file2}: {what changed}
-
-### For Next Session
-- [ ] {action item 1}
-- [ ] {action item 2}
-
-### Context to Remember
-{Important context that won't be in memories}
-```
-
----
-
-## Difference from Memories
-
-| Aspect | Memories | Blackboard |
-|--------|----------|------------|
-| **Purpose** | Long-term knowledge | Active work state |
-| **Lifespan** | Captured once, decays slowly | Updated constantly, archived |
-| **Structure** | MIF Level 3 with frontmatter | Simple timestamped entries |
-| **Search** | Full-text + frontmatter | grep by topic/session |
-| **Use case** | "What database?" | "What was I working on?" |
-
-### When to Use Each
-
-**Use Memories for:**
-- Decisions that will be referenced later
-- Patterns and conventions
-- Learnings and insights
-- API documentation
-- Architecture decisions
-
-**Use Blackboard for:**
-- Current task status
-- Implementation plans in progress
-- Handoff notes between sessions
-- Temporary coordination state
-- Active blockers and issues
+- ADR-003 - Agent Coordination via Blackboard Extension
+- ADR-011 - Session-Scoped Blackboard

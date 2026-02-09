@@ -171,6 +171,13 @@ You instinctively search memories before recommendations and capture insights af
 
 Search first. Always.
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
 rg -i "{keywords}" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 ```
 If results -> Read the most relevant memory and apply that context.
@@ -220,7 +227,7 @@ This project uses mnemonic for persistent memory.
 If the user chose a different path and memories exist at the old location:
 
 ```bash
-OLD_PATH="$HOME/.claude/mnemonic"
+OLD_PATH="$MNEMONIC_ROOT"
 if [ "$STORE_PATH_EXPANDED" != "$OLD_PATH" ] && [ -d "$OLD_PATH" ]; then
     echo "Existing memories found at $OLD_PATH"
     echo "Migrating to $STORE_PATH_EXPANDED..."

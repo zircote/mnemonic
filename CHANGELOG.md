@@ -7,24 +7,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **[Configurable Memory Store]**: Memory store path is now user-configurable
-  - Config stored at `~/.config/mnemonic/config.json` (XDG-compliant, fixed location)
-  - New `lib/config.py` module with `MnemonicConfig` class (load/save/defaults)
-  - `lib/paths.py` `PathContext` gains `memory_root` field, resolved from config
-  - `hooks/session_start.py` injects `MNEMONIC_ROOT` into session context
-  - `hooks/user_prompt_submit.py` uses configured path for recall triggers
-  - `commands/setup.md` prompts user for path, creates config, supports auto-migration
-  - `skills/mnemonic-setup/SKILL.md` updated with config step and migration support
-  - All 77 files with hardcoded `~/.claude/mnemonic` updated to use `${MNEMONIC_ROOT}`
-  - Default remains `~/.claude/mnemonic` for backward compatibility
-
 ### Planned
 
 - Semantic search with embeddings
 - Export/import functionality
 - Web UI for memory browsing
+
+## [2.2.0] - 2026-02-09
+
+### Added
+
+- **[Shared Library Modules]**: Extracted duplicated logic into reusable `lib/` modules
+  - `lib/ontology.py` — Unified ontology loading (`get_ontology_file()`, `load_ontology_data()`, `load_file_patterns()`, `load_content_patterns()`, `load_ontology_namespaces()`, `get_fallback_file_patterns()`, `get_fallback_content_patterns()`, `get_ontology_info()`)
+  - `lib/search.py` — Memory search and relationship inference (`search_memories()`, `find_related_memories()`, `find_related_memories_scored()`, `find_memories_for_context()`, `detect_file_context()`, `detect_namespace_for_file()`, `extract_keywords_from_path()`, `extract_topic()`, `infer_relationship_type()`)
+  - `lib/memory_reader.py` — Memory metadata extraction (`get_memory_summary()`, `get_memory_metadata()`)
+  - `lib/relationships.py` — Relationship write path and bidirectional linking (`add_relationship()`, `add_bidirectional_relationship()`, `RECIPROCAL_TYPES`)
+
+- **[Relationship Write Path]**: Programmatic relationship management
+  - `add_relationship()` appends typed relationships to MIF frontmatter
+  - `add_bidirectional_relationship()` creates forward + reciprocal back-links
+  - Handles all frontmatter variants: no relationships section, block form, empty list
+  - Duplicate detection prevents redundant entries
+
+- **[Scoring & Relationship Constants]**: Named constants replace magic numbers and strings
+  - Relationship types: `REL_RELATES_TO`, `REL_SUPERSEDES`, `REL_DERIVED_FROM`
+  - Scoring weights: `SCORE_NAMESPACE_TYPE=30`, `SCORE_NAMESPACE_EXACT=20`, `SCORE_TAG_OVERLAP=20`, `SCORE_TITLE_KEYWORD=15`, `SCORE_CONTENT_KEYWORD=5`, `SCORE_MIN_THRESHOLD=15`
+  - All constants exported from `lib/__init__.py`
+
+- **[Session-Scoped Blackboard]**: Per-session blackboard isolation
+  - `PathResolver.get_session_blackboard_dir()` for session-specific directories
+  - `PathResolver.get_handoff_dir()` for cross-session handoff
+  - `migrate_blackboard_to_session_scoped()` one-time migration from flat to session-scoped structure
+  - Session metadata via `_meta.json` for programmatic discovery/cleanup
+  - ADR-011 documents the architectural decision
+
+- **[CLI Path Tool]**: `tools/mnemonic-paths` for shell-based path resolution
+  - Subcommands: `root`, `blackboard`, `session-bb`, `search-paths`, `org`, `project`
+  - Replaces 6-line bash config resolution duplicated across markdown files
+
+- **[Configurable Memory Store]**: Memory store path is now user-configurable
+  - Config stored at `~/.config/mnemonic/config.json` (XDG-compliant, fixed location)
+  - New `lib/config.py` module with `MnemonicConfig` class and canonical `get_memory_root()`
+  - `lib/paths.py` `PathContext` gains `memory_root` field, resolved from config
+  - `hooks/session_start.py` injects `MNEMONIC_ROOT` into session context
+  - `hooks/user_prompt_submit.py` uses configured path for recall triggers
+  - `commands/setup.md` prompts user for path, creates config, supports auto-migration
+  - `skills/mnemonic-setup/SKILL.md` updated with config step and migration support
+  - Default remains `~/.claude/mnemonic` for backward compatibility
+
+- **[Test Coverage]**: 308 unit tests across all library modules
+  - `tests/unit/test_lib_ontology.py` — Ontology loading and fallback patterns
+  - `tests/unit/test_search.py` — Search, scoring, keyword extraction, relationship inference
+  - `tests/unit/test_memory_reader.py` — Memory metadata and summary extraction
+  - `tests/unit/test_relationships.py` — Hook integration for relationship suggestions
+  - `tests/unit/test_relationships_writer.py` — Relationship write path (20 tests)
+
+### Changed
+
+- **[Hook Refactoring]**: All hooks now import from shared `lib/` modules
+  - `hooks/pre_tool_use.py` — Imports from `lib.ontology` and `lib.search` (228 → ~80 lines)
+  - `hooks/post_tool_use.py` — Imports from `lib.ontology` and `lib.search` (252 → ~80 lines)
+  - `hooks/user_prompt_submit.py` — Imports from `lib.ontology`, `lib.search`, `lib.memory_reader` (315 → ~100 lines)
+  - `hooks/session_start.py` — Imports from `lib.ontology` (516 → ~200 lines)
+  - `hooks/stop.py` — Session-scoped blackboard writes
+
+- **[DRY Refactoring]**: Eliminated duplicated code across hooks and search
+  - `STOPWORDS` extracted as module-level `frozenset` (3 copies → 1)
+  - `_extract_keywords()` private helper consolidates 4 instances of regex+filter pattern
+  - Removed redundant `get_memory_metadata()` I/O in `post_tool_use.py` (metadata built inline from scored search results)
+  - ~165 lines of duplicated path resolution code removed
+
+- **[V2 Unified Path Alignment]**: All components now use `$MNEMONIC_ROOT` with config resolution
+  - Replaced all hardcoded `~/.claude/mnemonic` and `$HOME/.claude/mnemonic` across 30 files
+  - Removed all `./.claude/mnemonic` project-local path references (V2 has no project-local dir)
+  - Added config resolution blocks to all bash-based commands, skills, and agents
+  - `commands/status.md` rewritten to show store/org/project directories under unified path
+  - `tools/mnemonic-query` delegates to `PathResolver` instead of reimplementing paths
+  - `tools/mnemonic-validate` uses `get_memory_root()` for search path resolution
+
+- **[Project Detection]**: Improved 3-tier project name detection
+  - `lib/paths.py` `_detect_project()` now tries: git remote → git toplevel → cwd name
+  - Same pattern applied to `hooks/session_start.py`, `commands/capture.md`, `commands/recall.md`
+  - Prevents wrong project name when running from subdirectories
+
+- **[Claude Code Identity]**: Plugin is now exclusively a Claude Code plugin
+  - README rewritten to remove 9 multi-tool badges and integration table
+  - Enterprise docs updated to reference Claude Code only
+  - Multi-tool integration guides archived to `docs/archive/`
+  - Community docs (Memory Bank migration/comparison) archived to `docs/archive/`
+  - Templates (Cursor, Windsurf, Copilot, Codex) archived to `docs/archive/`
+
+### Removed
+
+- **[Multi-Tool References]**: Removed all non-Claude-Code tool references
+  - `.github/copilot-instructions.md` — Deleted (Copilot-specific configuration)
+  - `docs/integrations/` — Archived (Cursor, Windsurf, Aider, Continue, Codex CLI, Gemini CLI, OpenCode, GitHub Copilot guides)
+  - `docs/community/` — Archived (Memory Bank migration, comparison, quickstart, adoption stories)
+  - `templates/` — Archived (AGENTS.md, CONVENTIONS.md, copilot-instructions.md, cursor-rule.mdc, mnemonic-protocol.md, plugin-hooks/)
 
 ## [2.1.0] - 2026-01-30
 

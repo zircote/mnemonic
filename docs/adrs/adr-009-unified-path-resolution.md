@@ -32,7 +32,7 @@ ${MNEMONIC_ROOT}/{org}/{namespace}/
 
 **Project-level** (project-specific memories):
 ```
-./.claude/mnemonic/{namespace}/
+$MNEMONIC_ROOT/{namespace}/
 ```
 
 ### Target Path Structure
@@ -239,8 +239,8 @@ def test_memory_manager(tmp_path):
 
 Use environment variables for all paths:
 ```bash
-export MNEMONIC_USER_DIR="$HOME/.claude/mnemonic"
-export MNEMONIC_PROJECT_DIR="./.claude/mnemonic"
+export MNEMONIC_USER_DIR="$MNEMONIC_ROOT"
+export MNEMONIC_PROJECT_DIR="$MNEMONIC_ROOT"
 ```
 
 **Pros**:
@@ -262,7 +262,7 @@ Store all paths in `${MNEMONIC_ROOT}/config.yaml`:
 ```yaml
 paths:
   user_base: "${MNEMONIC_ROOT}/{org}"
-  project_base: "./.claude/mnemonic"
+  project_base: "$MNEMONIC_ROOT"
   blackboard: "${MNEMONIC_ROOT}/.blackboard"
 ```
 

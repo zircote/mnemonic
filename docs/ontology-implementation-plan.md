@@ -56,7 +56,7 @@ This plan details the implementation of custom ontology support for mnemonic, en
 │  ┌────────────────────────────────────────────────────────┐│
 │  │           Filesystem (.memory.md + .ontology.yaml)     ││
 │  │  ┌─────────────────────┐  ┌─────────────────────────┐  ││
-│  │  │  ~/.claude/         │  │  ./.claude/mnemonic/    │  ││
+│  │  │  ~/.claude/         │  │  $MNEMONIC_ROOT/        │  ││
 │  │  │  mnemonic/{org}/    │  │                         │  ││
 │  │  │  ├── ontology.yaml  │  │  ├── ontology.yaml      │  ││
 │  │  │  └── {namespace}/   │  │  └── {namespace}/       │  ││
@@ -609,7 +609,7 @@ Validate an ontology definition file.
 
 ```bash
 python3 "$CLAUDE_PLUGIN_ROOT/lib/ontology_validator.py" \
-  --file "${1:-./.claude/mnemonic/ontology.yaml}"
+  --file "${1:-$MNEMONIC_ROOT/ontology.yaml}"
 ```
 
 ### add
@@ -617,7 +617,7 @@ Add an ontology from a URL.
 
 ```bash
 URL="$1"
-CACHE_DIR="$HOME/.claude/mnemonic/.ontologies/.cache"
+CACHE_DIR="$MNEMONIC_ROOT/.ontologies/.cache"
 mkdir -p "$CACHE_DIR"
 curl -sL "$URL" -o "$CACHE_DIR/$(basename $URL)"
 echo "Ontology cached. Add to registry to activate."
@@ -629,8 +629,8 @@ Initialize an ontology template.
 ```bash
 TEMPLATE="${1:-minimal}"
 cp "$CLAUDE_PLUGIN_ROOT/ontologies/templates/${TEMPLATE}.yaml" \
-   "./.claude/mnemonic/ontology.yaml"
-echo "Created ./.claude/mnemonic/ontology.yaml from $TEMPLATE template"
+   "$MNEMONIC_ROOT/ontology.yaml"
+echo "Created $MNEMONIC_ROOT/ontology.yaml from $TEMPLATE template"
 ```
 
 ### namespaces
@@ -682,7 +682,7 @@ if ! echo "$VALID_NS" | grep -qw "$NAMESPACE"; then
     echo "Error: Invalid namespace '$NAMESPACE'"
     echo "Valid namespaces: $VALID_NS"
     echo ""
-    echo "To add custom namespaces, create ./.claude/mnemonic/ontology.yaml"
+    echo "To add custom namespaces, create $MNEMONIC_ROOT/ontology.yaml"
     exit 1
 fi
 ```
@@ -799,7 +799,7 @@ for ENTITY_TYPE in $(echo $PATTERNS | jq -r 'keys[]'); do
     PATTERN=$(echo $PATTERNS | jq -r ".[\"$ENTITY_TYPE\"]")
 
     # Find matches using ripgrep
-    MATCHES=$(rg -i "$PATTERN" ${MNEMONIC_ROOT}/ ./.claude/mnemonic/ \
+    MATCHES=$(rg -i "$PATTERN" ${MNEMONIC_ROOT}/ $MNEMONIC_ROOT/ \
         --glob "*.memory.md" -o | sort | uniq -c | sort -rn | head -10)
 
     echo "Potential $ENTITY_TYPE entities:"

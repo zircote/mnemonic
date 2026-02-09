@@ -60,10 +60,17 @@ Use enhanced search instead of basic `/mnemonic:search` when:
 For trackable workflows, register in blackboard:
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
 WORKFLOW_ID="search-$(date +%s)"
 SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%s)-$$}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-BB_DIR="$HOME/.claude/mnemonic/.blackboard"
+BB_DIR="$MNEMONIC_ROOT/.blackboard"
 mkdir -p "$BB_DIR"
 
 # Register orchestrator
