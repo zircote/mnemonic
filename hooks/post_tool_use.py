@@ -7,134 +7,95 @@ Patterns are loaded from MIF ontology discovery configuration.
 """
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 
-try:
-    import yaml
-except ImportError:
-    yaml = None
+# Add project root to path for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from lib.memory_reader import get_memory_summary
+from lib.ontology import load_file_patterns, load_ontology_data
+from lib.search import (
+    detect_namespace_for_file,
+    find_related_memories_scored,
+    extract_keywords_from_path,
+    infer_relationship_type,
+)
 
 
-def load_ontology_data() -> dict:
-    """Load full ontology data including relationships."""
-    plugin_root = Path(__file__).parent.parent
-    ontology_paths = [
-        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
-        plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
-    ]
-
-    for path in ontology_paths:
-        if path.exists() and yaml:
-            try:
-                with open(path) as f:
-                    return yaml.safe_load(f)
-            except Exception:
-                continue
-    return {}
-
-
-def load_file_patterns() -> list:
-    """Load file patterns from MIF ontology for namespace suggestions."""
-    plugin_root = Path(__file__).parent.parent
-    ontology_paths = [
-        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
-        plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
-    ]
-
-    ontology_file = None
-    for path in ontology_paths:
-        if path.exists():
-            ontology_file = path
-            break
-
-    if not ontology_file or not yaml:
-        return get_fallback_patterns()
-
-    try:
-        with open(ontology_file) as f:
-            data = yaml.safe_load(f)
-
-        discovery = data.get("discovery", {})
-        if not discovery.get("enabled", False):
-            return get_fallback_patterns()
-
-        patterns = []
-        for fp in discovery.get("file_patterns", []):
-            pattern = fp.get("pattern")
-            namespaces = fp.get("namespaces", [])
-            context = fp.get("context", "")
-            if pattern and namespaces:
-                patterns.append({"patterns": pattern.split("|"), "namespaces": namespaces, "context": context})
-
-        return patterns if patterns else get_fallback_patterns()
-
-    except Exception:
-        return get_fallback_patterns()
+# Files that are routine and don't warrant capture prompts
+ROUTINE_PATTERNS = [
+    "test_",
+    "__init__",
+    "package.json",
+    "package-lock.json",
+    "yarn.lock",
+    "tsconfig",
+    ".eslintrc",
+    ".prettierrc",
+    "requirements.txt",
+    "setup.py",
+    "setup.cfg",
+    "pyproject.toml",
+    "Makefile",
+    ".gitignore",
+    "LICENSE",
+]
 
 
-def get_fallback_patterns() -> list:
-    """Fallback patterns if ontology loading fails."""
-    return [
-        {"patterns": ["service", "component"], "namespaces": ["_semantic/entities"], "context": "component"},
-        {"patterns": ["test", "spec"], "namespaces": ["_procedural/patterns"], "context": "testing"},
-    ]
+def get_relationship_suggestions(ontology_data: dict, file_path: str, namespace: str) -> str:
+    """Get relationship suggestions based on ontology.
 
+    Args:
+        ontology_data: Loaded ontology data containing relationship types
+        file_path: Path to the file being edited
+        namespace: Detected namespace for the file
 
-def detect_namespace_for_file(file_path: str, file_patterns: list) -> str:
-    """Detect suggested namespace based on file path."""
-    path_lower = file_path.lower()
-
-    for config in file_patterns:
-        for pattern in config["patterns"]:
-            if pattern in path_lower:
-                # Return first namespace as suggestion
-                return config["namespaces"][0] if config["namespaces"] else ""
-    return ""
-
-
-def find_related_memories(context: str) -> list:
-    """Find existing memories that might be related to current work."""
-    if not context:
-        return []
-
-    mnemonic_dir = Path.home() / ".claude" / "mnemonic"
-    if not mnemonic_dir.exists():
-        return []
-
-    try:
-        result = subprocess.run(
-            ["rg", "-i", "-l", context, "--glob", "*.memory.md", "--max-count", "1"],
-            capture_output=True,
-            text=True,
-            cwd=str(mnemonic_dir),
-            timeout=2,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip().split("\n")[:3]
-    except Exception:
-        pass
-    return []
-
-
-def get_relationship_suggestions(ontology_data: dict, context: str) -> str:
-    """Get relationship suggestions based on ontology."""
+    Returns:
+        Formatted string with relationship suggestions, or empty string if none found
+    """
     relationships = ontology_data.get("relationships", {})
     if not relationships:
         return ""
 
-    related = find_related_memories(context)
+    # Extract keywords from file path
+    path_keywords = extract_keywords_from_path(file_path)
+    if not path_keywords:
+        return ""
+
+    # Find related memories using scored search
+    # Use path keywords as title and content keywords
+    keywords_list = path_keywords.split()
+    related = find_related_memories_scored(
+        title=path_keywords, namespace=namespace, content_keywords=keywords_list, max_results=5
+    )
+
     if not related:
         return ""
 
-    rel_names = list(relationships.keys())
-    rel_str = ", ".join(rel_names[:3])
-    return (
-        f"\n**ENTITY LINKING:** Found {len(related)} related memories.\n"
-        f"Available relationships: {rel_str}\n"
-        f"Consider linking with `relates_to:` in frontmatter."
-    )
+    # Build suggestions with memory IDs, scores, and inferred relationship types
+    mem_lines = []
+    for result in related:
+        # Build target metadata from scored search result (already has metadata)
+        target_metadata = {
+            "title": result.get("title", ""),
+            "namespace": result.get("namespace"),
+            "tags": result.get("tags", []),
+        }
+
+        rel_type = infer_relationship_type(
+            source_title=path_keywords, source_namespace=namespace, source_tags=[], target_metadata=target_metadata
+        )
+
+        # Format: [rel_type] Title (id: short-id, score: N)
+        short_id = result["id"][:12] if result["id"] else "unknown"
+        mem_lines.append(f"  - [{rel_type}] {result['title']} (id: {short_id}..., score: {result['score']})")
+
+    if not mem_lines:
+        return ""
+
+    mem_display = "\n".join(mem_lines)
+    return f"\nSuggested relationships (add to memory frontmatter):\n{mem_display}"
 
 
 def main():
@@ -160,6 +121,12 @@ def main():
         file_path = tool_input.get("file_path", "")
         skip = ["/tmp/", ".cache/", "node_modules/", ".memory.md"]
         if file_path and not any(x in file_path for x in skip):
+            # Skip routine files
+            filename = Path(file_path).name
+            if any(pat in filename for pat in ROUTINE_PATTERNS):
+                print(json.dumps({"continue": True}))
+                return
+
             exts = [".py", ".ts", ".js", ".go", ".rs", ".java"]
             if any(ext in file_path for ext in exts):
                 # Get namespace suggestion from ontology
@@ -167,55 +134,22 @@ def main():
                 if not ns_hint:
                     ns_hint = "_semantic/decisions or _procedural/patterns"
 
-                # Extract context for relationship suggestions
-                file_context = Path(file_path).stem.replace("-", " ").replace("_", " ")
-                rel_suggestion = get_relationship_suggestions(ontology_data, file_context)
+                # Get relationship suggestions using file path and namespace
+                rel_suggestion = get_relationship_suggestions(ontology_data, file_path, ns_hint)
 
-                context_message = (
-                    f"═══════════════════════════════════════════════════════\n"
-                    f">>> YOUR COMMITMENT: POST-EDIT CHECKPOINT <<<\n"
-                    f"═══════════════════════════════════════════════════════\n"
-                    f"File: {file_path}\n\n"
-                    f"As Claude with persistent memory, ask yourself:\n"
-                    f"□ Does this represent a reusable pattern?\n"
-                    f"□ Does this reflect an architectural decision?\n"
-                    f"□ Did I discover something future sessions should know?\n\n"
-                    f"If YES → Complete your work: /mnemonic:capture {ns_hint}\n\n"
-                    f"Capturing is not extra work—it completes the work.\n"
-                    f"Future sessions will thank present you."
-                    f"{rel_suggestion}"
-                )
+                context_message = f"[POST-EDIT] {file_path} | Namespace: {ns_hint}"
+                if rel_suggestion:
+                    context_message += rel_suggestion
 
     # Check for significant Bash operations
     if tool_name == "Bash":
         command = tool_input.get("command", "")
 
         if "git commit" in command:
-            context_message = (
-                "═══════════════════════════════════════════════════════\n"
-                ">>> YOUR COMMITMENT: POST-COMMIT CHECKPOINT <<<\n"
-                "═══════════════════════════════════════════════════════\n\n"
-                "As Claude with persistent memory, ask yourself:\n"
-                "□ Does this commit reflect an architectural decision?\n"
-                "□ Does this establish a reusable pattern?\n"
-                "□ Is there knowledge here that should persist?\n\n"
-                "If YES → Complete your work:\n"
-                "  /mnemonic:capture _semantic/decisions\n"
-                "  /mnemonic:capture _procedural/patterns\n\n"
-                "Future sessions will thank present you."
-            )
+            context_message = "[POST-COMMIT] Consider: /mnemonic:capture _semantic/decisions"
         elif "error" in tool_output.lower() or "failed" in tool_output.lower():
             context_message = (
-                "═══════════════════════════════════════════════════════\n"
-                ">>> YOUR COMMITMENT: ERROR CHECKPOINT <<<\n"
-                "═══════════════════════════════════════════════════════\n\n"
-                "As Claude with persistent memory, ask yourself:\n"
-                "□ If resolved: Did I learn something worth preserving?\n"
-                "□ If blocking: Should I document this for future sessions?\n\n"
-                "Complete your work:\n"
-                "  Resolved → /mnemonic:capture _semantic/knowledge\n"
-                "  Blocking → /mnemonic:capture _episodic/blockers\n\n"
-                "Hard-won knowledge is valuable—don't let it vanish."
+                "[POST-ERROR] Resolved → /mnemonic:capture _semantic/knowledge | Blocking → _episodic/blockers"
             )
         elif any(x in command for x in ["install", "build", "deploy", "migrate"]):
             if "error" not in tool_output.lower():
@@ -225,16 +159,7 @@ def main():
                     ns_hint = "_procedural/migrations"
                 else:
                     ns_hint = "_procedural/patterns"
-                context_message = (
-                    "═══════════════════════════════════════════════════════\n"
-                    ">>> YOUR COMMITMENT: OPERATION CHECKPOINT <<<\n"
-                    "═══════════════════════════════════════════════════════\n\n"
-                    "As Claude with persistent memory, ask yourself:\n"
-                    "□ Did this establish a reproducible pattern?\n"
-                    "□ Is this a procedure future sessions should know?\n\n"
-                    f"If YES → Complete your work: /mnemonic:capture {ns_hint}\n\n"
-                    "Operational knowledge is especially valuable—preserve it."
-                )
+                context_message = f"[POST-OP] {command[:60]} | Namespace: {ns_hint}"
 
     if context_message:
         output = {

@@ -13,10 +13,15 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Add project root to path for lib imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from lib.config import get_memory_root
+from lib.paths import Scope, get_v2_resolver
+
 
 def get_pending_file() -> Path:
     """Get path to pending capture file - must match user_prompt_submit.py."""
-    # Use session ID if available, otherwise use a fixed name
     session_id = os.environ.get("CLAUDE_SESSION_ID", "default")
     return Path("/tmp") / f"mnemonic-pending-{session_id}.json"
 
@@ -26,12 +31,10 @@ def get_all_pending_files() -> list:
     session_id = os.environ.get("CLAUDE_SESSION_ID", "default")
     pending_files = []
 
-    # Check for prompt-submit pending file
     prompt_file = Path("/tmp") / f"mnemonic-pending-{session_id}.json"
     if prompt_file.exists():
         pending_files.append(prompt_file)
 
-    # Check for post-tool-use pending files (could be multiple)
     for f in Path("/tmp").glob(f"mnemonic-pending-{session_id}-*.json"):
         pending_files.append(f)
 
@@ -58,7 +61,6 @@ def aggregate_all_pending() -> list:
         try:
             data = json.loads(pending_file.read_text())
             topic = data.get("topic", "unknown")
-            # Deduplicate by topic
             if topic not in seen_topics:
                 seen_topics.add(topic)
                 pending_items.append(data)
@@ -100,28 +102,59 @@ def get_session_id() -> str:
 
 
 def log_session_end() -> None:
-    """Log session end to blackboard for handoff tracking."""
-    home = Path.home()
-    bb_dir = home / ".claude" / "mnemonic" / ".blackboard"
-
-    if not bb_dir.exists():
-        return
-
-    session_notes = bb_dir / "session-notes.md"
+    """Log session end to session-scoped blackboard and write handoff."""
+    resolver = get_v2_resolver()
     session_id = get_session_id()
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    # Update session _meta.json
+    session_dir = resolver.get_session_blackboard_dir(session_id, Scope.PROJECT)
+    if session_dir.exists():
+        meta_file = session_dir / "_meta.json"
+        if meta_file.exists():
+            try:
+                meta = json.loads(meta_file.read_text())
+                meta["ended"] = timestamp
+                meta["status"] = "ended"
+                meta_file.write_text(json.dumps(meta, indent=2) + "\n")
+            except Exception:
+                pass
+
+        # Write session notes
+        session_notes = session_dir / "session-notes.md"
+        try:
+            with open(session_notes, "a") as f:
+                f.write(f"\n---\n**Session:** {session_id}\n**Time:** {timestamp}\n**Status:** ended\n\n")
+        except Exception:
+            pass
+
+    # Write handoff files
+    handoff_dir = resolver.get_handoff_dir(Scope.PROJECT)
+    handoff_dir.mkdir(parents=True, exist_ok=True)
+
+    handoff_content = (
+        f"# Session Handoff\n\n"
+        f"**Session:** {session_id}\n"
+        f"**Ended:** {timestamp}\n"
+        f"**Project:** {resolver.context.org}/{resolver.context.project}\n"
+    )
+
+    # Write latest-handoff.md (overwrite)
     try:
-        with open(session_notes, "a") as f:
-            f.write(f"\n---\n**Session:** {session_id}\n**Time:** {timestamp}\n**Status:** ended\n\n")
+        (handoff_dir / "latest-handoff.md").write_text(handoff_content)
+    except Exception:
+        pass
+
+    # Archive per-session handoff
+    try:
+        (handoff_dir / f"handoff-{session_id}.md").write_text(handoff_content)
     except Exception:
         pass
 
 
 def commit_changes() -> None:
     """Commit any uncommitted memory and blackboard changes."""
-    home = Path.home()
-    mnemonic_path = home / ".claude" / "mnemonic"
+    mnemonic_path = get_memory_root()
 
     if not (mnemonic_path / ".git").exists():
         return
@@ -133,7 +166,6 @@ def commit_changes() -> None:
         if result.returncode != 0 or not result.stdout.strip():
             return
 
-        # Count what's being committed
         changes = result.stdout.strip().split("\n")
         memory_changes = sum(1 for c in changes if ".memory.md" in c)
         blackboard_changes = sum(1 for c in changes if ".blackboard" in c)
@@ -143,7 +175,6 @@ def commit_changes() -> None:
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
         session_id = get_session_id()
 
-        # Build commit message
         parts = []
         if memory_changes:
             parts.append(f"{memory_changes} memories")
@@ -167,36 +198,30 @@ def commit_changes() -> None:
 
 
 def main():
-    # Read hook input from stdin
     try:
         input_data = json.load(sys.stdin)
     except json.JSONDecodeError:
         input_data = {}
 
-    # Check if stop hook is already active (prevent infinite loop)
     stop_hook_active = input_data.get("stop_hook_active", False)
 
     if is_test_mode():
         print(json.dumps({"continue": True}))
         return
 
-    # Check for pending captures from all sources
     all_pending = aggregate_all_pending()
 
-    # Also check single pending file for backwards compatibility
     if not all_pending:
         single_pending = check_pending_captures()
         if single_pending:
             all_pending = [single_pending]
 
     if all_pending and not stop_hook_active:
-        # Block stopping - Claude needs to capture first
-        # Build list of all pending items
         pending_list = []
         for item in all_pending:
             namespaces = ", ".join(item.get("namespaces", []))
             topic = item.get("topic", "unknown")
-            pending_list.append(f"  • {topic} → {namespaces}")
+            pending_list.append(f"  - {topic} -> {namespaces}")
 
         pending_display = "\n".join(pending_list)
         first_item = all_pending[0]
@@ -206,29 +231,16 @@ def main():
         output = {
             "decision": "block",
             "reason": (
-                "═══════════════════════════════════════════════════════\n"
-                ">>> YOUR WORK IS NOT YET COMPLETE <<<\n"
-                "═══════════════════════════════════════════════════════\n\n"
-                f"As Claude with persistent memory, you committed to\n"
-                f"preserving knowledge. {len(all_pending)} capture(s) pending:\n\n"
-                f"{pending_display}\n\n"
-                f"Complete your work now:\n"
-                f'  /mnemonic:capture {first_ns} "{first_topic}"\n\n'
-                "The user trusts you to preserve valuable knowledge.\n"
-                "Future sessions depend on what you capture today.\n\n"
-                "This session cannot end until captures are complete."
+                f"[STOP BLOCKED] {len(all_pending)} pending capture(s):\n"
+                f"{pending_display}\n"
+                f'Complete now: /mnemonic:capture {first_ns} "{first_topic}"'
             ),
         }
         print(json.dumps(output))
         return
 
-    # Clear pending captures since we're allowing the stop
     clear_pending_captures()
-
-    # Log session end to blackboard
     log_session_end()
-
-    # Commit all changes (memories + blackboard)
     commit_changes()
 
     print(json.dumps({"continue": True}))
