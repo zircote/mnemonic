@@ -24,9 +24,7 @@ Usage:
 
 import argparse
 import re
-import shutil
 import subprocess
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -61,7 +59,7 @@ def detect_namespace(file_path: Path) -> str:
 
     # Check frontmatter
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read(2000)
         match = re.search(r"namespace:\s*['\"]?(\w+)", content)
         if match:
@@ -119,7 +117,7 @@ def migrate_file(
 
     try:
         # Read and update content
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         updated_content = update_frontmatter(content, old_ns, new_ns)
@@ -186,7 +184,7 @@ def print_migration_summary(migrations: Dict[str, List[Tuple[Path, Path]]]):
     for old_ns, files in sorted(migrations.items()):
         new_ns = NAMESPACE_MIGRATION[old_ns]
         print(f"{old_ns} → {new_ns}: {len(files)} files")
-        for old_path, new_path in files[:3]:  # Show first 3
+        for old_path, _new_path in files[:3]:  # Show first 3
             print(f"  {old_path.name}")
         if len(files) > 3:
             print(f"  ... and {len(files) - 3} more")
@@ -203,10 +201,7 @@ def create_git_commit(migrations: Dict[str, List[Tuple[Path, Path]]]):
     subprocess.run(["git", "add", "-A"], check=True)
 
     # Create commit message
-    ns_summary = ", ".join(
-        f"{old}→{NAMESPACE_MIGRATION[old]}"
-        for old in sorted(migrations.keys())
-    )
+    ns_summary = ", ".join(f"{old}→{NAMESPACE_MIGRATION[old]}" for old in sorted(migrations.keys()))
 
     message = f"""chore: migrate {total} memories to cognitive triad namespaces
 
@@ -221,9 +216,7 @@ to the v2.0 cognitive triad hierarchy (semantic/episodic/procedural).
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Migrate mnemonic memories to new namespace hierarchy"
-    )
+    parser = argparse.ArgumentParser(description="Migrate mnemonic memories to new namespace hierarchy")
     parser.add_argument(
         "--dry-run",
         action="store_true",

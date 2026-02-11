@@ -6,13 +6,13 @@ Resolves entity references across memories and maintains an entity index.
 Supports @[[entity]] and [[type:id]] reference syntax.
 """
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
 import json
 import logging
 import re
 import subprocess
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 try:
     import yaml
@@ -111,9 +111,7 @@ class EntityResolver:
     def add_link(self, link: EntityLink) -> None:
         """Add a link between entities."""
         self._links.append(link)
-        logger.debug(
-            f"Added link: {link.from_entity_id} --{link.relationship}--> {link.to_entity_id}"
-        )
+        logger.debug(f"Added link: {link.from_entity_id} --{link.relationship}--> {link.to_entity_id}")
 
     def resolve_reference(self, ref: str) -> Optional[Entity]:
         """
@@ -134,7 +132,7 @@ class EntityResolver:
         # Try typed reference
         typed_match = self.TYPED_REF_PATTERN.match(ref)
         if typed_match:
-            entity_type = typed_match.group(1)
+            _entity_type = typed_match.group(1)
             entity_id = typed_match.group(2)
             return self.find_by_id(entity_id)
 
@@ -157,24 +155,16 @@ class EntityResolver:
 
     def get_relationships(self, entity_id: str) -> List[EntityLink]:
         """Get all relationships for an entity."""
-        return [
-            link
-            for link in self._links
-            if link.from_entity_id == entity_id or link.to_entity_id == entity_id
-        ]
+        return [link for link in self._links if link.from_entity_id == entity_id or link.to_entity_id == entity_id]
 
-    def get_outgoing_relationships(
-        self, entity_id: str, relationship: Optional[str] = None
-    ) -> List[EntityLink]:
+    def get_outgoing_relationships(self, entity_id: str, relationship: Optional[str] = None) -> List[EntityLink]:
         """Get outgoing relationships from an entity."""
         links = [link for link in self._links if link.from_entity_id == entity_id]
         if relationship:
             links = [link for link in links if link.relationship == relationship]
         return links
 
-    def get_incoming_relationships(
-        self, entity_id: str, relationship: Optional[str] = None
-    ) -> List[EntityLink]:
+    def get_incoming_relationships(self, entity_id: str, relationship: Optional[str] = None) -> List[EntityLink]:
         """Get incoming relationships to an entity."""
         links = [link for link in self._links if link.to_entity_id == entity_id]
         if relationship:
@@ -259,7 +249,7 @@ class EntityResolver:
 
         # Extract entity references from body
         refs = self.extract_references(body)
-        for ref_type, ref_value in refs:
+        for _ref_type, ref_value in refs:
             existing = self.resolve_reference(ref_value)
             if existing and frontmatter and frontmatter.get("id"):
                 # Create implicit link
@@ -322,7 +312,7 @@ class EntityResolver:
             return []
         # Allow: alphanumeric, underscore, dash, dot, space, colon, slash, quotes, brackets
         # Block: shell metacharacters (;$`|&<>), excessive whitespace
-        if not re.match(r'^[a-zA-Z0-9_\-./: "\'@\[\]]+$', query) or re.search(r'\s{3,}', query):
+        if not re.match(r'^[a-zA-Z0-9_\-./: "\'@\[\]]+$', query) or re.search(r"\s{3,}", query):
             logger.warning(f"Invalid search query contains unsafe characters: {query}")
             return []
 
@@ -481,7 +471,7 @@ class EntityResolver:
 
             frontmatter_end = end_match.start() + 3
             frontmatter_str = content[3:frontmatter_end]
-            body = content[frontmatter_end + end_match.end() - end_match.start():]
+            body = content[frontmatter_end + end_match.end() - end_match.start() :]
 
             frontmatter = yaml.safe_load(frontmatter_str)
             return frontmatter, body

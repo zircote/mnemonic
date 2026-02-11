@@ -6,7 +6,6 @@ Tests that Claude searches and uses existing memories when answering.
 Uses test-specific namespaces with unique IDs for cleanup.
 """
 
-import time
 from uuid import uuid4
 
 import pytest

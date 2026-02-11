@@ -13,6 +13,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export/import functionality
 - Web UI for memory browsing
 
+## [1.6.0] - 2026-02-11
+
+### Added
+
+- **[Capture Validation]**: Ontology validation step in capture workflow
+  - Namespace validation against loaded ontology registry
+  - Memory type validation against ontology-defined types
+  - Mandatory dedup check before memory creation
+
+- **[Relationship Validation]**: Type-safe relationship management
+  - `is_valid_type()` guard in `add_relationship()` rejects unknown types
+  - Bidirectional back-ref check rejects forward type for asymmetric relationships
+  - `is_symmetric()` check ensures only symmetric types accept forward type as back-ref
+  - Unknown relationship types in `ensure_bidirectional()` emit warnings instead of silently defaulting
+
+- **[Relationship Type Registry]**: Full MIF relationship type system (`lib/relationships.py`)
+  - 9 core types with proper inverse mapping: RelatesTo, DerivedFrom, Supersedes, ConflictsWith, PartOf, Implements, Uses, Created, MentionedIn
+  - `RELATIONSHIP_TYPES` registry with inverse, symmetric, and description metadata
+  - `get_inverse()`, `is_valid_type()`, `is_symmetric()`, `get_all_valid_types()` helpers
+  - `to_pascal()` / `to_snake()` case conversion between PascalCase and snake_case
+  - Backward-compatible `RECIPROCAL_TYPES` dict with proper inverse types
+
+- **[Team Audit Command]**: `/mnemonic:team-audit` for cross-team memory health checks
+
+- **[Test Coverage]**: 397 tests (up from 308)
+  - `tests/unit/test_relationship_registry.py` — Type registry, inverse mapping, case conversion (50+ tests)
+  - `tests/unit/test_ontology_validation.py` — Namespace and type validation
+  - `tests/unit/test_memory_reader_yaml.py` — YAML frontmatter parsing edge cases
+
+### Fixed
+
+- **[Blank Line Accumulation]**: Fixed `add_relationship()` reassembly that added extra blank lines on each write
+- **[Namespace Validation]**: Unknown sub-namespaces like `_semantic/does_not_exist` now correctly rejected even when top-level prefix matches
+- **[Import Cleanup]**: Removed unused imports and variables across lib and tests; resolved all ruff lint errors
+- **[MIF Submodule]**: Updated to latest with `${MNEMONIC_ROOT}` path references
+
+### Changed
+
+- **[Hook Refactoring]**: All hooks import from shared `lib/` modules (continued from v1.5.0)
+- **[Version Lineage]**: Corrected version numbering from incorrect v2.x back to v1.x continuation
+
 ## [1.5.0] - 2026-02-09
 
 ### Added

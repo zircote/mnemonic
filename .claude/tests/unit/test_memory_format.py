@@ -5,9 +5,7 @@ Unit tests for memory file format validation.
 Tests that memory files follow the expected schema and structure.
 """
 
-import os
 import re
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -198,7 +196,7 @@ class TestMemoryFileValidation(unittest.TestCase):
                 errors.append(f"{file_path}: {str(e)}")
 
         if errors:
-            self.fail(f"Memory file validation errors:\n" + "\n".join(errors[:10]))
+            self.fail("Memory file validation errors:\n" + "\n".join(errors[:10]))
 
     def test_no_duplicate_ids(self):
         """Each memory should have a unique ID."""
@@ -225,7 +223,7 @@ class TestMemoryFileValidation(unittest.TestCase):
                 pass  # Skip files that can't be parsed
 
         if duplicates:
-            self.fail(f"Duplicate memory IDs found:\n" + "\n".join(duplicates))
+            self.fail("Duplicate memory IDs found:\n" + "\n".join(duplicates))
 
 
 if __name__ == "__main__":

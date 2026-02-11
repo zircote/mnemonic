@@ -13,18 +13,18 @@ import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 try:
     from .frontmatter_updater import FrontmatterUpdater
     from .marker_parser import MarkerParser
-    from .template_validator import TemplateValidator, ValidationResult
+    from .template_validator import TemplateValidator
 except ImportError:
     from frontmatter_updater import FrontmatterUpdater
     from marker_parser import MarkerParser
-    from template_validator import TemplateValidator, ValidationResult
+    from template_validator import TemplateValidator
 
 
 @dataclass
@@ -120,9 +120,7 @@ class Integrator:
                 if plugin_root_env:
                     allowed_roots.append(Path(plugin_root_env).resolve())
 
-                is_valid = any(
-                    self._is_path_within(resolved, root) for root in allowed_roots
-                )
+                is_valid = any(self._is_path_within(resolved, root) for root in allowed_roots)
                 if not is_valid:
                     continue  # Skip templates outside allowed roots
                 return resolved
@@ -163,13 +161,7 @@ class Integrator:
         """
         dir_path = file_path.parent
         # Create temp file in same directory (ensures same filesystem for atomic rename)
-        with tempfile.NamedTemporaryFile(
-            mode='w',
-            dir=dir_path,
-            delete=False,
-            suffix='.tmp',
-            encoding='utf-8'
-        ) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", dir=dir_path, delete=False, suffix=".tmp", encoding="utf-8") as tmp:
             tmp.write(content)
             tmp_path = Path(tmp.name)
 
@@ -227,7 +219,7 @@ class Integrator:
         except json.JSONDecodeError as e:
             logger.warning(f"Invalid JSON in manifest {manifest_path}: {e}")
             return None
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.warning(f"Failed to read manifest {manifest_path}: {e}")
             return None
 
@@ -378,7 +370,7 @@ class Integrator:
                 action="skipped",
                 message=f"File not found: {file_path}",
             )
-        except (OSError, IOError) as e:
+        except OSError as e:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
@@ -535,7 +527,7 @@ class Integrator:
                 action="skipped",
                 message=f"File not found: {file_path}",
             )
-        except (OSError, IOError) as e:
+        except OSError as e:
             return IntegrationResult(
                 file_path=file_path,
                 success=False,
@@ -663,13 +655,14 @@ class Integrator:
                         backup_file = backup_dir / f"{file_path.name}.{id(file_path)}.bak"
                         backup_file.write_text(file_path.read_text())
                         backups[file_path] = backup_file
-                    except (OSError, IOError) as e:
+                    except OSError as e:
                         # Security: Never silently ignore backup failures - warn user
                         backup_failures.append(f"{file_path}: {e}")
 
             # Security: Abort if any backups failed - continuing could cause data loss
             if backup_failures:
                 import shutil
+
                 report.errors.append(
                     f"Backup failed for {len(backup_failures)} file(s), aborting to prevent data loss: "
                     + "; ".join(backup_failures[:3])
@@ -695,9 +688,7 @@ class Integrator:
                 # Migrate is just integrate with legacy awareness
                 result = self.integrate_file(file_path, dry_run=dry_run, force=False)
             else:
-                report.errors.append(
-                    f"Unknown mode: {mode}. Valid modes: integrate, remove, verify, migrate"
-                )
+                report.errors.append(f"Unknown mode: {mode}. Valid modes: integrate, remove, verify, migrate")
                 return report
 
             report.results.append(result)
@@ -721,6 +712,7 @@ class Integrator:
         # Clean up backup directory on success
         if backup_dir and backup_dir.exists():
             import shutil
+
             try:
                 shutil.rmtree(backup_dir)
             except OSError as e:
@@ -749,10 +741,9 @@ class Integrator:
                 if backup_path.exists():
                     self._atomic_write(file_path, backup_path.read_text())
                     rolled_back += 1
-            except (OSError, IOError) as e:
+            except OSError as e:
                 report.errors.append(
-                    f"Rollback failed for {file_path}: {e}. "
-                    f"Manual recovery: check backup at {backup_path}"
+                    f"Rollback failed for {file_path}: {e}. Manual recovery: check backup at {backup_path}"
                 )
 
         if rolled_back > 0:
@@ -831,9 +822,7 @@ class Integrator:
                         modified_relative.add(Path(f).name)  # Fallback to basename if not relative
                 committed_set = set(committed_files)
                 if not modified_relative & committed_set:
-                    report.warnings.append(
-                        "Git commit verification: expected files not found in commit"
-                    )
+                    report.warnings.append("Git commit verification: expected files not found in commit")
 
         except subprocess.CalledProcessError as e:
             report.warnings.append(f"Git commit failed: {e}")
@@ -970,7 +959,7 @@ def main():
             }
             print(json.dumps(output, indent=2))
         else:
-            print(f"Mnemonic Integration Report")
+            print("Mnemonic Integration Report")
             print(f"{'=' * 40}")
             print(f"Plugin: {report.plugin_root}")
             print(f"Mode: {report.mode}")

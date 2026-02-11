@@ -182,6 +182,7 @@ class TestMemoryFormat:
     def test_has_valid_id(self, memory_factory):
         """Memory ID is valid UUID."""
         import re
+
         import yaml
 
         mem = memory_factory.create(title="Test")
@@ -196,6 +197,7 @@ class TestMemoryFormat:
     def test_has_valid_timestamp(self, memory_factory):
         """Memory has valid ISO8601 timestamp."""
         import re
+
         import yaml
 
         mem = memory_factory.create(title="Test")

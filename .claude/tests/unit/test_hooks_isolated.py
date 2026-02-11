@@ -7,8 +7,6 @@ Tests hook behavior without touching real memory files.
 
 import json
 
-import pytest
-
 
 class TestSessionStartHook:
     """Test session_start.py hook behavior."""

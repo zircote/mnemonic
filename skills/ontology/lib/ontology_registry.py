@@ -6,15 +6,14 @@ Manages loading, parsing, and querying of custom ontology definitions.
 Supports YAML-based ontology files with URL-referenced schemas.
 """
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-from urllib.parse import urlparse
 import hashlib
 import json
 import logging
-import os
 import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 try:
     import yaml
@@ -422,7 +421,7 @@ class OntologyRegistry:
 
         except yaml.YAMLError as e:
             logger.error(f"Invalid YAML in {file_path}: {e}")
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.error(f"Failed to load ontology from {file_path}: {e}")
 
     def _parse_ontology(self, data: Dict[str, Any], source_path: Optional[Path] = None) -> Optional[Ontology]:

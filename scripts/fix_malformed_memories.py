@@ -22,7 +22,14 @@ from pathlib import Path
 
 def detect_type_from_namespace(namespace: str) -> str:
     """Infer memory type from namespace."""
-    if namespace.startswith("semantic") or namespace in ["decisions", "knowledge", "apis", "context", "learnings", "security"]:
+    if namespace.startswith("semantic") or namespace in [
+        "decisions",
+        "knowledge",
+        "apis",
+        "context",
+        "learnings",
+        "security",
+    ]:
         return "semantic"
     elif namespace.startswith("episodic") or namespace in ["blockers", "incidents", "sessions"]:
         return "episodic"
@@ -38,7 +45,17 @@ def detect_namespace_from_path(file_path: Path) -> str:
     # Look for known namespace patterns
     for i, part in enumerate(parts):
         if part in ["semantic", "episodic", "procedural"]:
-            if i + 1 < len(parts) and parts[i + 1] in ["decisions", "knowledge", "entities", "incidents", "sessions", "blockers", "runbooks", "patterns", "migrations"]:
+            if i + 1 < len(parts) and parts[i + 1] in [
+                "decisions",
+                "knowledge",
+                "entities",
+                "incidents",
+                "sessions",
+                "blockers",
+                "runbooks",
+                "patterns",
+                "migrations",
+            ]:
                 return f"{part}/{parts[i + 1]}"
             return part
         if part in ["decisions", "learnings", "patterns", "blockers", "apis", "context", "security", "testing"]:
@@ -95,7 +112,7 @@ def parse_yaml_frontmatter(frontmatter: str) -> dict:
                 # Might be a list
                 result[key] = []
                 current_list = result[key]
-            current_key = key
+            current_key = key  # noqa: F841 — retained for parser state tracking
 
     return result
 
@@ -251,9 +268,7 @@ def find_memory_files(base_paths: list) -> list:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Fix malformed memory files"
-    )
+    parser = argparse.ArgumentParser(description="Fix malformed memory files")
     parser.add_argument(
         "--dry-run",
         action="store_true",

@@ -7,10 +7,10 @@ Loads from MIF submodule, fallback directory, or user/project locations.
 Caches loaded ontologies for session performance.
 """
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import logging
 
 try:
     import yaml

@@ -11,12 +11,8 @@ IMPORTANT: These tests make actual API calls and create real memory files.
 Run with caution and clean up test data afterward.
 """
 
-import json
-import os
 import re
-import shutil
 import subprocess
-import sys
 import time
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -114,8 +110,8 @@ class TestCaptureIntegration(unittest.TestCase):
             )
             if result.returncode != 0:
                 raise unittest.SkipTest("Claude CLI not available")
-        except FileNotFoundError:
-            raise unittest.SkipTest("Claude CLI not installed")
+        except FileNotFoundError as err:
+            raise unittest.SkipTest("Claude CLI not installed") from err
 
     def setUp(self):
         """Record current time for memory detection."""
@@ -194,8 +190,8 @@ class TestRecallIntegration(unittest.TestCase):
             )
             if result.returncode != 0:
                 raise unittest.SkipTest("Claude CLI not available")
-        except FileNotFoundError:
-            raise unittest.SkipTest("Claude CLI not installed")
+        except FileNotFoundError as err:
+            raise unittest.SkipTest("Claude CLI not installed") from err
 
     def tearDown(self):
         """Clean up test memories."""

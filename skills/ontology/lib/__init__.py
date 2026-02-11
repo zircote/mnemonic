@@ -8,19 +8,19 @@ Core library modules for custom ontology support:
 - entity_resolver: Resolve entity references and maintain entity index
 """
 
-from .ontology_loader import OntologyLoader, LoadedOntology, get_loader, reset_loader
+from .entity_resolver import Entity, EntityIndexStats, EntityLink, EntityResolver
+from .ontology_loader import LoadedOntology, OntologyLoader, get_loader, reset_loader
 from .ontology_registry import (
-    OntologyRegistry,
-    Ontology,
-    Namespace,
-    EntityType,
-    Trait,
-    Relationship,
     DiscoveryConfig,
     DiscoveryPattern,
+    EntityType,
+    Namespace,
+    Ontology,
+    OntologyRegistry,
+    Relationship,
+    Trait,
 )
-from .ontology_validator import OntologyValidator, OntologyValidationResult
-from .entity_resolver import EntityResolver, Entity, EntityLink, EntityIndexStats
+from .ontology_validator import OntologyValidationResult, OntologyValidator
 
 __all__ = [
     # Loader

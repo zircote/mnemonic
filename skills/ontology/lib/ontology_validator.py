@@ -6,12 +6,12 @@ Validates ontology definition files against the meta-schema.
 Checks entity type definitions, trait compatibility, and relationships.
 """
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
 import json
 import logging
 import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 try:
     import yaml

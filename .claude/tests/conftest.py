@@ -8,13 +8,11 @@ Provides isolated test environments that don't touch real memory files.
 import json
 import os
 import shutil
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
 import pytest
-
 
 # ============================================================================
 # Isolated Environment Fixtures

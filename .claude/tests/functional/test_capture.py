@@ -16,7 +16,6 @@ from uuid import uuid4
 
 import pytest
 
-
 CLAUDE_TIMEOUT = 120
 
 

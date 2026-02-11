@@ -6,14 +6,12 @@ Runs tests in the actual mnemonic project directory to ensure
 CLAUDE.md is properly loaded. Uses unique test IDs for cleanup.
 """
 
-import shutil
 import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
 import pytest
-
 
 # Project root is the mnemonic directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
@@ -52,7 +50,7 @@ def cleanup_test_memories(test_session_id):
                 content = memory_file.read_text()
                 if test_session_id in content:
                     memory_file.unlink()
-            except (OSError, IOError):
+            except OSError:
                 pass
 
 
@@ -166,7 +164,7 @@ Session: {test_session_id}
                         mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
                         if mtime > cutoff:
                             memories.append(path)
-                    except (OSError, IOError):
+                    except OSError:
                         continue
 
             return memories
@@ -184,7 +182,7 @@ Session: {test_session_id}
                     try:
                         if text in path.read_text():
                             memories.append(path)
-                    except (OSError, IOError):
+                    except OSError:
                         continue
 
             return memories
