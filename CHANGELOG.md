@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export/import functionality
 - Web UI for memory browsing
 
-## [2.2.0] - 2026-02-09
+## [1.5.0] - 2026-02-09
 
 ### Added
 
@@ -77,9 +77,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed redundant `get_memory_metadata()` I/O in `post_tool_use.py` (metadata built inline from scored search results)
   - ~165 lines of duplicated path resolution code removed
 
-- **[V2 Unified Path Alignment]**: All components now use `$MNEMONIC_ROOT` with config resolution
+- **[Unified Path Alignment]**: All components now use `$MNEMONIC_ROOT` with config resolution
   - Replaced all hardcoded `~/.claude/mnemonic` and `$HOME/.claude/mnemonic` across 30 files
-  - Removed all `./.claude/mnemonic` project-local path references (V2 has no project-local dir)
+  - Removed all `./.claude/mnemonic` project-local path references (unified structure has no project-local dir)
   - Added config resolution blocks to all bash-based commands, skills, and agents
   - `commands/status.md` rewritten to show store/org/project directories under unified path
   - `tools/mnemonic-query` delegates to `PathResolver` instead of reimplementing paths
@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/community/` — Archived (Memory Bank migration, comparison, quickstart, adoption stories)
   - `templates/` — Archived (AGENTS.md, CONVENTIONS.md, copilot-instructions.md, cursor-rule.mdc, mnemonic-protocol.md, plugin-hooks/)
 
-## [2.1.0] - 2026-01-30
+## [1.4.0] - 2026-01-30
 
 ### Added
 
@@ -144,10 +144,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cognitive namespace visualizations
   - Ontology structure diagrams
 
+- **[MIF Submodule]**: Ontologies now sourced from [MIF](https://github.com/zircote/MIF)
+  - `mif-base.ontology.yaml` defines cognitive triad hierarchy
+  - JSON-LD export for semantic web compatibility
+  - `scripts/yaml2jsonld.py` converter
+
+- **[Cognitive Triad Namespaces]**: Migrated from 9 flat namespaces to hierarchical structure
+  - Old: `apis`, `blockers`, `context`, `decisions`, `learnings`, `patterns`, `security`, `testing`, `episodic`
+  - New: `_semantic/`, `_episodic/`, `_procedural/` with sub-namespaces
+  - `_semantic/decisions` - Architectural choices
+  - `_semantic/knowledge` - APIs, context, learnings, security
+  - `_semantic/entities` - Technologies, components
+  - `_episodic/incidents` - Production issues
+  - `_episodic/sessions` - Debug sessions
+  - `_episodic/blockers` - Impediments
+  - `_procedural/runbooks` - Operational procedures
+  - `_procedural/patterns` - Code conventions, testing
+  - `_procedural/migrations` - Migration steps
+
+- **[Ontology Loader]**: Centralized MIF loading (`skills/ontology/lib/ontology_loader.py`)
+- **[Fallback Support]**: Offline installations via `skills/ontology/fallback/`
+- **[Namespace Migration]**: `scripts/migrate_namespaces.py` for upgrading existing memories
+
 - **[Path Resolution Library]**: Centralized path management in `lib/paths.py`
-  - `PathResolver` class with V2 unified path scheme
+  - `PathResolver` class with unified path scheme
   - `PathContext` dataclass for context detection (org, project, home, scheme)
-  - `PathScheme` enum (LEGACY, V2) for migration support
+  - `PathScheme` enum (LEGACY, UNIFIED) for migration support
   - `Scope` enum (USER, PROJECT, ORG) for memory scoping
   - Convenience functions: `get_memory_dir()`, `get_search_paths()`, `get_blackboard_dir()`
   - 26 unit tests in `tests/unit/test_paths.py`
@@ -183,13 +205,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All docs updated for unified path structure
   - Social graphics reflect new ontology model
 
-- **[Hooks]**: Updated to use PathResolver
+- **[Hooks]**: Updated to use PathResolver and hierarchical namespace paths
   - `session_start.py`: Uses PathResolver for path resolution with LEGACY fallback
   - `user_prompt_submit.py`: Uses PathResolver for memory search paths
-  - Hooks check both V2 and LEGACY paths during migration period
+  - Hooks check both unified and LEGACY paths during migration period
 
-- **[Commands]**: Updated scope options
-  - `capture.md`: `--scope project|org` (was `user|project`)
+- **[Commands]**: Updated scope options and namespace format
+  - `capture.md`: `--scope project|org` (was `user|project`), supports new namespace format
   - `recall.md`: `--scope project|org|all` (was `user|project|all`)
 
 - **[Code Quality]**: Simplified functional test infrastructure
@@ -226,7 +248,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Migration Guide
 
-To migrate existing memories to the unified path structure:
+To migrate namespaces (one-time, required):
+
+```bash
+python scripts/migrate_namespaces.py --dry-run
+python scripts/migrate_namespaces.py --commit
+```
+
+To migrate to unified path structure:
 
 ```bash
 # Preview changes
@@ -238,58 +267,6 @@ python scripts/migrate_to_v2_paths.py
 # Rollback if needed
 python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/legacy_backup_TIMESTAMP
 ```
-
-## [2.0.0] - 2026-01-26
-
-### Breaking Changes
-
-- **Namespace Hierarchy**: Migrated from 9 flat namespaces to cognitive triad hierarchy
-  - Old: `apis`, `blockers`, `context`, `decisions`, `learnings`, `patterns`, `security`, `testing`, `episodic`
-  - New: `semantic/`, `episodic/`, `procedural/` with sub-namespaces
-
-### Added
-
-- **MIF Submodule**: Ontologies now sourced from [MIF](https://github.com/zircote/MIF)
-  - `mif-base.ontology.yaml` defines cognitive triad hierarchy
-  - JSON-LD export for semantic web compatibility
-  - `scripts/yaml2jsonld.py` converter
-
-- **Cognitive Triad Namespaces**:
-  - `semantic/decisions` - Architectural choices
-  - `semantic/knowledge` - APIs, context, learnings, security
-  - `semantic/entities` - Technologies, components
-  - `episodic/incidents` - Production issues
-  - `episodic/sessions` - Debug sessions
-  - `episodic/blockers` - Impediments
-  - `procedural/runbooks` - Operational procedures
-  - `procedural/patterns` - Code conventions, testing
-  - `procedural/migrations` - Migration steps
-
-- **Ontology Loader**: Centralized MIF loading (`skills/ontology/lib/ontology_loader.py`)
-- **Fallback Support**: Offline installations via `skills/ontology/fallback/`
-- **Migration Script**: `scripts/migrate_namespaces.py` for upgrading existing memories
-
-### Changed
-
-- **Hooks**: Updated to use hierarchical namespace paths
-- **Commands**: `/mnemonic:capture` supports new namespace format
-- **Documentation**: Updated for cognitive triad model
-
-### Migration Guide
-
-1. **Run migration script** (one-time, required):
-   ```bash
-   python scripts/migrate_namespaces.py --dry-run
-   python scripts/migrate_namespaces.py --commit
-   ```
-2. **Update custom ontologies** to use hierarchical namespaces:
-   ```yaml
-   namespaces:
-     semantic:
-       children:
-         my-namespace:
-           description: "..."
-   ```
 
 ## [1.3.0] - 2026-01-25
 
