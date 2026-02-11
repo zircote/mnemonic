@@ -107,6 +107,18 @@ find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7 -exec basename {} \;
 
 Namespaces: `_semantic/decisions` | `_semantic/knowledge` | `_procedural/patterns` | `_episodic/blockers` | `_episodic/sessions`
 
+**MANDATORY: Before creating any memory, check for duplicates:**
+
+1. Search for existing memories with similar keywords:
+   ```bash
+   rg -i "{key_words}" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l | head -5
+   ```
+
+2. If matches found, read the top result
+3. If it covers the same topic → UPDATE existing memory (use Edit tool) instead of creating new
+4. If related but different → create new memory with `relates_to` relationship
+5. Only create brand new if no matches found
+
 ## Recall
 
 ```bash
@@ -126,6 +138,11 @@ UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 ```
 
+**Type must match namespace path:**
+- `_semantic/*` → `type: semantic`
+- `_procedural/*` → `type: procedural`
+- `_episodic/*` → `type: episodic`
+
 Then create the file with the real generated values:
 
 ```yaml
@@ -133,13 +150,28 @@ Then create the file with the real generated values:
 id: <the real UUID generated above>
 title: "Your actual title here"
 type: semantic
+namespace: _semantic/decisions
 created: <the real DATE generated above>
+confidence: 0.9
+strength: 1.0
+half_life: P90D
+last_accessed: <the real DATE generated above>
+decay_model: exponential
+provenance:
+  source_type: conversation
+  agent: claude
 ---
 
 # Your actual title here
 
 Content here.
 ```
+
+Half-life defaults:
+- `_semantic/decisions`: P180D (long-lived)
+- `_semantic/knowledge`: P90D
+- `_procedural/patterns`: P180D (long-lived)
+- `_episodic/*`: P30D (fast decay)
 
 ## References
 

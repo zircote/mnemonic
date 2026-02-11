@@ -1,9 +1,12 @@
 """MIF schema and ontological relationship validation."""
 
+import os
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .memory_file import MemoryFile
+from .memory_file import ISO_DATE_PATTERN, UUID_PATTERN, MemoryFile
 from .report import Report
 
 try:
@@ -11,19 +14,37 @@ try:
 except ImportError:
     yaml = None  # type: ignore[assignment]
 
+try:
+    from lib.relationships import is_valid_type as _is_valid_rel_type, get_all_valid_types
+except ImportError:
+    _is_valid_rel_type = None  # type: ignore[assignment]
+    get_all_valid_types = None  # type: ignore[assignment]
 
-# Valid MIF relationship types
-VALID_RELATIONSHIP_TYPES = {
-    "RelatesTo",
-    "DerivedFrom",
-    "Supersedes",
-    "ConflictsWith",
-    "PartOf",
-    "Implements",
-    "Uses",
-    "Created",
-    "MentionedIn",
-}
+
+# Valid MIF relationship types — imported from canonical registry when available,
+# with hardcoded fallback for standalone use.
+if get_all_valid_types is not None:
+    VALID_RELATIONSHIP_TYPES = get_all_valid_types()
+else:
+    VALID_RELATIONSHIP_TYPES = {
+        "RelatesTo",
+        "DerivedFrom",
+        "Supersedes",
+        "ConflictsWith",
+        "PartOf",
+        "Implements",
+        "Uses",
+        "Created",
+        "MentionedIn",
+        # Inverse types
+        "Derives",
+        "SupersededBy",
+        "Contains",
+        "ImplementedBy",
+        "UsedBy",
+        "CreatedBy",
+        "Mentions",
+    }
 
 # Valid provenance source types
 VALID_SOURCE_TYPES = {
@@ -32,11 +53,61 @@ VALID_SOURCE_TYPES = {
     "agent_inferred",
     "external_import",
     "system_generated",
+    "conversation",
+    "extraction",
+    "codebase_analysis",
+    "system",
+}
+
+# Patterns that indicate a placeholder rather than a real value
+_PLACEHOLDER_ID_PATTERNS = {
+    "${UUID}",
+    "PLACEHOLDER_UUID",
+    "MEMORY_ID_PLACEHOLDER",
+}
+_PLACEHOLDER_DATE_PATTERNS = {
+    "${DATE}",
+    "PLACEHOLDER_DATE",
+    "DATE_PLACEHOLDER",
 }
 
 
-def validate_memories(roots: List[Path], report: Report) -> int:
+def _is_placeholder_id(uid: str) -> bool:
+    """Check if a UUID value is a placeholder that should be replaced."""
+    if uid in _PLACEHOLDER_ID_PATTERNS:
+        return True
+    # Also catch template-style like ${...}
+    if uid.startswith("${") and uid.endswith("}"):
+        return True
+    return False
+
+
+def _is_placeholder_date(date_str: str) -> bool:
+    """Check if a date value is a placeholder that should be replaced."""
+    if date_str in _PLACEHOLDER_DATE_PATTERNS:
+        return True
+    if date_str.startswith("${") and date_str.endswith("}"):
+        return True
+    return False
+
+
+def _get_file_date(path: Path) -> str:
+    """Get an ISO date from the file's mtime, falling back to now."""
+    try:
+        mtime = os.path.getmtime(path)
+        return datetime.fromtimestamp(mtime, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    except OSError:
+        return datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def validate_memories(roots: List[Path], report: Report, fix: bool = False) -> int:
     """Validate memory frontmatter completeness against MIF schema.
+
+    When fix=True, auto-repairs:
+    - Placeholder UUIDs (${UUID}, PLACEHOLDER_UUID, etc.) -> real UUIDs
+    - Invalid/non-standard UUIDs -> real UUIDs
+    - Placeholder dates (${DATE}, PLACEHOLDER_DATE, etc.) -> file mtime
+    - Invalid date formats -> file mtime
 
     Returns number of memories with errors.
     """
@@ -48,10 +119,44 @@ def validate_memories(roots: List[Path], report: Report) -> int:
         for path in sorted(root.rglob("*.memory.md")):
             mem = MemoryFile(path)
             errors = mem.validate_frontmatter()
+            needs_save = False
 
             for err in errors:
-                report.error("frontmatter", err, file_path=path)
-                error_count += 1
+                fixed = False
+
+                if fix and "Invalid UUID format:" in err:
+                    # Extract the bad UUID from the error message
+                    bad_id = err.split("Invalid UUID format:")[-1].strip()
+                    new_id = str(uuid.uuid4())
+                    mem.update_field_in_raw("id", new_id)
+                    report.error(
+                        "frontmatter",
+                        f"Invalid UUID '{bad_id}' replaced with {new_id}",
+                        file_path=path,
+                        fixed=True,
+                    )
+                    needs_save = True
+                    fixed = True
+
+                if fix and "Invalid created date format:" in err:
+                    bad_date = err.split("Invalid created date format:")[-1].strip()
+                    new_date = _get_file_date(path)
+                    mem.update_field_in_raw("created", new_date)
+                    report.error(
+                        "frontmatter",
+                        f"Invalid date '{bad_date}' replaced with {new_date}",
+                        file_path=path,
+                        fixed=True,
+                    )
+                    needs_save = True
+                    fixed = True
+
+                if not fixed:
+                    report.error("frontmatter", err, file_path=path)
+                    error_count += 1
+
+            if fix and needs_save:
+                mem.save()
 
             # Additional checks beyond basic required fields
 
@@ -124,6 +229,15 @@ def validate_relationships(
 
     error_count = 0
 
+    def _check_rel_type(rel_type_str: str) -> bool:
+        """Check if a relationship type is valid (supports both naming conventions)."""
+        if rel_type_str in valid_types:
+            return True
+        # Use canonical registry if available (handles snake_case + PascalCase)
+        if _is_valid_rel_type is not None:
+            return _is_valid_rel_type(rel_type_str)
+        return False
+
     for root in roots:
         if not root.exists():
             continue
@@ -144,7 +258,7 @@ def validate_relationships(
                     continue
 
                 rel_type = rel.get("relationshipType") or rel.get("type", "")
-                if rel_type and str(rel_type) not in valid_types:
+                if rel_type and not _check_rel_type(str(rel_type)):
                     report.error(
                         "relationships",
                         f"Unknown relationship type: {rel_type}",

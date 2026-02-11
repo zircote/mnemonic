@@ -5,17 +5,18 @@ Usage:
     python3 custodian.py <operation> [options]
 
 Operations:
-    audit                Full health check (default)
-    relocate OLD NEW     Move memories and update references
-    validate-links       Check wiki-links and relationships
-    decay                Recalculate decay strength
-    summarize            Find compression candidates
-    validate-memories    Check MIF frontmatter completeness
+    audit                   Full health check (default)
+    relocate OLD NEW        Move memories and update references
+    validate-links          Check wiki-links and relationships
+    ensure-bidirectional    Find/fix missing inverse back-references
+    decay                   Recalculate decay strength
+    summarize               Find compression candidates
+    validate-memories       Check MIF frontmatter completeness
     validate-relationships  Verify ontological relationships
 
 Options:
     --dry-run            Preview without changes
-    --fix                Auto-repair issues (validate-links)
+    --fix                Auto-repair issues (validate-links, ensure-bidirectional)
     --json               Output as JSON
     --commit             Git commit after changes
 """
@@ -29,7 +30,7 @@ from typing import List
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from skills.custodian.lib.decay import update_decay
-from skills.custodian.lib.link_checker import find_orphans, validate_links
+from skills.custodian.lib.link_checker import ensure_bidirectional, find_orphans, validate_links
 from skills.custodian.lib.relocator import relocate
 from skills.custodian.lib.report import Report
 from skills.custodian.lib.validators import (
@@ -39,7 +40,7 @@ from skills.custodian.lib.validators import (
 )
 
 try:
-    from lib.paths import PathContext, PathResolver, PathScheme
+    from lib.paths import PathContext, PathResolver, PathScheme, get_all_memory_roots_with_legacy
 
     _HAS_PATH_LIB = True
 except ImportError:
@@ -47,27 +48,25 @@ except ImportError:
 
 
 def _get_memory_roots() -> List[Path]:
-    """Get all memory root directories."""
+    """Get all memory root directories using the canonical path resolver."""
     if _HAS_PATH_LIB:
-        context = PathContext.detect(scheme=PathScheme.V2)  # type: ignore[name-defined]
-        resolver = PathResolver(context)  # type: ignore[name-defined]
-        roots = resolver.get_all_memory_roots()
-        # Also include legacy paths during migration
-        home = Path.home()
-        legacy = [
-            home / ".claude" / "mnemonic" / context.org,
-            home / ".claude" / "mnemonic" / "default",
-            Path.cwd() / ".claude" / "mnemonic",
-        ]
-        return list({p for p in roots + legacy if p.exists()})
+        return get_all_memory_roots_with_legacy()
 
-    # Fallback: scan common locations
+    # Fallback when lib.paths not available: use config-based root
+    try:
+        from lib.config import get_memory_root
+
+        root = get_memory_root()
+        return [p for p in root.iterdir() if p.is_dir()] if root.exists() else []
+    except ImportError:
+        pass
+
+    # Last resort fallback
     home = Path.home()
-    candidates = [
-        home / ".claude" / "mnemonic",
-        Path.cwd() / ".claude" / "mnemonic",
-    ]
-    return [p for p in candidates if p.exists()]
+    xdg_root = home / ".local" / "share" / "mnemonic"
+    if xdg_root.exists():
+        return [p for p in xdg_root.iterdir() if p.is_dir()]
+    return []
 
 
 def _get_ontology_paths() -> List[Path]:
@@ -76,15 +75,25 @@ def _get_ontology_paths() -> List[Path]:
         context = PathContext.detect(scheme=PathScheme.V2)  # type: ignore[name-defined]
         resolver = PathResolver(context)  # type: ignore[name-defined]
         return resolver.get_ontology_paths()
-    return [
-        Path.cwd() / ".claude" / "mnemonic" / "ontology.yaml",
-        Path.home() / ".claude" / "mnemonic" / "ontology.yaml",
-    ]
+    # Fallback: check config-based root
+    try:
+        from lib.config import get_memory_root
+
+        root = get_memory_root()
+        return [root / "ontology.yaml"]
+    except ImportError:
+        pass
+    return [Path.home() / ".local" / "share" / "mnemonic" / "ontology.yaml"]
 
 
 def _git_commit(message: str) -> bool:
     """Commit changes in the mnemonic directory."""
-    mnemonic_root = Path.home() / ".claude" / "mnemonic"
+    try:
+        from lib.config import get_memory_root
+
+        mnemonic_root = get_memory_root()
+    except ImportError:
+        mnemonic_root = Path.home() / ".local" / "share" / "mnemonic"
     if not (mnemonic_root / ".git").exists():
         return False
     try:
@@ -118,8 +127,8 @@ def run_audit(dry_run: bool = False, fix: bool = False) -> Report:
     total = sum(1 for r in roots for _ in r.rglob("*.memory.md"))
     report.info("audit", f"Scanning {total} memories across {len(roots)} roots")
 
-    # 1. Validate frontmatter
-    validate_memories(roots, report)
+    # 1. Validate frontmatter (fix placeholder UUIDs/dates when --fix)
+    validate_memories(roots, report, fix=fix)
 
     # 2. Validate links
     index = validate_links(roots, report, fix=fix)
@@ -131,8 +140,15 @@ def run_audit(dry_run: bool = False, fix: bool = False) -> Report:
     # 4. Update decay
     update_decay(roots, report, dry_run=dry_run)
 
-    # 5. Find orphans
+    # 5. Find orphans and link them to related memories when --fix
     orphans = find_orphans(index)
+    if fix and orphans:
+        from skills.custodian.lib.link_checker import link_orphans
+
+        linked = link_orphans(index, orphans, report)
+        # Re-check orphans after linking
+        orphans = find_orphans(index)
+
     for orphan in orphans:
         report.warning("orphans", "No incoming references", file_path=orphan)
 
@@ -172,6 +188,22 @@ def run_validate_relationships() -> Report:
     ontology_data = load_ontology(_get_ontology_paths())
     error_count = validate_relationships(roots, report, ontology_data)
     report.info("relationships", f"Found {error_count} relationship errors")
+    return report
+
+
+def run_ensure_bidirectional(fix: bool = False) -> Report:
+    """Find and optionally fix missing bidirectional back-references."""
+    report = Report("ensure-bidirectional", dry_run=not fix)
+    roots = _get_memory_roots()
+    if not roots:
+        report.warning("bidirectional", "No memory directories found")
+        return report
+
+    # Build link index first
+    index = validate_links(roots, Report("_index_build"), fix=False)
+
+    missing = ensure_bidirectional(index, report, fix=fix)
+    report.info("bidirectional", f"Found {missing} missing back-references")
     return report
 
 
@@ -266,6 +298,8 @@ def main() -> None:
         report = run_audit(dry_run=dry_run, fix=fix)
     elif operation == "validate-links":
         report = run_validate_links(fix=fix)
+    elif operation == "ensure-bidirectional":
+        report = run_ensure_bidirectional(fix=fix)
     elif operation == "decay":
         report = run_decay(dry_run=dry_run)
     elif operation == "validate-memories":
@@ -281,8 +315,8 @@ def main() -> None:
         report = run_summarize(dry_run=dry_run)
     else:
         print(f"Unknown operation: {operation}", file=sys.stderr)
-        print("Valid operations: audit, validate-links, decay, validate-memories,", file=sys.stderr)
-        print("  validate-relationships, relocate, summarize", file=sys.stderr)
+        print("Valid operations: audit, validate-links, ensure-bidirectional, decay,", file=sys.stderr)
+        print("  validate-memories, validate-relationships, relocate, summarize", file=sys.stderr)
         sys.exit(1)
 
     # Output

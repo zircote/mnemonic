@@ -10,6 +10,102 @@ import re
 from pathlib import Path
 from typing import Optional
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
+
+def _parse_frontmatter(text: str) -> dict:
+    """Parse YAML frontmatter text using yaml.safe_load with regex fallback.
+
+    Args:
+        text: Raw frontmatter text (without --- delimiters).
+
+    Returns:
+        Parsed dict of frontmatter fields.
+    """
+    if yaml is not None:
+        try:
+            data = yaml.safe_load(text)
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+    return _regex_fallback_parse(text)
+
+
+def _regex_fallback_parse(text: str) -> dict:
+    """Regex-based frontmatter parsing fallback when PyYAML unavailable.
+
+    Extracts top-level scalar fields, inline list tags, multi-line list tags,
+    and relationship blocks.
+    """
+    fm: dict = {}
+
+    # Extract id (UUIDs may contain any alphanumeric chars + hyphens)
+    id_match = re.search(r"^id:\s*([a-zA-Z0-9-]+)", text, re.MULTILINE)
+    if id_match:
+        fm["id"] = id_match.group(1).strip()
+
+    # Extract title
+    title_match = re.search(r"^title:\s*[\"']?([^\"'\n]+)", text, re.MULTILINE)
+    if title_match:
+        fm["title"] = title_match.group(1).strip()
+
+    # Extract namespace
+    namespace_match = re.search(r"^namespace:\s*([^\n]+)", text, re.MULTILINE)
+    if namespace_match:
+        fm["namespace"] = namespace_match.group(1).strip()
+
+    # Extract type
+    type_match = re.search(r"^type:\s*([^\n]+)", text, re.MULTILINE)
+    if type_match:
+        fm["type"] = type_match.group(1).strip()
+
+    # Extract tags (inline list)
+    tags_match = re.search(r"^tags:\s*\[([^\]]+)\]", text, re.MULTILINE)
+    if tags_match:
+        tags_str = tags_match.group(1)
+        fm["tags"] = [tag.strip().strip('"').strip("'") for tag in tags_str.split(",") if tag.strip()]
+    else:
+        # Try multi-line YAML list format
+        tags_section = re.search(r"^tags:\s*\n((?:  - .+\n?)+)", text, re.MULTILINE)
+        if tags_section:
+            tag_lines = tags_section.group(1).strip().split("\n")
+            fm["tags"] = [line.strip().lstrip("- ").strip('"').strip("'") for line in tag_lines if line.strip()]
+
+    # Extract relationships block — handles both:
+    #   - type: foo\n    target: bar   (YAML block sequence)
+    #   - type: foo\n  - type: baz     (compact)
+    rel_header = re.search(r"^relationships:\s*\n", text, re.MULTILINE)
+    if rel_header:
+        relationships = []
+        # Grab everything after "relationships:\n" until next top-level key or end
+        rest = text[rel_header.end() :]
+        block_end = re.search(r"^\S", rest, re.MULTILINE)
+        rel_text = rest[: block_end.start()] if block_end else rest
+        # Split on list item markers
+        rel_blocks = re.split(r"(?:^|\n)  - ", rel_text)
+        for block in rel_blocks:
+            if not block.strip():
+                continue
+            rel: dict = {}
+            type_m = re.search(r"type:\s*([^\n]+)", block)
+            target_m = re.search(r"target:\s*([a-zA-Z0-9-]+)", block)
+            label_m = re.search(r"label:\s*[\"']?([^\"'\n]+)", block)
+            if type_m:
+                rel["type"] = type_m.group(1).strip()
+            if target_m:
+                rel["target"] = target_m.group(1).strip()
+            if label_m:
+                rel["label"] = label_m.group(1).strip()
+            if rel.get("type") and rel.get("target"):
+                relationships.append(rel)
+        fm["relationships"] = relationships
+
+    return fm
+
 
 def get_memory_summary(path: str, max_summary: int = 300) -> dict:
     """Read a memory file and extract title + summary.
@@ -63,6 +159,9 @@ def get_memory_summary(path: str, max_summary: int = 300) -> dict:
 def get_memory_metadata(path: str, max_summary: int = 300) -> Optional[dict]:
     """Read a memory file and extract full metadata including relationships.
 
+    Uses yaml.safe_load when available, with regex fallback for environments
+    without PyYAML.
+
     Args:
         path: Absolute or relative path to a .memory.md file.
         max_summary: Maximum characters for the summary text.
@@ -90,7 +189,7 @@ def get_memory_metadata(path: str, max_summary: int = 300) -> Optional[dict]:
             "path": str(p.absolute()),
         }
 
-        # Parse frontmatter
+        # Split frontmatter from body
         in_frontmatter = False
         past_frontmatter = False
         frontmatter_lines = []
@@ -111,70 +210,42 @@ def get_memory_metadata(path: str, max_summary: int = 300) -> Optional[dict]:
             elif past_frontmatter:
                 content_lines.append(line)
 
-        # Extract simple key-value fields from frontmatter
+        # Parse frontmatter using YAML (with regex fallback)
         frontmatter_text = "\n".join(frontmatter_lines)
+        fm = _parse_frontmatter(frontmatter_text)
 
-        # Extract id
-        id_match = re.search(r"^id:\s*([a-f0-9-]+)", frontmatter_text, re.MULTILINE)
-        if id_match:
-            metadata["id"] = id_match.group(1).strip()
+        # Map parsed fields to metadata
+        if fm.get("id"):
+            raw_id = str(fm["id"]).strip().strip('"').strip("'")
+            metadata["id"] = raw_id
 
-        # Extract title
-        title_match = re.search(r"^title:\s*[\"']?([^\"'\n]+)", frontmatter_text, re.MULTILINE)
-        if title_match:
-            metadata["title"] = title_match.group(1).strip()
+        if fm.get("title"):
+            metadata["title"] = str(fm["title"]).strip().strip('"').strip("'")
 
-        # Extract namespace
-        namespace_match = re.search(r"^namespace:\s*([^\n]+)", frontmatter_text, re.MULTILINE)
-        if namespace_match:
-            metadata["namespace"] = namespace_match.group(1).strip()
+        if fm.get("namespace"):
+            metadata["namespace"] = str(fm["namespace"]).strip()
 
-        # Extract tags (simple list parsing)
-        tags_match = re.search(r"^tags:\s*\[([^\]]+)\]", frontmatter_text, re.MULTILINE)
-        if tags_match:
-            tags_str = tags_match.group(1)
-            # Parse comma-separated tags, removing quotes
-            metadata["tags"] = [tag.strip().strip('"').strip("'") for tag in tags_str.split(",") if tag.strip()]
-        else:
-            # Try multi-line YAML list format
-            tags_section = re.search(r"^tags:\s*\n((?:  - .+\n?)+)", frontmatter_text, re.MULTILINE)
-            if tags_section:
-                tag_lines = tags_section.group(1).strip().split("\n")
-                metadata["tags"] = [
-                    line.strip().lstrip("- ").strip('"').strip("'") for line in tag_lines if line.strip()
-                ]
+        if isinstance(fm.get("tags"), list):
+            metadata["tags"] = [str(t).strip().strip('"').strip("'") for t in fm["tags"] if t]
+        elif isinstance(fm.get("tags"), str):
+            metadata["tags"] = [t.strip() for t in fm["tags"].split(",") if t.strip()]
 
-        # Extract relationships (simplified YAML list parsing)
-        # Format: relationships:\n  - type: X\n    target: Y\n    label: Z
-        relationships = []
-        rel_section = re.search(
-            r"^relationships:\s*\n((?:  - (?:type|target|label):.+\n?)+)",
-            frontmatter_text,
-            re.MULTILINE,
-        )
-        if rel_section:
-            rel_text = rel_section.group(1)
-            # Split by "  - " to get individual relationship blocks
-            rel_blocks = re.split(r"\n  - ", "\n" + rel_text)
-            for block in rel_blocks:
-                if not block.strip():
-                    continue
-                rel = {}
-                type_match = re.search(r"type:\s*([^\n]+)", block)
-                target_match = re.search(r"target:\s*([a-f0-9-]+)", block)
-                label_match = re.search(r"label:\s*[\"']?([^\"'\n]+)", block)
-
-                if type_match:
-                    rel["type"] = type_match.group(1).strip()
-                if target_match:
-                    rel["target"] = target_match.group(1).strip()
-                if label_match:
-                    rel["label"] = label_match.group(1).strip()
-
-                if rel.get("type") and rel.get("target"):
-                    relationships.append(rel)
-
-        metadata["relationships"] = relationships
+        # Extract relationships
+        rels = fm.get("relationships")
+        if isinstance(rels, list):
+            parsed_rels = []
+            for rel in rels:
+                if isinstance(rel, dict):
+                    parsed_rel: dict = {}
+                    if rel.get("type"):
+                        parsed_rel["type"] = str(rel["type"]).strip()
+                    if rel.get("target"):
+                        parsed_rel["target"] = str(rel["target"]).strip()
+                    if rel.get("label"):
+                        parsed_rel["label"] = str(rel["label"]).strip()
+                    if parsed_rel.get("type") and parsed_rel.get("target"):
+                        parsed_rels.append(parsed_rel)
+            metadata["relationships"] = parsed_rels
 
         # Extract summary: first non-frontmatter, non-heading paragraph
         for line in content_lines:

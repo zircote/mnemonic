@@ -30,13 +30,29 @@ UUID=$(uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]')
 - `user/` - Personal knowledge, cross-project
 - `project/` - Specific to current codebase
 
+## Step 2.5: Dedup Check (MANDATORY)
+
+**Before creating any memory, check for duplicates:**
+
+1. Search for existing memories with similar keywords:
+   ```bash
+   rg -i "{key_words}" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l | head -5
+   ```
+
+2. If matches found, read the top result
+3. If it covers the same topic → UPDATE existing memory (use Edit tool) instead of creating new
+4. If related but different → create new memory with `relates_to` relationship
+5. Only create brand new if no matches found
+
 ## Step 3: Classify Cognitive Type
 
-| Type | When to Use | Indicators |
-|------|-------------|------------|
-| `semantic` | Facts, concepts, specifications | "X is Y", definitions, docs |
-| `episodic` | Events, experiences, incidents | "When we...", timestamps |
-| `procedural` | Processes, workflows, how-tos | "To do X, first...", steps |
+| Type | When to Use | Indicators | Required Namespace Prefix |
+|------|-------------|------------|--------------------------|
+| `semantic` | Facts, concepts, specifications | "X is Y", definitions, docs | `_semantic/*` |
+| `episodic` | Events, experiences, incidents | "When we...", timestamps | `_episodic/*` |
+| `procedural` | Processes, workflows, how-tos | "To do X, first...", steps | `_procedural/*` |
+
+**Type MUST match the namespace path.** A memory in `_procedural/patterns/` must have `type: procedural`.
 
 ## Step 3.5: Discover Related Memories
 
@@ -113,11 +129,18 @@ SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Determine path
+# Get org and project for proper namespace routing
+ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git$|\1|' | sed 's|\.git$||')
+[ -z "$ORG" ] && ORG="default"
+PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
+[ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
+
 if [ "$SCOPE" = "project" ]; then
-    MEMORY_DIR="${MNEMONIC_ROOT}/${NAMESPACE}/project"
+    # Project-specific: org/project/namespace/
+    MEMORY_DIR="${MNEMONIC_ROOT}/${ORG}/${PROJECT}/${NAMESPACE}"
 else
-    ORG="${ORG:-default}"
-    MEMORY_DIR="$MNEMONIC_ROOT/${ORG}/${NAMESPACE}/user"
+    # Org-wide: org/namespace/
+    MEMORY_DIR="${MNEMONIC_ROOT}/${ORG}/${NAMESPACE}"
 fi
 
 mkdir -p "$MEMORY_DIR"
@@ -128,7 +151,16 @@ cat > "${MEMORY_DIR}/${SLUG}.memory.md" << MEMORY_EOF
 id: ${UUID}
 title: "${TITLE}"
 type: ${TYPE}
+namespace: ${NAMESPACE}
 created: ${DATE}
+modified: ${DATE}
+confidence: 0.8
+strength: 1.0
+half_life: P90D
+last_accessed: ${DATE}
+decay_model: exponential
+tags: []
+provenance: "claude-session"
 ---
 
 # ${TITLE}
@@ -142,6 +174,15 @@ created: ${DATE}
 [Full content here]
 MEMORY_EOF
 ```
+
+## Step 4b: Post-Write Validation (MANDATORY)
+
+After writing the file, read the first 10 lines and verify:
+1. `id:` contains a real UUID (`[0-9a-f]{8}-...-[0-9a-f]{12}`) — not a placeholder or template variable
+2. `created:` contains a real ISO 8601 timestamp — not a placeholder
+3. `type:` matches the namespace path (`_semantic/` → semantic, `_procedural/` → procedural, `_episodic/` → episodic)
+
+If ANY check fails, delete the file and re-run from Step 1.
 
 ## Step 5: Git Commit
 

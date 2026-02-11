@@ -216,6 +216,25 @@ def main():
         if single_pending:
             all_pending = [single_pending]
 
+    # Filter out false positives from system/agent notifications
+    SYSTEM_NOISE = [
+        "task completed",
+        "task complete",
+        "agent finished",
+        "agent idle",
+        "shutdown",
+        "idle_notification",
+        "teammate-message",
+        "task-notification",
+        "system-reminder",
+    ]
+    all_pending = [
+        item
+        for item in all_pending
+        if not any(noise in item.get("prompt", "").lower() for noise in SYSTEM_NOISE)
+        and not any(noise in item.get("topic", "").lower() for noise in SYSTEM_NOISE)
+    ]
+
     if all_pending and not stop_hook_active:
         pending_list = []
         for item in all_pending:

@@ -30,6 +30,7 @@ from .ontology import (
     get_fallback_file_patterns,
     get_fallback_content_patterns,
     get_ontology_info,
+    validate_memory_against_ontology,
 )
 
 from .search import (
@@ -37,6 +38,7 @@ from .search import (
     find_related_memories,
     find_related_memories_scored,
     find_memories_for_context,
+    find_duplicates,
     detect_file_context,
     detect_namespace_for_file,
     extract_keywords_from_path,
@@ -59,9 +61,19 @@ from .memory_reader import (
 )
 
 from .relationships import (
+    RELATIONSHIP_TYPES,
+    RECIPROCAL_TYPES,
+    REL_RELATES_TO as _REL_RT,
+    REL_SUPERSEDES as _REL_SS,
+    REL_DERIVED_FROM as _REL_DF,
     add_relationship,
     add_bidirectional_relationship,
-    RECIPROCAL_TYPES,
+    to_pascal,
+    to_snake,
+    get_inverse,
+    is_valid_type,
+    is_symmetric,
+    get_all_valid_types,
 )
 
 __all__ = [
@@ -89,11 +101,13 @@ __all__ = [
     "get_fallback_file_patterns",
     "get_fallback_content_patterns",
     "get_ontology_info",
+    "validate_memory_against_ontology",
     # Search functions
     "search_memories",
     "find_related_memories",
     "find_related_memories_scored",
     "find_memories_for_context",
+    "find_duplicates",
     "detect_file_context",
     "detect_namespace_for_file",
     "extract_keywords_from_path",
@@ -113,10 +127,19 @@ __all__ = [
     # Memory reader functions
     "get_memory_summary",
     "get_memory_metadata",
+    # Relationship type registry
+    "RELATIONSHIP_TYPES",
+    "RECIPROCAL_TYPES",
     # Relationship writer functions
     "add_relationship",
     "add_bidirectional_relationship",
-    "RECIPROCAL_TYPES",
+    # Relationship type helpers
+    "to_pascal",
+    "to_snake",
+    "get_inverse",
+    "is_valid_type",
+    "is_symmetric",
+    "get_all_valid_types",
 ]
 
 __version__ = "1.1.0"

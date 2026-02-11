@@ -16,8 +16,10 @@ from lib.relationships import (
     add_relationship,
     add_bidirectional_relationship,
     RECIPROCAL_TYPES,
+    REL_RELATES_TO,
+    REL_SUPERSEDES,
+    REL_DERIVED_FROM,
 )
-from lib.search import REL_RELATES_TO, REL_SUPERSEDES, REL_DERIVED_FROM
 
 
 class TestAddRelationship:
@@ -144,6 +146,17 @@ class TestAddRelationship:
         assert "  - auth" in content
         assert "  - jwt" in content
 
+    def test_add_pascal_case_type(self, tmp_path):
+        """PascalCase relationship types work too."""
+        mem = tmp_path / "test.memory.md"
+        mem.write_text('---\nid: aaa-111\ntitle: "Test"\n---\n\nBody.\n')
+
+        result = add_relationship(str(mem), "Supersedes", "bbb-222")
+
+        assert result is True
+        content = mem.read_text()
+        assert "type: Supersedes" in content
+
 
 class TestAddBidirectionalRelationship:
     """Test add_bidirectional_relationship() function."""
@@ -168,8 +181,8 @@ class TestAddBidirectionalRelationship:
         assert "target: aaa-111" in target_content
         assert "type: relates_to" in target_content
 
-    def test_bidirectional_supersedes(self, tmp_path):
-        """supersedes creates relates_to back-link."""
+    def test_bidirectional_supersedes_proper_inverse(self, tmp_path):
+        """supersedes creates superseded_by back-link (not relates_to)."""
         source = tmp_path / "source.memory.md"
         target = tmp_path / "target.memory.md"
         source.write_text('---\nid: aaa-111\ntitle: "Source"\n---\n\nBody.\n')
@@ -187,13 +200,13 @@ class TestAddBidirectionalRelationship:
         assert "type: supersedes" in source_content
         assert "target: bbb-222" in source_content
 
-        # Reverse: relates_to (reciprocal)
-        assert "type: relates_to" in target_content
+        # Reverse: superseded_by (proper inverse, not relates_to)
+        assert "type: superseded_by" in target_content
         assert "target: aaa-111" in target_content
         assert "Back-link:" in target_content
 
-    def test_bidirectional_derived_from(self, tmp_path):
-        """derived_from creates relates_to back-link."""
+    def test_bidirectional_derived_from_proper_inverse(self, tmp_path):
+        """derived_from creates derives back-link (not relates_to)."""
         source = tmp_path / "source.memory.md"
         target = tmp_path / "target.memory.md"
         source.write_text('---\nid: aaa-111\ntitle: "Source"\n---\n\nBody.\n')
@@ -208,7 +221,7 @@ class TestAddBidirectionalRelationship:
         target_content = target.read_text()
 
         assert "type: derived_from" in source_content
-        assert "type: relates_to" in target_content
+        assert "type: derives" in target_content
 
     def test_nonexistent_source(self, tmp_path):
         """Return (False, False) when source doesn't exist."""
@@ -246,16 +259,18 @@ class TestAddBidirectionalRelationship:
 
 
 class TestReciprocalTypes:
-    """Test RECIPROCAL_TYPES mapping."""
+    """Test RECIPROCAL_TYPES mapping (backward compat)."""
 
     def test_relates_to_is_symmetric(self):
         assert RECIPROCAL_TYPES[REL_RELATES_TO] == REL_RELATES_TO
 
-    def test_supersedes_reciprocal(self):
-        assert RECIPROCAL_TYPES[REL_SUPERSEDES] == REL_RELATES_TO
+    def test_supersedes_reciprocal_is_superseded_by(self):
+        """Now properly maps to superseded_by instead of relates_to."""
+        assert RECIPROCAL_TYPES[REL_SUPERSEDES] == "superseded_by"
 
-    def test_derived_from_reciprocal(self):
-        assert RECIPROCAL_TYPES[REL_DERIVED_FROM] == REL_RELATES_TO
+    def test_derived_from_reciprocal_is_derives(self):
+        """Now properly maps to derives instead of relates_to."""
+        assert RECIPROCAL_TYPES[REL_DERIVED_FROM] == "derives"
 
     def test_all_types_have_reciprocals(self):
         for rel_type in [REL_RELATES_TO, REL_SUPERSEDES, REL_DERIVED_FROM]:

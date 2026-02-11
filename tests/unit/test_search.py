@@ -13,6 +13,7 @@ import subprocess
 from lib.search import (
     search_memories,
     find_related_memories,
+    find_duplicates,
     find_memories_for_context,
     detect_file_context,
     detect_namespace_for_file,
@@ -132,6 +133,108 @@ class TestSearchMemories:
         assert len(results) == 2
         assert results[0] == str(mnemonic_dir1 / "file1.memory.md")
         assert results[1] == str(mnemonic_dir2 / "file2.memory.md")
+
+
+class TestFindDuplicates:
+    """Test find_duplicates() function."""
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    @patch("lib.search.subprocess.run")
+    @patch("lib.search.get_memory_metadata")
+    def test_find_duplicates_exact_match(self, mock_metadata, mock_run, mock_roots, tmp_path):
+        """Exact title match returns high similarity."""
+        mock_roots.return_value = [tmp_path]
+        mock_run.return_value = MagicMock(returncode=0, stdout="redis-caching.memory.md\n")
+        mock_metadata.return_value = {
+            "title": "Redis caching decision",
+            "id": "abc-123",
+            "namespace": "_semantic/decisions",
+            "tags": [],
+        }
+        results = find_duplicates("Redis caching decision", namespace="_semantic/decisions")
+        assert len(results) == 1
+        assert results[0]["similarity"] == 1.0
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    @patch("lib.search.subprocess.run")
+    @patch("lib.search.get_memory_metadata")
+    def test_find_duplicates_partial_match(self, mock_metadata, mock_run, mock_roots, tmp_path):
+        """Partial title overlap returns proportional similarity."""
+        mock_roots.return_value = [tmp_path]
+        mock_run.return_value = MagicMock(returncode=0, stdout="redis-cache.memory.md\n")
+        mock_metadata.return_value = {
+            "title": "Redis selected for caching layer",
+            "id": "def-456",
+            "namespace": "_semantic/decisions",
+            "tags": [],
+        }
+        # Jaccard("redis caching decision", "redis selected caching layer") = 2/5 = 0.4
+        results = find_duplicates("Redis caching decision", namespace="_semantic/decisions", threshold=0.3)
+        assert len(results) == 1
+        assert results[0]["similarity"] == 0.4
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    @patch("lib.search.subprocess.run")
+    @patch("lib.search.get_memory_metadata")
+    def test_find_duplicates_below_threshold(self, mock_metadata, mock_run, mock_roots, tmp_path):
+        """Low-overlap results are filtered out by threshold."""
+        mock_roots.return_value = [tmp_path]
+        mock_run.return_value = MagicMock(returncode=0, stdout="unrelated.memory.md\n")
+        mock_metadata.return_value = {
+            "title": "PostgreSQL migration strategy",
+            "id": "ghi-789",
+            "namespace": "_semantic/decisions",
+            "tags": [],
+        }
+        results = find_duplicates("Redis caching decision", namespace="_semantic/decisions", threshold=0.5)
+        assert len(results) == 0
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    def test_find_duplicates_empty_title(self, mock_roots):
+        """Empty title returns no results."""
+        results = find_duplicates("")
+        assert results == []
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    def test_find_duplicates_no_roots(self, mock_roots):
+        """No memory roots returns no results."""
+        mock_roots.return_value = []
+        results = find_duplicates("Redis caching decision")
+        assert results == []
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    @patch("lib.search.subprocess.run")
+    @patch("lib.search.get_memory_metadata")
+    def test_find_duplicates_filters_by_namespace(self, mock_metadata, mock_run, mock_roots, tmp_path):
+        """Results from different cognitive types are excluded when namespace is specified."""
+        mock_roots.return_value = [tmp_path]
+        mock_run.return_value = MagicMock(returncode=0, stdout="redis-runbook.memory.md\n")
+        mock_metadata.return_value = {
+            "title": "Redis caching decision",
+            "id": "abc-123",
+            "namespace": "_procedural/runbooks",
+            "tags": [],
+        }
+        # Search in _semantic/ should exclude _procedural/ results
+        results = find_duplicates("Redis caching decision", namespace="_semantic/decisions")
+        assert len(results) == 0
+
+    @patch("lib.search.get_all_memory_roots_with_legacy")
+    @patch("lib.search.subprocess.run")
+    @patch("lib.search.get_memory_metadata")
+    def test_find_duplicates_sorted_by_similarity(self, mock_metadata, mock_run, mock_roots, tmp_path):
+        """Results are sorted by similarity descending."""
+        mock_roots.return_value = [tmp_path]
+        mock_run.return_value = MagicMock(returncode=0, stdout="file1.memory.md\nfile2.memory.md\n")
+        mock_metadata.side_effect = [
+            {"title": "Redis cache setup guide", "id": "a1", "namespace": "_semantic/knowledge", "tags": []},
+            {"title": "Redis caching decision rationale", "id": "a2", "namespace": "_semantic/knowledge", "tags": []},
+        ]
+        results = find_duplicates("Redis caching decision")
+        assert len(results) >= 1
+        # Sorted descending
+        for i in range(len(results) - 1):
+            assert results[i]["similarity"] >= results[i + 1]["similarity"]
 
 
 class TestFindRelatedMemories:

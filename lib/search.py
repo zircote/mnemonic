@@ -18,10 +18,9 @@ from lib.paths import get_all_memory_roots_with_legacy
 from lib.memory_reader import get_memory_metadata
 
 
-# Relationship types
-REL_RELATES_TO = "relates_to"
-REL_SUPERSEDES = "supersedes"
-REL_DERIVED_FROM = "derived_from"
+# Relationship types — canonical source is lib/relationships.py
+# These snake_case aliases are kept for backward compatibility.
+from lib.relationships import REL_RELATES_TO, REL_SUPERSEDES, REL_DERIVED_FROM
 
 # Scoring weights for find_related_memories_scored
 SCORE_NAMESPACE_TYPE = 30  # Same top-level cognitive type (e.g., both _semantic/*)
@@ -435,6 +434,99 @@ def find_related_memories_scored(
     return scored_results[:max_results]
 
 
+def find_duplicates(
+    title: str,
+    namespace: Optional[str] = None,
+    threshold: float = 0.5,
+    max_results: int = 5,
+) -> list[dict]:
+    """Find existing memories that may be duplicates of a proposed new memory.
+
+    Uses Jaccard similarity on title keywords to detect near-duplicates.
+    Intended to be called at capture time to prevent duplicate creation.
+
+    Args:
+        title: Proposed title for the new memory.
+        namespace: Optional namespace to narrow search scope.
+        threshold: Minimum Jaccard similarity to consider a duplicate (0.0-1.0).
+        max_results: Maximum number of results to return.
+
+    Returns:
+        List of dicts: [{"path", "title", "id", "namespace", "similarity"}]
+        Sorted by similarity descending.
+    """
+    title_keywords = set(_extract_keywords(title))
+    if not title_keywords:
+        return []
+
+    memory_roots = get_all_memory_roots_with_legacy()
+    if not memory_roots:
+        return []
+
+    # Build search pattern from title keywords
+    search_pattern = "|".join(re.escape(kw) for kw in list(title_keywords)[:8])
+
+    # Find candidate files via rg
+    candidates = set()
+    for mnemonic_dir in memory_roots:
+        if not mnemonic_dir.exists():
+            continue
+        try:
+            result = subprocess.run(
+                ["rg", "-i", "-l", search_pattern, "--glob", "*.memory.md"],
+                capture_output=True,
+                text=True,
+                cwd=str(mnemonic_dir),
+                timeout=3,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                for rel_path in result.stdout.strip().split("\n")[:30]:
+                    if rel_path:
+                        candidates.add(str(mnemonic_dir / rel_path))
+        except Exception:
+            continue
+
+    if not candidates:
+        return []
+
+    # Score each candidate by Jaccard similarity
+    results = []
+    for candidate_path in candidates:
+        metadata = get_memory_metadata(candidate_path)
+        if not metadata:
+            continue
+
+        # Filter by namespace if specified
+        if namespace and metadata.get("namespace"):
+            candidate_ns = metadata["namespace"]
+            # Must share at least the top-level cognitive type
+            if candidate_ns.split("/")[0] != namespace.split("/")[0]:
+                continue
+
+        candidate_keywords = set(_extract_keywords(metadata.get("title", "")))
+        if not candidate_keywords:
+            continue
+
+        # Jaccard similarity: |intersection| / |union|
+        intersection = title_keywords & candidate_keywords
+        union = title_keywords | candidate_keywords
+        similarity = len(intersection) / len(union) if union else 0.0
+
+        if similarity >= threshold:
+            results.append(
+                {
+                    "path": candidate_path,
+                    "title": metadata.get("title", ""),
+                    "id": metadata.get("id", ""),
+                    "namespace": metadata.get("namespace", ""),
+                    "similarity": round(similarity, 3),
+                }
+            )
+
+    results.sort(key=lambda x: x["similarity"], reverse=True)
+    return results[:max_results]
+
+
 def infer_relationship_type(
     source_title: str,
     source_namespace: str,
@@ -443,10 +535,12 @@ def infer_relationship_type(
 ) -> str:
     """Infer relationship type between a new memory and an existing one.
 
-    Decision logic:
-    - supersedes: Same namespace + high title keyword overlap (>50%)
-    - derived_from: Different namespace + moderate title overlap (>30%)
-    - relates_to: Default for thematic connections
+    Decision logic (conservative — RelatesTo is the safe default):
+    - Supersedes: Same namespace + very high title keyword overlap (>70%)
+    - ConflictsWith: Same namespace + high overlap (>50%) but not superseding
+    - Implements: Procedural source referencing semantic target
+    - DerivedFrom: Different namespace + moderate title overlap (>30%)
+    - RelatesTo: Default for thematic connections
 
     Args:
         source_title: Title of the new memory being created
@@ -455,7 +549,7 @@ def infer_relationship_type(
         target_metadata: Metadata dict of the candidate memory (from get_memory_metadata)
 
     Returns:
-        "supersedes" | "derived_from" | "relates_to"
+        PascalCase relationship type string (e.g. "Supersedes", "RelatesTo")
     """
     # Extract keywords from source title
     source_keywords = set(_extract_keywords(source_title))
@@ -475,11 +569,18 @@ def infer_relationship_type(
     # Compare namespaces
     target_namespace = target_metadata.get("namespace", "")
     same_namespace = source_namespace == target_namespace
+    source_top = source_namespace.split("/")[0] if source_namespace else ""
+    target_top = target_namespace.split("/")[0] if target_namespace else ""
+    same_cognitive_type = source_top == target_top
 
-    # Apply decision tree
-    if same_namespace and overlap_ratio > 0.5:
-        return REL_SUPERSEDES
+    # Apply decision tree (most specific first)
+    if same_namespace and overlap_ratio > 0.7:
+        return "Supersedes"
+    elif same_namespace and overlap_ratio >= 0.5:
+        return "ConflictsWith"
+    elif source_top == "_procedural" and target_top == "_semantic" and overlap_ratio > 0.3:
+        return "Implements"
     elif not same_namespace and overlap_ratio > 0.3:
-        return REL_DERIVED_FROM
+        return "DerivedFrom"
     else:
-        return REL_RELATES_TO
+        return "RelatesTo"
