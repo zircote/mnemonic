@@ -2,9 +2,10 @@
 
 import shutil
 import subprocess
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 # Add the skills/integrate/lib to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "integrate" / "lib"))

@@ -17,7 +17,6 @@ The config location (~/.config/mnemonic/config.json) is XDG-compliant and fixed.
 import json
 from pathlib import Path
 
-
 # Fixed config location (XDG-compliant)
 CONFIG_DIR = Path.home() / ".config" / "mnemonic"
 CONFIG_FILE = CONFIG_DIR / "config.json"

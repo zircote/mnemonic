@@ -5,21 +5,20 @@ Unit tests for lib/paths.py path resolution.
 Tests path resolution logic in isolation with mocked context.
 """
 
-import pytest
-from pathlib import Path
 import json
+from pathlib import Path
+
+import pytest
 
 from lib.paths import (
-    PathResolver,
     PathContext,
+    PathResolver,
     PathScheme,
     Scope,
-    get_default_resolver,
-    get_memory_dir,
-    get_search_paths,
     get_blackboard_dir,
-    get_session_blackboard_dir,
     get_handoff_dir,
+    get_memory_dir,
+    get_session_blackboard_dir,
     migrate_blackboard_to_session_scoped,
 )
 

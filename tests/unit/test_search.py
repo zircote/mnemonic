@@ -5,20 +5,19 @@ Unit tests for lib/search.py memory search functions.
 Tests search, detection, and extraction functions with mocked subprocess.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 import subprocess
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from lib.search import (
-    search_memories,
-    find_related_memories,
-    find_duplicates,
-    find_memories_for_context,
     detect_file_context,
     detect_namespace_for_file,
     extract_keywords_from_path,
     extract_topic,
+    find_duplicates,
+    find_memories_for_context,
+    find_related_memories,
+    search_memories,
 )
 
 

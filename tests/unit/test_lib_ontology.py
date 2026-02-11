@@ -5,21 +5,20 @@ Unit tests for lib/ontology.py ontology loading functions.
 Tests ontology file discovery, loading, and pattern extraction.
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import mock_open, patch
 
 from lib.ontology import (
-    get_ontology_file,
-    load_ontology_data,
-    load_file_patterns,
-    load_content_patterns,
-    load_ontology_namespaces,
-    get_fallback_file_patterns,
-    get_fallback_content_patterns,
-    get_ontology_info,
     _collect_namespaces,
     _extract_entity_type_names,
+    get_fallback_content_patterns,
+    get_fallback_file_patterns,
+    get_ontology_file,
+    get_ontology_info,
+    load_content_patterns,
+    load_file_patterns,
+    load_ontology_data,
+    load_ontology_namespaces,
 )
 
 

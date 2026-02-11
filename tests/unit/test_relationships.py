@@ -7,10 +7,9 @@ Tests the updated get_relationship_suggestions() which uses scored search
 and relationship type inference with PascalCase return values.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 import sys
+from pathlib import Path
+from unittest.mock import patch
 
 # Add project root to path for hooks imports
 project_root = Path(__file__).parent.parent.parent
