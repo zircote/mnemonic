@@ -14,13 +14,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from lib.paths import get_all_memory_roots_with_legacy
 from lib.memory_reader import get_memory_metadata
-
-
-# Relationship types — canonical source is lib/relationships.py
-# These snake_case aliases are kept for backward compatibility.
-from lib.relationships import REL_RELATES_TO, REL_SUPERSEDES, REL_DERIVED_FROM
+from lib.paths import get_all_memory_roots_with_legacy
 
 # Scoring weights for find_related_memories_scored
 SCORE_NAMESPACE_TYPE = 30  # Same top-level cognitive type (e.g., both _semantic/*)
@@ -387,8 +382,8 @@ def find_related_memories_scored(
 
         # Tag overlap scoring
         if tags and metadata.get("tags"):
-            candidate_tags = set(t.lower() for t in metadata["tags"])
-            query_tags = set(t.lower() for t in tags)
+            candidate_tags = {t.lower() for t in metadata["tags"]}
+            query_tags = {t.lower() for t in tags}
             shared_tags = candidate_tags & query_tags
             if shared_tags:
                 tag_score = len(shared_tags) * SCORE_TAG_OVERLAP
@@ -571,7 +566,6 @@ def infer_relationship_type(
     same_namespace = source_namespace == target_namespace
     source_top = source_namespace.split("/")[0] if source_namespace else ""
     target_top = target_namespace.split("/")[0] if target_namespace else ""
-    same_cognitive_type = source_top == target_top
 
     # Apply decision tree (most specific first)
     if same_namespace and overlap_ratio > 0.7:

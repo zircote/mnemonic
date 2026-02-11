@@ -3,22 +3,20 @@
 Unit tests for lib/relationships.py — relationship writing and bidirectional linking.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch
 import sys
+from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from lib.relationships import (
-    add_relationship,
-    add_bidirectional_relationship,
     RECIPROCAL_TYPES,
+    REL_DERIVED_FROM,
     REL_RELATES_TO,
     REL_SUPERSEDES,
-    REL_DERIVED_FROM,
+    add_bidirectional_relationship,
+    add_relationship,
 )
 
 

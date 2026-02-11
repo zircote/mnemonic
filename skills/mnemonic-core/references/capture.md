@@ -160,7 +160,10 @@ half_life: P90D
 last_accessed: ${DATE}
 decay_model: exponential
 tags: []
-provenance: "claude-session"
+provenance:
+  source_type: "claude-session"
+  agent: "claude"
+  confidence: 0.8
 ---
 
 # ${TITLE}

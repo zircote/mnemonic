@@ -307,9 +307,11 @@ def validate_memory_against_ontology(
 
     # Validate namespace exists in ontology
     if valid_namespaces and namespace not in valid_namespaces:
-        # Check if it's a parent namespace (e.g., "_semantic" without sub-path)
+        # Allow bare top-level namespaces (e.g., "_semantic") only if they are
+        # explicitly defined; unknown sub-namespaces like "_semantic/does_not_exist"
+        # must be rejected even when the top-level prefix exists.
         top_level = namespace.split("/")[0] if namespace else ""
-        if top_level not in valid_namespaces:
+        if not (namespace == top_level and top_level in valid_namespaces):
             errors.append(f"Unknown namespace '{namespace}'. Valid namespaces: {', '.join(sorted(valid_namespaces))}")
 
     # Validate type matches namespace prefix

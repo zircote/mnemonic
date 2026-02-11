@@ -4,28 +4,25 @@ Unit tests for lib/relationships.py — type registry, inverse mapping,
 conversion helpers, and updated bidirectional linking.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch
 import sys
+from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from lib.relationships import (
-    RELATIONSHIP_TYPES,
     RECIPROCAL_TYPES,
+    REL_DERIVED_FROM,
     REL_RELATES_TO,
     REL_SUPERSEDES,
-    REL_DERIVED_FROM,
+    RELATIONSHIP_TYPES,
+    add_bidirectional_relationship,
+    get_all_valid_types,
+    get_inverse,
+    is_symmetric,
+    is_valid_type,
     to_pascal,
     to_snake,
-    get_inverse,
-    is_valid_type,
-    is_symmetric,
-    get_all_valid_types,
-    add_relationship,
-    add_bidirectional_relationship,
 )
 
 

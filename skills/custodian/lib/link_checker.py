@@ -214,7 +214,7 @@ def ensure_bidirectional(
         Count of missing back-references found.
     """
     try:
-        from lib.relationships import get_inverse, add_relationship, to_snake, is_valid_type
+        from lib.relationships import add_relationship, get_inverse, is_symmetric, is_valid_type, to_snake
     except ImportError:
         report.warning("bidirectional", "lib.relationships not available, skipping bidirectional check")
         return 0
@@ -240,6 +240,15 @@ def ensure_bidirectional(
             if not rel_type or not target_id:
                 continue
 
+            # Skip unknown relationship types to avoid creating incorrect back-refs
+            if not is_valid_type(rel_type):
+                report.warning(
+                    "bidirectional",
+                    f"Unknown relationship type '{rel_type}', skipping bidirectional check",
+                    file_path=path,
+                )
+                continue
+
             # Resolve target to a file path
             target_path = index.resolve(target_id)
             if target_path is None:
@@ -252,6 +261,14 @@ def ensure_bidirectional(
             # Also check snake_case form
             inverse_snake = to_snake(inverse_type)
 
+            # Build the set of acceptable back-ref types:
+            # - The proper inverse (PascalCase and snake_case)
+            # - RelatesTo as a weaker but acceptable back-ref
+            # - For symmetric types, the forward type is also valid
+            acceptable_types = {inverse_type, inverse_snake, "RelatesTo", "relates_to"}
+            if is_symmetric(rel_type):
+                acceptable_types.add(rel_type)
+
             has_back_ref = False
             if isinstance(target_rels, list):
                 for trel in target_rels:
@@ -259,14 +276,7 @@ def ensure_bidirectional(
                         continue
                     trel_type = trel.get("type", "")
                     trel_target = trel.get("target", "")
-                    if trel_target == source_uuid and trel_type in (
-                        rel_type,
-                        inverse_type,
-                        inverse_snake,
-                        # Also accept RelatesTo as a valid (weaker) back-ref
-                        "RelatesTo",
-                        "relates_to",
-                    ):
+                    if trel_target == source_uuid and trel_type in acceptable_types:
                         has_back_ref = True
                         break
 

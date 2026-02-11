@@ -6,14 +6,13 @@ Verifies that get_memory_metadata() returns identical results
 whether using the YAML parser or the regex fallback.
 """
 
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from lib.memory_reader import get_memory_metadata, _parse_frontmatter, _regex_fallback_parse
+from lib.memory_reader import _parse_frontmatter, _regex_fallback_parse, get_memory_metadata
 
 
 class TestParseFrontmatter:

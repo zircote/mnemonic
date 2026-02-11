@@ -20,7 +20,7 @@ Capture after: `/mnemonic:capture {namespace} "{title}"`
 Run `/mnemonic:list --namespaces` to see available namespaces from loaded ontologies.
 <!-- END MNEMONIC PROTOCOL -->
 
-# /mnemonic:audit
+# /mnemonic:team-audit
 
 Comprehensive health audit of the mnemonic memory system with parallel agent remediation.
 
@@ -87,7 +87,7 @@ Validate all active memories against the MIF schema:
 ### Phase 4: Link Validation
 
 - Find all `[[wiki-links]]` in memory bodies. Check if targets exist. Replace broken links with plain text.
-- Validate frontmatter `relationships:` targets (`relates_to`, `supersedes`, `derived_from`). Remove references to non-existent memories.
+- Validate frontmatter `relationships:` entries against the canonical MIF relationship registry (all supported types including inverse forms, both snake_case and PascalCase). Remove references to non-existent memories or invalid relationship types.
 
 ### Phase 5: Prevention — Capture Workflow Audit
 

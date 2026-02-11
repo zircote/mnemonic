@@ -207,6 +207,9 @@ def add_relationship(
         True if the relationship was added, False if it already exists
         or the file couldn't be modified.
     """
+    if not is_valid_type(rel_type):
+        return False
+
     p = Path(memory_path)
     if not p.exists():
         return False
@@ -272,7 +275,7 @@ def add_relationship(
     # Reassemble and write — ensure newlines around delimiters
     if not frontmatter.endswith("\n"):
         frontmatter += "\n"
-    new_content = f"---{frontmatter}---\n{body}"
+    new_content = f"---{frontmatter}---{body}"
     try:
         p.write_text(new_content, encoding="utf-8")
         return True

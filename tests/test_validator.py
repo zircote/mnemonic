@@ -39,40 +39,28 @@ class TestSchemaValidation:
 
     def test_valid_semantic_memory(self):
         """Test validation of valid semantic memory."""
-        result = run_validator(
-            str(FIXTURES_DIR / "valid-semantic.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "valid-semantic.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] == 0
         assert result.returncode == 0
 
     def test_valid_episodic_memory(self):
         """Test validation of valid episodic memory."""
-        result = run_validator(
-            str(FIXTURES_DIR / "valid-episodic.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "valid-episodic.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] == 0
         assert result.returncode == 0
 
     def test_valid_memory_with_citations(self):
         """Test validation of memory with citations."""
-        result = run_validator(
-            str(FIXTURES_DIR / "valid-with-citations.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "valid-with-citations.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] == 0
         assert result.returncode == 0
 
     def test_missing_required_fields(self):
         """Test detection of missing required fields."""
-        result = run_validator(
-            str(FIXTURES_DIR / "invalid-missing-required.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "invalid-missing-required.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] > 0
         assert result.returncode == 1
@@ -84,10 +72,7 @@ class TestSchemaValidation:
 
     def test_invalid_uuid_format(self):
         """Test detection of invalid UUID format."""
-        result = run_validator(
-            str(FIXTURES_DIR / "invalid-bad-uuid.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "invalid-bad-uuid.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] > 0
         assert result.returncode == 1
@@ -100,10 +85,7 @@ class TestSchemaValidation:
 
     def test_invalid_type_value(self):
         """Test detection of invalid type enum value."""
-        result = run_validator(
-            str(FIXTURES_DIR / "invalid-bad-type.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "invalid-bad-type.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] > 0
         assert result.returncode == 1
@@ -119,10 +101,7 @@ class TestWarnings:
 
     def test_bad_tag_format_warning(self):
         """Test detection of improperly formatted tags."""
-        result = run_validator(
-            str(FIXTURES_DIR / "warning-bad-tags.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "warning-bad-tags.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["warnings"] > 0
         # Should still pass (warnings don't fail)
@@ -134,20 +113,14 @@ class TestOutputFormats:
 
     def test_markdown_output(self):
         """Test markdown output format."""
-        result = run_validator(
-            str(FIXTURES_DIR / "valid-semantic.memory.md"),
-            "--format", "markdown"
-        )
+        result = run_validator(str(FIXTURES_DIR / "valid-semantic.memory.md"), "--format", "markdown")
         assert "# Mnemonic Validation Report" in result.stdout
         assert "## Summary" in result.stdout
         assert result.returncode == 0
 
     def test_json_output(self):
         """Test JSON output format."""
-        result = run_validator(
-            str(FIXTURES_DIR / "valid-semantic.memory.md"),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "valid-semantic.memory.md"), "--format", "json")
         output = json.loads(result.stdout)
         assert "summary" in output
         assert "timestamp" in output
@@ -159,11 +132,7 @@ class TestCheckTypes:
 
     def test_schema_only(self):
         """Test --check schema option."""
-        result = run_validator(
-            str(FIXTURES_DIR / "valid-semantic.memory.md"),
-            "--check", "schema",
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR / "valid-semantic.memory.md"), "--check", "schema", "--format", "json")
         output = json.loads(result.stdout)
         assert output["summary"]["errors"] == 0
         assert result.returncode == 0
@@ -171,11 +140,9 @@ class TestCheckTypes:
     def test_citations_only(self):
         """Test --check citations option."""
         result = run_validator(
-            str(FIXTURES_DIR / "valid-with-citations.memory.md"),
-            "--check", "citations",
-            "--format", "json"
+            str(FIXTURES_DIR / "valid-with-citations.memory.md"), "--check", "citations", "--format", "json"
         )
-        output = json.loads(result.stdout)
+        json.loads(result.stdout)
         assert result.returncode == 0
 
 
@@ -184,10 +151,7 @@ class TestMultipleFiles:
 
     def test_validate_directory(self):
         """Test validating entire fixtures directory."""
-        result = run_validator(
-            str(FIXTURES_DIR),
-            "--format", "json"
-        )
+        result = run_validator(str(FIXTURES_DIR), "--format", "json")
         output = json.loads(result.stdout)
         # Should find all fixture files
         assert output["summary"]["total"] >= 5
@@ -196,12 +160,8 @@ class TestMultipleFiles:
 
     def test_fast_fail(self):
         """Test --fast-fail stops on first error."""
-        result = run_validator(
-            str(FIXTURES_DIR),
-            "--fast-fail",
-            "--format", "json"
-        )
-        output = json.loads(result.stdout)
+        result = run_validator(str(FIXTURES_DIR), "--fast-fail", "--format", "json")
+        json.loads(result.stdout)
         # Should have processed fewer files due to fast-fail
         # (at least stopped at first error)
         assert result.returncode == 1

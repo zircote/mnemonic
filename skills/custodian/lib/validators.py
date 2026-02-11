@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .memory_file import ISO_DATE_PATTERN, UUID_PATTERN, MemoryFile
+from .memory_file import MemoryFile
 from .report import Report
 
 try:
@@ -15,7 +15,8 @@ except ImportError:
     yaml = None  # type: ignore[assignment]
 
 try:
-    from lib.relationships import is_valid_type as _is_valid_rel_type, get_all_valid_types
+    from lib.relationships import get_all_valid_types
+    from lib.relationships import is_valid_type as _is_valid_rel_type
 except ImportError:
     _is_valid_rel_type = None  # type: ignore[assignment]
     get_all_valid_types = None  # type: ignore[assignment]

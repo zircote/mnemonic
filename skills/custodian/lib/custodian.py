@@ -145,7 +145,7 @@ def run_audit(dry_run: bool = False, fix: bool = False) -> Report:
     if fix and orphans:
         from skills.custodian.lib.link_checker import link_orphans
 
-        linked = link_orphans(index, orphans, report)
+        link_orphans(index, orphans, report)
         # Re-check orphans after linking
         orphans = find_orphans(index)
 

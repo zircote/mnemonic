@@ -3,9 +3,8 @@
 Unit tests for lib/ontology.py validate_memory_against_ontology().
 """
 
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))

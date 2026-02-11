@@ -31,7 +31,7 @@ def _parse_frontmatter(text: str) -> dict:
             if isinstance(data, dict):
                 return data
         except Exception:
-            pass
+            pass  # Fall through to regex fallback
     return _regex_fallback_parse(text)
 
 
