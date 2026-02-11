@@ -1,16 +1,15 @@
 """Unit tests for integrator.py."""
 
-import json
-import pytest
 import shutil
-from pathlib import Path
 import sys
-import tempfile
+from pathlib import Path
+
+import pytest
 
 # Add the skills/integrate/lib to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "skills" / "integrate" / "lib"))
 
-from integrator import Integrator, IntegrationResult, IntegrationReport
+from integrator import IntegrationReport, IntegrationResult, Integrator
 
 
 @pytest.fixture

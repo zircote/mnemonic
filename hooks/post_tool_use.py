@@ -13,15 +13,13 @@ from pathlib import Path
 # Add project root to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib.memory_reader import get_memory_summary
 from lib.ontology import load_file_patterns, load_ontology_data
 from lib.search import (
     detect_namespace_for_file,
-    find_related_memories_scored,
     extract_keywords_from_path,
+    find_related_memories_scored,
     infer_relationship_type,
 )
-
 
 # Files that are routine and don't warrant capture prompts
 ROUTINE_PATTERNS = [

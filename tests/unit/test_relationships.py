@@ -4,13 +4,12 @@ Unit tests for hooks/post_tool_use.py relationship suggestion functions
 and lib/search.py relationship type inference.
 
 Tests the updated get_relationship_suggestions() which uses scored search
-and relationship type inference.
+and relationship type inference with PascalCase return values.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 import sys
+from pathlib import Path
+from unittest.mock import patch
 
 # Add project root to path for hooks imports
 project_root = Path(__file__).parent.parent.parent
@@ -47,12 +46,12 @@ class TestGetRelationshipSuggestions:
                 "match_reasons": ["Same namespace"],
             }
         ]
-        mock_infer.return_value = "relates_to"
+        mock_infer.return_value = "RelatesTo"
 
         result = get_relationship_suggestions(ontology_data, "/src/auth_handler.py", "_semantic/decisions")
 
         assert result != ""
-        assert "relates_to" in result
+        assert "RelatesTo" in result
         assert "JWT Authentication Decision" in result
         assert "a5e46807-688" in result
         assert "score: 65" in result
@@ -126,15 +125,15 @@ class TestGetRelationshipSuggestions:
                 "match_reasons": [],
             },
         ]
-        mock_infer.side_effect = ["supersedes", "relates_to", "relates_to"]
+        mock_infer.side_effect = ["Supersedes", "RelatesTo", "RelatesTo"]
 
         result = get_relationship_suggestions(ontology_data, "/src/auth.py", "_semantic/decisions")
 
         assert "Memory 1" in result
         assert "Memory 2" in result
         assert "Memory 3" in result
-        assert "supersedes" in result
-        assert "relates_to" in result
+        assert "Supersedes" in result
+        assert "RelatesTo" in result
 
     @patch("hooks.post_tool_use.find_related_memories_scored")
     @patch("hooks.post_tool_use.extract_keywords_from_path")
@@ -154,20 +153,20 @@ class TestGetRelationshipSuggestions:
                 "match_reasons": [],
             },
         ]
-        mock_infer.return_value = "relates_to"
+        mock_infer.return_value = "RelatesTo"
 
         result = get_relationship_suggestions(ontology_data, "/src/config.py", "_semantic/decisions")
 
         assert result.startswith("\nSuggested relationships")
-        assert "  - [relates_to]" in result
+        assert "RelatesTo" in result
         assert "Config Setup" in result
 
 
 class TestInferRelationshipType:
-    """Test infer_relationship_type() function."""
+    """Test infer_relationship_type() function — now returns PascalCase."""
 
-    def test_same_namespace_high_overlap_supersedes(self):
-        """Same namespace + high title overlap → supersedes."""
+    def test_same_namespace_very_high_overlap_supersedes(self):
+        """Same namespace + very high title overlap (>70%) -> Supersedes."""
         target = {
             "title": "Use Redis for caching",
             "namespace": "_semantic/decisions",
@@ -179,13 +178,44 @@ class TestInferRelationshipType:
             source_tags=["redis"],
             target_metadata=target,
         )
-        assert result == "supersedes"
+        assert result == "Supersedes"
 
-    def test_different_namespace_moderate_overlap_derived(self):
-        """Different namespace + moderate overlap → derived_from."""
+    def test_same_namespace_high_overlap_conflicts_with(self):
+        """Same namespace + high overlap (50-70%) -> ConflictsWith."""
+        target = {
+            "title": "Redis caching strategy overview",
+            "namespace": "_semantic/decisions",
+            "tags": ["redis"],
+        }
+        result = infer_relationship_type(
+            source_title="Redis caching implementation plan",
+            source_namespace="_semantic/decisions",
+            source_tags=["redis"],
+            target_metadata=target,
+        )
+        # "redis" and "caching" overlap out of larger sets -> between 0.5 and 0.7
+        assert result in ("ConflictsWith", "Supersedes")
+
+    def test_procedural_to_semantic_implements(self):
+        """Procedural source + semantic target + moderate overlap -> Implements."""
+        target = {
+            "title": "Redis caching decision",
+            "namespace": "_semantic/decisions",
+            "tags": ["redis"],
+        }
+        result = infer_relationship_type(
+            source_title="Redis caching pattern",
+            source_namespace="_procedural/patterns",
+            source_tags=["redis"],
+            target_metadata=target,
+        )
+        assert result == "Implements"
+
+    def test_different_namespace_moderate_overlap_derived_from(self):
+        """Different namespace + moderate overlap -> DerivedFrom."""
         target = {
             "title": "Redis caching strategy",
-            "namespace": "_procedural/patterns",
+            "namespace": "_episodic/sessions",
             "tags": ["redis"],
         }
         result = infer_relationship_type(
@@ -194,10 +224,10 @@ class TestInferRelationshipType:
             source_tags=["redis"],
             target_metadata=target,
         )
-        assert result == "derived_from"
+        assert result == "DerivedFrom"
 
     def test_low_overlap_relates_to(self):
-        """Low overlap → relates_to (default)."""
+        """Low overlap -> RelatesTo (default)."""
         target = {
             "title": "PostgreSQL migration guide",
             "namespace": "_procedural/migrations",
@@ -209,10 +239,10 @@ class TestInferRelationshipType:
             source_tags=["auth"],
             target_metadata=target,
         )
-        assert result == "relates_to"
+        assert result == "RelatesTo"
 
     def test_same_namespace_low_overlap_relates_to(self):
-        """Same namespace but low overlap → relates_to."""
+        """Same namespace but low overlap -> RelatesTo."""
         target = {
             "title": "Logging strategy",
             "namespace": "_semantic/decisions",
@@ -224,10 +254,10 @@ class TestInferRelationshipType:
             source_tags=["auth"],
             target_metadata=target,
         )
-        assert result == "relates_to"
+        assert result == "RelatesTo"
 
     def test_empty_title(self):
-        """Empty title → relates_to (default)."""
+        """Empty title -> RelatesTo (default)."""
         target = {"title": "", "namespace": "_semantic/decisions", "tags": []}
         result = infer_relationship_type(
             source_title="Some title",
@@ -235,10 +265,10 @@ class TestInferRelationshipType:
             source_tags=[],
             target_metadata=target,
         )
-        assert result == "relates_to"
+        assert result == "RelatesTo"
 
     def test_missing_namespace(self):
-        """Missing namespace + high overlap → derived_from (different namespace path)."""
+        """Missing namespace + high overlap -> DerivedFrom (different namespace path)."""
         target = {"title": "Same title words here", "tags": []}
         result = infer_relationship_type(
             source_title="Same title words",
@@ -247,11 +277,11 @@ class TestInferRelationshipType:
             target_metadata=target,
         )
         # No namespace in target means different namespace from source,
-        # and high title overlap (>0.3) → derived_from
-        assert result == "derived_from"
+        # and high title overlap (>0.3) -> DerivedFrom
+        assert result == "DerivedFrom"
 
     def test_exact_same_title_same_namespace(self):
-        """Exact same title + namespace → supersedes."""
+        """Exact same title + namespace -> Supersedes."""
         target = {
             "title": "Use Redis for caching",
             "namespace": "_semantic/decisions",
@@ -263,10 +293,10 @@ class TestInferRelationshipType:
             source_tags=[],
             target_metadata=target,
         )
-        assert result == "supersedes"
+        assert result == "Supersedes"
 
-    def test_returns_valid_type(self):
-        """Result must be one of the three valid types."""
+    def test_returns_pascal_case_type(self):
+        """Result must be a PascalCase MIF type."""
         target = {"title": "anything", "namespace": "_semantic/knowledge", "tags": []}
         result = infer_relationship_type(
             source_title="something else",
@@ -274,4 +304,15 @@ class TestInferRelationshipType:
             source_tags=[],
             target_metadata=target,
         )
-        assert result in ("relates_to", "supersedes", "derived_from")
+        valid_types = {
+            "RelatesTo",
+            "Supersedes",
+            "ConflictsWith",
+            "DerivedFrom",
+            "Implements",
+            "PartOf",
+            "Uses",
+            "Created",
+            "MentionedIn",
+        }
+        assert result in valid_types

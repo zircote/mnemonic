@@ -66,6 +66,39 @@ else
 fi
 ```
 
+### Step 2a: Validate Against Ontology
+
+Before creating the memory, validate the namespace and type against the loaded ontology:
+
+```python
+# Python validation (called programmatically or mentally verified)
+from lib.ontology import validate_memory_against_ontology, load_ontology_data
+
+ontology = load_ontology_data()
+errors = validate_memory_against_ontology(NAMESPACE, TYPE, ontology)
+if errors:
+    for err in errors:
+        print(f"Validation error: {err}")
+    # Show valid namespaces and abort
+    exit(1)
+```
+
+If the namespace is not recognized by any loaded ontology, report a clear error with the list of valid namespaces and do NOT proceed with capture.
+
+### Step 2b: Dedup Check (MANDATORY)
+
+**Before creating any memory, check for duplicates:**
+
+1. Search for existing memories with similar keywords:
+   ```bash
+   rg -i "{key_words_from_title}" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l | head -5
+   ```
+
+2. If matches found, read the top result
+3. If it covers the same topic → UPDATE existing memory (use Edit tool) instead of creating new
+4. If related but different → create new memory with `relates_to` relationship
+5. Only create brand new if no matches found
+
 ### Step 3: Generate Identifiers
 
 **CRITICAL: You MUST execute these commands to generate real values. NEVER write placeholder text like "PLACEHOLDER_UUID" or "PLACEHOLDER_DATE" into memory files.**
@@ -88,9 +121,34 @@ ORG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+\.git
 
 **Validation:** Before proceeding, verify UUID looks like `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` and DATE looks like `2026-01-28T12:00:00Z`. If either is empty or a placeholder, re-run the generation commands.
 
+### Step 3b: Validate Type Matches Namespace
+
+```bash
+# Infer expected type from namespace path
+case "$NAMESPACE" in
+    _semantic/*) EXPECTED_TYPE="semantic" ;;
+    _procedural/*) EXPECTED_TYPE="procedural" ;;
+    _episodic/*) EXPECTED_TYPE="episodic" ;;
+    *) EXPECTED_TYPE="$TYPE" ;;
+esac
+
+if [ "$TYPE" != "$EXPECTED_TYPE" ]; then
+    echo "Warning: type '$TYPE' does not match namespace '$NAMESPACE' (expected '$EXPECTED_TYPE'). Correcting."
+    TYPE="$EXPECTED_TYPE"
+fi
+```
+
 ### Step 4: Determine Path
 
 ```bash
+# Resolve MNEMONIC_ROOT from config
+if [ -f "$HOME/.config/mnemonic/config.json" ]; then
+    RAW_PATH=$(python3 -c "import json; print(json.load(open('$HOME/.config/mnemonic/config.json')).get('memory_store_path', '~/.claude/mnemonic'))")
+    MNEMONIC_ROOT="${RAW_PATH/#\~/$HOME}"
+else
+    MNEMONIC_ROOT="$HOME/.claude/mnemonic"
+fi
+
 # Get project name from git remote or directory
 PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|' | sed 's|\.git$||')
 [ -z "$PROJECT" ] && PROJECT=$(basename "$(pwd)")
@@ -100,10 +158,10 @@ PROJECT=$(git remote get-url origin 2>/dev/null | sed -E 's|.*/([^/]+)\.git$|\1|
 #                 {org}/{namespace}/ for org scope (when --scope org)
 if [ "$SCOPE" = "org" ]; then
     # Org-wide memory (shared across projects in org)
-    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${NAMESPACE}"
+    MEMORY_DIR="${MNEMONIC_ROOT}/${ORG}/${NAMESPACE}"
 else
     # Project-specific memory (default)
-    MEMORY_DIR="$HOME/.claude/mnemonic/${ORG}/${PROJECT}/${NAMESPACE}"
+    MEMORY_DIR="${MNEMONIC_ROOT}/${ORG}/${PROJECT}/${NAMESPACE}"
 fi
 
 mkdir -p "$MEMORY_DIR"
@@ -174,6 +232,11 @@ namespace: <real NAMESPACE from Step 1>
 created: <real DATE from Step 3>
 modified: <real DATE from Step 3>
 title: "<real TITLE from Step 1>"
+confidence: <real CONFIDENCE from Step 1>
+strength: 1.0
+half_life: P90D
+last_accessed: <real DATE from Step 3>
+decay_model: exponential
 tags:
 <real TAGS_YAML from Step 5>
 temporal:
@@ -182,7 +245,6 @@ temporal:
 provenance:
   source_type: conversation
   agent: claude-opus-4
-  confidence: <real CONFIDENCE from Step 1>
 ---
 
 # <real TITLE>
@@ -194,7 +256,12 @@ provenance:
 <real RATIONALE from Step 6>
 ```
 
-**Validation:** After writing, read the first 5 lines of the file and verify the `id:` field contains a real UUID (not "PLACEHOLDER" or "{UUID}").
+**Validation (MANDATORY — do NOT skip):** After writing, read the first 10 lines of the file and verify:
+1. `id:` contains a real UUID matching `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}` (not "PLACEHOLDER", "${UUID}", or any template variable)
+2. `created:` contains a real ISO 8601 timestamp (not "PLACEHOLDER", "${DATE}", or any template variable)
+3. `type:` matches the namespace path (`_semantic/` → semantic, `_procedural/` → procedural, `_episodic/` → episodic)
+
+If ANY check fails, delete the file and re-run from Step 3.
 
 ### Step 7b: Add Ontology Fields (if --entity-type provided)
 

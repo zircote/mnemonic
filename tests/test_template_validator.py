@@ -1,9 +1,10 @@
 """Unit tests for template_validator.py."""
 
-import pytest
-from pathlib import Path
 import sys
 import tempfile
+from pathlib import Path
+
+import pytest
 
 # Add the skills/integrate/lib to path
 lib_path = str(Path(__file__).parent.parent / "skills" / "integrate" / "lib")

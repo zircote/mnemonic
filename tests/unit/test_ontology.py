@@ -10,9 +10,9 @@ from pathlib import Path
 # Add skills/ontology/lib to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "skills" / "ontology" / "lib"))
 
-from ontology_validator import OntologyValidator
-from ontology_registry import OntologyRegistry
 from entity_resolver import EntityResolver
+from ontology_registry import OntologyRegistry
+from ontology_validator import OntologyValidator
 
 
 class TestOntologyValidator(unittest.TestCase):

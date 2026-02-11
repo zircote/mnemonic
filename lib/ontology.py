@@ -276,6 +276,59 @@ def get_fallback_content_patterns() -> dict:
     }
 
 
+def validate_memory_against_ontology(
+    namespace: str,
+    memory_type: str,
+    ontology_data: dict,
+) -> list[str]:
+    """Validate a memory's namespace and type against loaded ontology.
+
+    Checks:
+    1. Namespace is defined in the ontology's namespace hierarchy
+    2. Memory type matches the namespace's expected cognitive type
+
+    Args:
+        namespace: Full namespace path (e.g., "_semantic/decisions")
+        memory_type: Memory type (e.g., "semantic", "episodic", "procedural")
+        ontology_data: Parsed ontology YAML dict (from load_ontology_data())
+
+    Returns:
+        List of error messages (empty = valid).
+    """
+    errors: list[str] = []
+
+    if not ontology_data:
+        return errors  # No ontology loaded, skip validation
+
+    # Collect all valid namespaces from ontology
+    valid_namespaces: list[str] = []
+    if "namespaces" in ontology_data:
+        _collect_namespaces(ontology_data["namespaces"], "", valid_namespaces)
+
+    # Validate namespace exists in ontology
+    if valid_namespaces and namespace not in valid_namespaces:
+        # Allow bare top-level namespaces (e.g., "_semantic") only if they are
+        # explicitly defined; unknown sub-namespaces like "_semantic/does_not_exist"
+        # must be rejected even when the top-level prefix exists.
+        top_level = namespace.split("/")[0] if namespace else ""
+        if not (namespace == top_level and top_level in valid_namespaces):
+            errors.append(f"Unknown namespace '{namespace}'. Valid namespaces: {', '.join(sorted(valid_namespaces))}")
+
+    # Validate type matches namespace prefix
+    if namespace and memory_type:
+        expected_type_map = {
+            "_semantic": "semantic",
+            "_episodic": "episodic",
+            "_procedural": "procedural",
+        }
+        top_level = namespace.split("/")[0]
+        expected_type = expected_type_map.get(top_level)
+        if expected_type and memory_type != expected_type:
+            errors.append(f"Type '{memory_type}' does not match namespace '{namespace}' (expected '{expected_type}')")
+
+    return errors
+
+
 def get_ontology_info() -> dict:
     """Get loaded ontology information including MIF base.
 

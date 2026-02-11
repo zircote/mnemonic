@@ -5,8 +5,6 @@ Unit tests for lib/memory_reader.py memory file reader.
 Tests memory file parsing and summary extraction.
 """
 
-import pytest
-from pathlib import Path
 
 from lib.memory_reader import get_memory_summary
 

@@ -18,8 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lib.config import get_memory_root
 from lib.memory_reader import get_memory_summary
 from lib.ontology import load_content_patterns
-from lib.search import extract_topic, search_memories
-
+from lib.search import extract_topic, find_duplicates, search_memories
 
 # Recall triggers (not in ontology yet)
 RECALL_TRIGGERS = [
@@ -85,6 +84,15 @@ def main():
 
         context_lines.append(f"[CAPTURE] Namespace: {namespaces} | Topic: {topic}")
         context_lines.append(f'  /mnemonic:capture {triggers["capture"][0]} "{topic}"')
+
+        # Dedup check: surface existing similar memories to prevent duplicates
+        if topic:
+            dupes = find_duplicates(topic, namespace=triggers["capture"][0], threshold=0.4, max_results=3)
+            if dupes:
+                context_lines.append("  **DEDUP WARNING — similar memories exist (update instead of creating new):**")
+                for d in dupes:
+                    context_lines.append(f"    - [{d['similarity']:.0%}] {d['title']} ({d['namespace']})")
+
         context_lines.append("")
 
     # Search for relevant existing memories

@@ -104,6 +104,19 @@ Formula: `strength * 0.5^(days_since_access / half_life_days)`
 Identifies compression candidates (>100 lines, >30d old or strength < 0.3).
 Delegate actual compression to `mnemonic:compression-worker` agent.
 
+### ensure-bidirectional
+
+```
+/mnemonic:custodian ensure-bidirectional [--fix]
+```
+
+Scans all memory relationships and checks that each has a corresponding inverse
+back-reference in the target. For example, if A `supersedes` B, B should have
+`SupersededBy` (or `superseded_by`) pointing back to A.
+
+Without `--fix`: reports missing back-references as warnings.
+With `--fix`: auto-creates the missing inverse relationships.
+
 ### validate-memories / validate-relationships
 
 Read-only validation. Reports errors without modifying files.
