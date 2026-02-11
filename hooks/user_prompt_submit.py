@@ -20,7 +20,6 @@ from lib.memory_reader import get_memory_summary
 from lib.ontology import load_content_patterns
 from lib.search import extract_topic, find_duplicates, search_memories
 
-
 # Recall triggers (not in ontology yet)
 RECALL_TRIGGERS = [
     r"\bremember\b",
