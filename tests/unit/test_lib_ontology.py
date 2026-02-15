@@ -45,7 +45,7 @@ class TestLoadOntologyData:
     @patch("lib.ontology.yaml")
     def test_load_ontology_data_success(self, mock_yaml, mock_get_file):
         """Test successful ontology loading."""
-        mock_get_file.return_value = Path("/project/mif/ontologies/mif-base.ontology.yaml")
+        mock_get_file.return_value = Path("/project/skills/ontology/fallback/ontologies/mif-base.ontology.yaml")
         mock_yaml.safe_load.return_value = {
             "ontology": {"id": "mif-base", "version": "1.0"},
             "namespaces": {},

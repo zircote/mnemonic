@@ -148,7 +148,7 @@ See `fallback/ontologies/mif-base.ontology.yaml` for complete examples.
 
 - `lib/ontology_registry.py` - Load and manage ontologies
 - `lib/ontology_validator.py` - Validate ontology YAML
-- `lib/ontology_loader.py` - Centralized loading with MIF submodule support
+- `lib/ontology_loader.py` - Centralized ontology loading with caching
 - `lib/entity_resolver.py` - Resolve entity references
 - `fallback/ontologies/mif-base.ontology.yaml` - Standard mnemonic namespaces
 - `fallback/schema/ontology/ontology.schema.json` - JSON Schema

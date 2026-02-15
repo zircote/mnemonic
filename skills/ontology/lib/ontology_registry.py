@@ -102,6 +102,7 @@ class DiscoveryPattern:
         if self.pattern_type != "file":
             return False
         from fnmatch import fnmatch
+
         return fnmatch(file_path, self.pattern)
 
 
@@ -547,13 +548,12 @@ def get_registry(
     Get a configured OntologyRegistry.
 
     Resolution order (later overrides earlier):
-    1. MIF submodule ontologies (mif/ontologies/)
-    2. Fallback ontologies (skills/ontology/fallback/)
-    3. User ontologies (${MNEMONIC_ROOT}/{org}/{project}/)
-    4. Project ontologies (${MNEMONIC_ROOT}/)
+    1. Bundled ontologies (skills/ontology/fallback/)
+    2. User ontologies (${MNEMONIC_ROOT}/{org}/{project}/)
+    3. Project ontologies (${MNEMONIC_ROOT}/)
 
     Args:
-        base_path: Path to base ontologies (defaults to MIF/fallback)
+        base_path: Path to base ontologies (defaults to bundled fallback)
         user_path: Path to user ontologies
         project_path: Path to project ontologies
         org: Organization name for user-level path
@@ -566,23 +566,18 @@ def get_registry(
 
     paths = []
 
-    # Base ontologies - MIF submodule first, then fallback
+    # Base ontologies - bundled fallback
     if base_path:
         paths.append(base_path)
     else:
         plugin_root = Path(__file__).parent.parent
 
-        # 1. MIF submodule (preferred)
-        mif_ontologies = plugin_root.parent.parent / "mif" / "ontologies"
-        if mif_ontologies.exists():
-            paths.append(mif_ontologies)
-
-        # 2. Fallback (if MIF not available)
+        # 1. Bundled ontologies
         fallback_ontologies = plugin_root / "fallback" / "ontologies"
         if fallback_ontologies.exists():
             paths.append(fallback_ontologies)
 
-        # 3. Legacy plugin ontologies (deprecated)
+        # 2. Legacy plugin ontologies (deprecated)
         if (plugin_root / "ontologies").exists():
             paths.append(plugin_root / "ontologies")
 
@@ -660,9 +655,9 @@ def main():
             print("Loaded ontologies:")
             for ont in ontologies:
                 print(f"  - {ont['id']} v{ont['version']}")
-                if ont['namespaces']:
+                if ont["namespaces"]:
                     print(f"    Namespaces: {', '.join(ont['namespaces'])}")
-                if ont['entity_types']:
+                if ont["entity_types"]:
                     print(f"    Entity types: {', '.join(ont['entity_types'])}")
 
     else:
@@ -671,11 +666,7 @@ def main():
         namespaces = registry.get_all_namespaces()
         types = registry.get_all_types()
         if args.json:
-            print(json.dumps({
-                "ontologies": len(ontologies),
-                "namespaces": namespaces,
-                "types": types
-            }, indent=2))
+            print(json.dumps({"ontologies": len(ontologies), "namespaces": namespaces, "types": types}, indent=2))
         else:
             print(f"Ontologies: {len(ontologies)}")
             print(f"Namespaces: {len(namespaces)}")

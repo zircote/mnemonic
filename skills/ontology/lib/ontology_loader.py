@@ -3,8 +3,10 @@
 Ontology Loader for Mnemonic
 
 Centralized loading of MIF ontologies with fallback support.
-Loads from MIF submodule, fallback directory, or user/project locations.
+Loads from bundled ontologies, user, or project locations.
 Caches loaded ontologies for session performance.
+
+Canonical MIF schemas: https://mif-spec.dev/schema/
 """
 
 import logging
@@ -54,11 +56,16 @@ class OntologyLoader:
     Loads MIF ontologies from multiple sources with caching.
 
     Resolution order:
-    1. MIF submodule (mif/ontologies/)
-    2. Fallback directory (skills/ontology/fallback/)
-    3. User ontology (${MNEMONIC_ROOT}/{org}/{project}/ontology.yaml)
-    4. Project ontology (${MNEMONIC_ROOT}/ontology.yaml)
+    1. Bundled ontologies (skills/ontology/fallback/)
+    2. User ontology (${MNEMONIC_ROOT}/{org}/{project}/ontology.yaml)
+    3. Project ontology (${MNEMONIC_ROOT}/ontology.yaml)
+
+    Canonical MIF schemas: https://mif-spec.dev/schema/
     """
+
+    # Canonical schema URLs
+    MIF_SCHEMA_URL = "https://mif-spec.dev/schema/mif.schema.json"
+    ONTOLOGY_SCHEMA_URL = "https://mif-spec.dev/schema/ontology/ontology.schema.json"
 
     def __init__(self, plugin_root: Optional[Path] = None):
         self._plugin_root = plugin_root or Path(__file__).parent.parent
@@ -67,21 +74,12 @@ class OntologyLoader:
         self._merged_patterns: Optional[List[DiscoveryPattern]] = None
 
     @property
-    def mif_path(self) -> Path:
-        """Path to MIF submodule."""
-        return self._plugin_root.parent.parent / "mif"
-
-    @property
     def fallback_path(self) -> Path:
-        """Path to fallback ontologies."""
+        """Path to bundled ontologies."""
         return self._plugin_root / "fallback"
 
     def get_base_ontology_path(self) -> Optional[Path]:
-        """Get path to base ontology, checking MIF then fallback."""
-        mif_base = self.mif_path / "ontologies" / "mif-base.ontology.yaml"
-        if mif_base.exists():
-            return mif_base
-
+        """Get path to base ontology from bundled fallback."""
         fallback_base = self.fallback_path / "ontologies" / "mif-base.ontology.yaml"
         if fallback_base.exists():
             return fallback_base
@@ -89,14 +87,11 @@ class OntologyLoader:
         return None
 
     def get_schema_path(self) -> Optional[Path]:
-        """Get path to ontology schema."""
-        mif_schema = self.mif_path / "schema" / "ontology" / "ontology.schema.json"
-        if mif_schema.exists():
-            return mif_schema
+        """Get path to local ontology schema (bundled copy).
 
-        fallback_schema = (
-            self.fallback_path / "schema" / "ontology" / "ontology.schema.json"
-        )
+        For the canonical schema, use ONTOLOGY_SCHEMA_URL.
+        """
+        fallback_schema = self.fallback_path / "schema" / "ontology" / "ontology.schema.json"
         if fallback_schema.exists():
             return fallback_schema
 
@@ -109,7 +104,7 @@ class OntologyLoader:
 
         base_path = self.get_base_ontology_path()
         if base_path is None:
-            logger.warning("Base ontology not found in MIF or fallback")
+            logger.warning("Base ontology not found in bundled fallback")
             return None
 
         self._base_ontology = self._load_ontology_file(base_path)
@@ -141,10 +136,10 @@ class OntologyLoader:
         import re
 
         # Security: Validate org and project contain only safe characters
-        if not re.match(r'^[a-zA-Z0-9_-]+$', org):
+        if not re.match(r"^[a-zA-Z0-9_-]+$", org):
             logger.warning(f"Invalid org name contains unsafe characters: {org}")
             return None
-        if project and not re.match(r'^[a-zA-Z0-9_-]+$', project):
+        if project and not re.match(r"^[a-zA-Z0-9_-]+$", project):
             logger.warning(f"Invalid project name contains unsafe characters: {project}")
             return None
 
@@ -155,9 +150,7 @@ class OntologyLoader:
 
         # User-level ontology (org/project specific)
         if project:
-            user_path = (
-                Path.home() / ".claude" / "mnemonic" / org / project / "ontology.yaml"
-            )
+            user_path = Path.home() / ".claude" / "mnemonic" / org / project / "ontology.yaml"
             if user_path.exists():
                 return self.load_ontology(user_path)
 
@@ -198,10 +191,7 @@ class OntologyLoader:
         project: Optional[str] = None,
     ) -> List[DiscoveryPattern]:
         """Get only content-based discovery patterns."""
-        return [
-            p for p in self.get_all_discovery_patterns(org, project)
-            if p.pattern_type == "content"
-        ]
+        return [p for p in self.get_all_discovery_patterns(org, project) if p.pattern_type == "content"]
 
     def get_file_patterns(
         self,
@@ -209,10 +199,7 @@ class OntologyLoader:
         project: Optional[str] = None,
     ) -> List[DiscoveryPattern]:
         """Get only file-based discovery patterns."""
-        return [
-            p for p in self.get_all_discovery_patterns(org, project)
-            if p.pattern_type == "file"
-        ]
+        return [p for p in self.get_all_discovery_patterns(org, project) if p.pattern_type == "file"]
 
     def get_all_namespaces(self) -> List[str]:
         """Get all valid namespace paths from base ontology."""
@@ -308,19 +295,23 @@ class OntologyLoader:
         patterns = []
         for p in discovery.get("patterns", []):
             if "content_pattern" in p:
-                patterns.append(DiscoveryPattern(
-                    pattern_type="content",
-                    pattern=p["content_pattern"],
-                    suggest_entity=p.get("suggest_entity", ""),
-                    suggest_namespace=p.get("suggest_namespace"),
-                ))
+                patterns.append(
+                    DiscoveryPattern(
+                        pattern_type="content",
+                        pattern=p["content_pattern"],
+                        suggest_entity=p.get("suggest_entity", ""),
+                        suggest_namespace=p.get("suggest_namespace"),
+                    )
+                )
             elif "file_pattern" in p:
-                patterns.append(DiscoveryPattern(
-                    pattern_type="file",
-                    pattern=p["file_pattern"],
-                    suggest_entity=p.get("suggest_entity", ""),
-                    suggest_namespace=p.get("suggest_namespace"),
-                ))
+                patterns.append(
+                    DiscoveryPattern(
+                        pattern_type="file",
+                        pattern=p["file_pattern"],
+                        suggest_entity=p.get("suggest_entity", ""),
+                        suggest_namespace=p.get("suggest_namespace"),
+                    )
+                )
 
         ontology.discovery_patterns = patterns
 

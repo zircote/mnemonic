@@ -50,8 +50,7 @@ python3 "$PLUGIN_DIR/skills/ontology/lib/ontology_registry.py" ${ARGS}
 If the Python script is not available, use the Read tool to display ontology files:
 
 ```bash
-# Read base ontology from MIF
-cat "${PLUGIN_DIR}/mif/ontologies/mif-base.ontology.yaml" 2>/dev/null || \
+# Read base ontology
 cat "${PLUGIN_DIR}/skills/ontology/fallback/ontologies/mif-base.ontology.yaml" 2>/dev/null
 
 # Read project ontology

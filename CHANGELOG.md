@@ -13,7 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export/import functionality
 - Web UI for memory browsing
 
-## [1.6.0] - 2026-02-11
+## [0.6.1] - 2026-02-14
+
+### Changed
+
+- **[MIF Spec Migration]**: Replaced MIF git submodule with canonical [mif-spec.dev](https://mif-spec.dev) schemas
+  - Removed `mif` git submodule and `.gitmodules`
+  - Bundled fallback ontologies are now the primary source (no submodule required)
+  - All schema `$id` and `schema_url` references updated to `https://mif-spec.dev/schema/`
+  - `OntologyLoader` resolution order simplified: bundled fallback -> user -> project
+  - `OntologyLoader` exposes `MIF_SCHEMA_URL` and `ONTOLOGY_SCHEMA_URL` class constants
+
+### Removed
+
+- **[MIF Submodule]**: Git submodule `mif` (https://github.com/zircote/MIF.git)
+- **[populate_fallback.py]**: Obsolete script for copying from submodule to fallback
+
+## [0.6.0] - 2026-02-11
 
 ### Added
 
@@ -47,14 +63,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **[Blank Line Accumulation]**: Fixed `add_relationship()` reassembly that added extra blank lines on each write
 - **[Namespace Validation]**: Unknown sub-namespaces like `_semantic/does_not_exist` now correctly rejected even when top-level prefix matches
 - **[Import Cleanup]**: Removed unused imports and variables across lib and tests; resolved all ruff lint errors
-- **[MIF Submodule]**: Updated to latest with `${MNEMONIC_ROOT}` path references
+- **[MIF Spec]**: Updated to latest with `${MNEMONIC_ROOT}` path references
 
 ### Changed
 
-- **[Hook Refactoring]**: All hooks import from shared `lib/` modules (continued from v1.5.0)
-- **[Version Lineage]**: Corrected version numbering from incorrect v2.x back to v1.x continuation
+- **[Hook Refactoring]**: All hooks import from shared `lib/` modules (continued from v0.5.0)
+- **[Version Lineage]**: Corrected version numbering to v0.x series
 
-## [1.5.0] - 2026-02-09
+## [0.5.0] - 2026-02-09
 
 ### Added
 
@@ -146,7 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/community/` — Archived (Memory Bank migration, comparison, quickstart, adoption stories)
   - `templates/` — Archived (AGENTS.md, CONVENTIONS.md, copilot-instructions.md, cursor-rule.mdc, mnemonic-protocol.md, plugin-hooks/)
 
-## [1.4.0] - 2026-01-30
+## [0.4.0] - 2026-01-30
 
 ### Added
 
@@ -185,7 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cognitive namespace visualizations
   - Ontology structure diagrams
 
-- **[MIF Submodule]**: Ontologies now sourced from [MIF](https://github.com/zircote/MIF)
+- **[MIF Spec]**: Ontologies aligned with [MIF](https://mif-spec.dev)
   - `mif-base.ontology.yaml` defines cognitive triad hierarchy
   - JSON-LD export for semantic web compatibility
   - `scripts/yaml2jsonld.py` converter
@@ -309,7 +325,7 @@ python scripts/migrate_to_v2_paths.py
 python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/legacy_backup_TIMESTAMP
 ```
 
-## [1.3.0] - 2026-01-25
+## [0.3.0] - 2026-01-25
 
 ### Changed
 
@@ -386,7 +402,7 @@ python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/lega
   - Removed bridge documentation and architecture diagrams
   - Skills-first approach replaces bridge's hook-centric pattern
 
-## [1.2.0] - 2026-01-24
+## [0.2.0] - 2026-01-24
 
 ### Added
 
@@ -431,7 +447,7 @@ python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/lega
 - Fast pattern matching with regex and ripgrep
 - Memory health scoring based on confidence decay and duplicates
 
-## [1.1.1] - 2026-01-24
+## [0.1.1] - 2026-01-24
 
 ### Added
 
@@ -462,7 +478,7 @@ python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/lega
   - Fixed Mermaid SWOT quadrant syntax (`<-->` → `-->`)
 - **[Plugin]**: Removed duplicate hooks reference from manifest
 
-## [1.1.0] - 2026-01-24
+## [0.1.0] - 2026-01-24
 
 ### Added
 
@@ -553,7 +569,7 @@ python scripts/migrate_to_v2_paths.py --rollback ~/.claude/mnemonic_backups/lega
   - Memory Bank migration sections
   - Troubleshooting guides
 
-## [1.0.0] - 2026-01-24
+## [0.0.1] - 2026-01-24
 
 ### Added
 

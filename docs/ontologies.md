@@ -60,11 +60,7 @@ procedural/            # Step-by-step processes
 ### 1. Copy the software-engineering ontology
 
 ```bash
-# From MIF submodule (preferred)
-cp mif/ontologies/examples/software-engineering.ontology.yaml \
-   .claude/mnemonic/ontology.yaml
-
-# Or from fallback
+# Copy the bundled software-engineering ontology
 cp skills/ontology/fallback/ontologies/examples/software-engineering.ontology.yaml \
    .claude/mnemonic/ontology.yaml
 ```
@@ -228,8 +224,7 @@ Resolution order (later overrides earlier):
 
 | Location | Scope | Notes |
 |----------|-------|-------|
-| `mif/ontologies/` | Base | MIF submodule (cognitive triad) |
-| `skills/ontology/fallback/` | Fallback | Used when submodule missing |
+| `skills/ontology/fallback/` | Bundled | Base MIF ontologies (cognitive triad) |
 | `${MNEMONIC_ROOT}/{org}/{project}/ontology.yaml` | User | Org/project specific |
 | `.claude/mnemonic/ontology.yaml` | Project | Current project |
 
@@ -499,10 +494,11 @@ refs = resolver.extract_references("Uses @[[PostgreSQL]] for storage")
 
 ### Schema Reference
 
-See `mif/schema/ontology/ontology.schema.json` for the JSON Schema.
+See the [MIF Ontology Schema](https://mif-spec.dev/schema/ontology/ontology.schema.json) for the JSON Schema.
 
 ### See Also
 
-- [MIF Base Ontology](mif/ontologies/mif-base.ontology.yaml)
-- [Software Engineering Example](mif/ontologies/examples/software-engineering.ontology.yaml)
-- [MIF Ontology README](mif/ontologies/README.md)
+- [MIF Specification](https://mif-spec.dev)
+- [MIF Schemas](https://mif-spec.dev/schema/mif.schema.json)
+- [Bundled Base Ontology](skills/ontology/fallback/ontologies/mif-base.ontology.yaml)
+- [Software Engineering Example](skills/ontology/fallback/ontologies/examples/software-engineering.ontology.yaml)

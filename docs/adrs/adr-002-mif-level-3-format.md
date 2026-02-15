@@ -222,7 +222,7 @@ Mitigations for negative consequences:
 
 ## Links
 
-- [MIF Specification](https://github.com/zircote/MIF) - Memory Interchange Format specification
+- [MIF Specification](https://mif-spec.dev) - Memory Interchange Format specification
 - [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) - Date/time format standard
 - [ISO 8601 Durations](https://en.wikipedia.org/wiki/ISO_8601#Durations) - Duration format for decay half-life
 

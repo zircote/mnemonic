@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code)
-[![MIF Level 3](https://img.shields.io/badge/MIF-Level%203-green)](https://github.com/zircote/MIF)
+[![MIF Level 3](https://img.shields.io/badge/MIF-Level%203-green)](https://mif-spec.dev)
 [![Filesystem Approach](https://img.shields.io/badge/Filesystem-Research%20Validated-brightgreen)](https://www.letta.com/blog/benchmarking-ai-agent-memory)
 
 A pure filesystem-based memory system for Claude Code. No external dependencies - all operations use standard Unix tools and Claude's native capabilities.
@@ -11,7 +11,7 @@ A pure filesystem-based memory system for Claude Code. No external dependencies 
   <img src=".github/readme-infographic.png" alt="Mnemonic Architecture" width="800">
 </p>
 
-> **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://github.com/zircote/MIF) specification for standardized AI memory storage. MIF defines a portable, human-readable format for persistent AI memories.
+> **Note**: This plugin implements the [Memory Interchange Format (MIF)](https://mif-spec.dev) specification for standardized AI memory storage. MIF defines a portable, human-readable format for persistent AI memories.
 
 ## Features
 
@@ -183,7 +183,7 @@ Extend mnemonic with domain-specific entity types, relationships, and discovery:
 
 ```bash
 # Copy the software-engineering ontology
-cp mif/ontologies/examples/software-engineering.ontology.yaml \
+cp skills/ontology/fallback/ontologies/examples/software-engineering.ontology.yaml \
    .claude/mnemonic/ontology.yaml
 ```
 
@@ -380,7 +380,7 @@ make check-deps
 
 ## Related Projects
 
-- **[MIF (Memory Interchange Format)](https://github.com/zircote/MIF)** - The specification this plugin implements. A proposed standard for portable AI memory storage.
+- **[MIF (Memory Interchange Format)](https://mif-spec.dev)** - The specification this plugin implements. An open standard for portable AI memory storage. Schemas: https://mif-spec.dev/schema/
 
 ## License
 

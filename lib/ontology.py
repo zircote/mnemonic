@@ -31,7 +31,6 @@ def get_ontology_file() -> Optional[Path]:
     """
     plugin_root = Path(__file__).parent.parent
     ontology_paths = [
-        plugin_root / "mif" / "ontologies" / "mif-base.ontology.yaml",
         plugin_root / "skills" / "ontology" / "fallback" / "ontologies" / "mif-base.ontology.yaml",
     ]
 

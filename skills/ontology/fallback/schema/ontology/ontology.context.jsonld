@@ -1,8 +1,8 @@
 {
   "@context": {
     "@version": 1.1,
-    "@vocab": "https://github.com/zircote/MIF/ontology#",
-    "mif": "https://github.com/zircote/MIF#",
+    "@vocab": "https://mif-spec.dev/ontology#",
+    "mif": "https://mif-spec.dev#",
     "schema": "https://schema.org/",
     "skos": "http://www.w3.org/2004/02/skos/core#",
     "owl": "http://www.w3.org/2002/07/owl#",

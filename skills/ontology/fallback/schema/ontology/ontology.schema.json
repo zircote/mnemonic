@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/zircote/MIF/schema/ontology/v2",
+  "$id": "https://mif-spec.dev/schema/ontology/ontology.schema.json",
   "title": "MIF Ontology Schema",
   "description": "JSON Schema for validating ontology definition files with cognitive triad namespace hierarchy",
   "type": "object",
