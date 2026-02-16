@@ -240,6 +240,7 @@ Autonomous agents for specialized tasks:
 | Guide | Focus |
 |-------|-------|
 | [Architecture](docs/architecture.md) | System architecture |
+| [Library Reference](docs/library-reference.md) | Python library API reference |
 | [Agent Coordination](docs/agent-coordination.md) | Multi-agent patterns |
 | [Ontologies](docs/ontologies.md) | Custom ontology guide |
 | [Validation](docs/validation.md) | Memory validation guide |

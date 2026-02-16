@@ -1,4 +1,24 @@
-# Mnemonic Path Resolution Library
+# Mnemonic Library Modules
+
+Shared Python utilities for the mnemonic memory system.
+
+## Overview
+
+The `lib/` directory contains core utilities used across mnemonic's hooks, commands, and tools. This README focuses on the **path resolution** module. For comprehensive documentation of all library modules, see:
+
+📚 **[Complete Library Reference](../docs/library-reference.md)**
+
+Includes detailed API documentation for:
+- **paths.py** - Path resolution (this file)
+- **config.py** - Configuration management
+- **memory_reader.py** - Memory file parsing
+- **search.py** - Memory search and ranking
+- **relationships.py** - Relationship types and linking
+- **ontology.py** - Custom ontology support
+
+---
+
+# Path Resolution Library
 
 Centralized path resolution for all mnemonic memory operations.
 
