@@ -413,7 +413,7 @@ Convert Bash commands to Python:
 
 - [Martin Fowler - Dependency Injection](https://martinfowler.com/articles/injection.html)
 - [Python pathlib documentation](https://docs.python.org/3/library/pathlib.html)
-- [Test Double - Growing Object-Oriented Software](http://www.growing-object-oriented-software.com/)
+- [Test Double - Growing Object-Oriented Software](https://www.growing-object-oriented-software.com/)
 
 ## Approval
 
