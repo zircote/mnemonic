@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **[Semantic Search]**: QMD integration for vector and hybrid search
+  - New skill `/mnemonic:qmd-setup` for automated setup
+  - New skill `/mnemonic:qmd-reindex` for re-indexing after captures
+  - Supports BM25 keyword, vector semantic, and hybrid search modes
+  - Auto-discovers memory roots from config
+  - Registered collections: org-level, default, and project-level memories
+  - See [docs/semantic-search.md](docs/semantic-search.md) for details
+
 ### Planned
 
-- Semantic search with embeddings
 - Export/import functionality
 - Web UI for memory browsing
 
