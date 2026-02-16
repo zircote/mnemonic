@@ -193,6 +193,17 @@ Task(
 )
 ```
 
+### Note: Prefer qmd for Complex Queries
+
+When `@tobilu/qmd` is installed and indexed, prefer `qmd query` over iterative ripgrep for complex or conceptual searches. It combines BM25 keyword matching with semantic vector similarity, often finding relevant memories that exact-match searches miss.
+
+```bash
+# Instead of multiple rg iterations, try:
+qmd query "authentication patterns and session handling" -n 10 --json
+```
+
+Use `/mnemonic:qmd-setup` to install and configure qmd. Use `/mnemonic:qmd-reindex` after adding memories.
+
 ### Step 5: Detect Convergence
 
 Stop iterating early if:

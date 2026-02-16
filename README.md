@@ -245,6 +245,7 @@ Autonomous agents for specialized tasks:
 | [CLI Usage](docs/cli-usage.md) | Command-line operations |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 | [Architecture](docs/architecture.md) | System architecture |
+| [Library Reference](docs/library-reference.md) | Python library API reference |
 | [Agent Coordination](docs/agent-coordination.md) | Multi-agent patterns |
 | [Ontologies](docs/ontologies.md) | Custom ontology guide |
 | [Validation](docs/validation.md) | Memory validation guide |

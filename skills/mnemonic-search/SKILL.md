@@ -391,6 +391,54 @@ rg "\[\[" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 
 ---
 
+## Semantic Search (requires qmd)
+
+If `@tobilu/qmd` is installed and indexed (see `/mnemonic:qmd-setup`), you can use semantic search in addition to ripgrep.
+
+### Commands
+
+```bash
+# BM25 keyword search (like rg, but ranked)
+qmd search "authentication middleware" -n 10
+
+# Semantic vector search (meaning-based, not keyword)
+qmd vsearch "how do we handle user sessions" -n 10
+
+# Hybrid search (BM25 + vector combined)
+qmd query "authentication patterns and best practices" -n 10
+```
+
+### Useful Flags
+
+```bash
+# Scope to a specific collection
+qmd search "auth" -c mnemonic-zircote
+
+# JSON output for programmatic use
+qmd search "auth" --json
+
+# Minimum relevance score
+qmd vsearch "auth" --min-score 0.5
+```
+
+### When to Use Each
+
+| Tool | Best For | Requires |
+|------|----------|----------|
+| `rg` | Exact strings, regex, frontmatter fields, fastest | Nothing |
+| `qmd search` | Ranked keyword search, typo-tolerant | `qmd update` |
+| `qmd vsearch` | Conceptual/meaning-based queries | `qmd embed` |
+| `qmd query` | Best overall recall, combines both signals | Both |
+
+**Use `rg` when** you know the exact term or field (e.g., `rg "^namespace: _semantic/decisions"`).
+**Use `qmd` when** searching by concept, fuzzy matching, or need ranked results.
+
+### Important
+
+Indexing is **not** automatic. After adding memories, run `/mnemonic:qmd-reindex` (or `qmd update && qmd embed`).
+
+---
+
 ## Search Cheat Sheet
 
 | Goal | Command |
