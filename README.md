@@ -239,12 +239,16 @@ Autonomous agents for specialized tasks:
 
 | Guide | Focus |
 |-------|-------|
+| [Getting Started](docs/tutorials/getting-started.md) | First project setup tutorial |
+| [Tutorials](docs/tutorials/) | Step-by-step learning guides |
+| [API Reference](docs/api-reference.md) | Python library documentation |
+| [CLI Usage](docs/cli-usage.md) | Command-line operations |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 | [Architecture](docs/architecture.md) | System architecture |
 | [Library Reference](docs/library-reference.md) | Python library API reference |
 | [Agent Coordination](docs/agent-coordination.md) | Multi-agent patterns |
 | [Ontologies](docs/ontologies.md) | Custom ontology guide |
 | [Validation](docs/validation.md) | Memory validation guide |
-| [CLI Usage](docs/cli-usage.md) | Command-line operations |
 | [ADRs](docs/adrs/) | Architecture decision records |
 | [Enterprise](docs/enterprise/) | Deployment and compliance |
 
