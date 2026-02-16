@@ -9,6 +9,12 @@ from .memory_reader import (
     get_memory_metadata,
     get_memory_summary,
 )
+from .migrate_filenames import (
+    is_migration_complete,
+    migrate_all,
+    migrate_file,
+    migration_summary,
+)
 from .ontology import (
     get_fallback_content_patterns,
     get_fallback_file_patterns,
@@ -120,6 +126,11 @@ __all__ = [
     # Memory reader functions
     "get_memory_summary",
     "get_memory_metadata",
+    # Migration functions
+    "migrate_all",
+    "migrate_file",
+    "is_migration_complete",
+    "migration_summary",
     # Relationship type registry
     "RELATIONSHIP_TYPES",
     "RECIPROCAL_TYPES",

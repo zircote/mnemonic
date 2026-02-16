@@ -750,21 +750,31 @@ def test_memory_operations(test_resolver):
 ````python
 # Paths
 from lib.paths import PathResolver, Scope, get_memory_dir
+# OR use convenience import
+from lib import PathResolver, Scope, get_memory_dir
 
 # Config
 from lib.config import get_memory_root
 
 # Memory reading
 from lib.memory_reader import get_memory_metadata, get_memory_summary
+# OR
+from lib import get_memory_metadata, get_memory_summary
 
 # Migration
 from lib.migrate_filenames import migrate_all, is_migration_complete
+# OR
+from lib import migrate_all, migrate_file, is_migration_complete, migration_summary
 
 # Search
 from lib.search import search_memories, find_related_memories_scored
+# OR
+from lib import search_memories, find_related_memories_scored
 
 # Relationships
 from lib.relationships import add_bidirectional_relationship, get_inverse
+# OR
+from lib import add_bidirectional_relationship, get_inverse
 
 # Ontology
 from lib.ontology import load_ontology_data, validate_memory_against_ontology
