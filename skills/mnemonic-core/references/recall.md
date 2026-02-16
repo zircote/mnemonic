@@ -71,3 +71,27 @@ head -50 /path/to/memory.memory.md
 # Entire file
 cat /path/to/memory.memory.md
 ```
+
+## Semantic Recall (requires qmd)
+
+When `@tobilu/qmd` is installed and indexed, use semantic search for concept-based recall.
+
+```bash
+# BM25 keyword search (ranked, typo-tolerant)
+qmd search "database migration strategy" -n 10
+
+# Semantic vector search (meaning-based)
+qmd vsearch "how do we handle authentication" -n 10
+
+# Hybrid search (best overall recall)
+qmd query "error handling patterns" -n 10
+
+# Scope to a specific org or project
+qmd search "auth" -c mnemonic-zircote
+qmd search "auth" -c mnemonic-project
+
+# JSON output for programmatic use
+qmd query "deployment process" --json -n 5
+```
+
+Setup: `/mnemonic:qmd-setup` | Re-index: `/mnemonic:qmd-reindex` (or `qmd update && qmd embed`)
