@@ -43,7 +43,9 @@
     "./skills/mnemonic-setup/SKILL.md",
     "./skills/integrate/SKILL.md",
     "./skills/ontology/SKILL.md",
-    "./skills/custodian/SKILL.md"
+    "./skills/custodian/SKILL.md",
+    "./skills/qmd-setup/SKILL.md",
+    "./skills/qmd-reindex/SKILL.md"
   ],
   "agents": [
     "./agents/memory-curator.md",
