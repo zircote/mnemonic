@@ -35,7 +35,7 @@ Centralized path resolution for all mnemonic memory operations. Provides single 
 
 **Key Classes**:
 - `PathResolver` - Main path computation engine
-- `PathContext` - Environment context (org, project, scheme)
+- `PathContext` - Environment context (`org`, `project`, `home_dir`, `project_dir`, `memory_root`, `scheme`)
 - `PathScheme` - Path scheme enum (LEGACY, V2)
 - `Scope` - Memory scope enum (USER, PROJECT, ORG)
 
@@ -68,7 +68,7 @@ root = get_memory_root()  # Returns Path
 # Advanced: Load and modify config
 config = MnemonicConfig.load()
 config.memory_store_path  # Returns expanded Path
-config._memory_store_path  # Returns raw string
+config.memory_store_path_raw  # Returns raw string
 
 # Save new config
 new_config = MnemonicConfig(memory_store_path="~/custom/path")
@@ -108,12 +108,12 @@ Memory file parsing for extracting frontmatter metadata and generating summaries
 from lib.memory_reader import get_memory_metadata, get_memory_summary
 
 # Get full frontmatter metadata
-metadata = get_memory_metadata(Path("memory.memory.md"))
-# Returns: {'id': '...', 'title': '...', 'type': 'semantic', ...}
+metadata = get_memory_metadata("memory.memory.md")
+# Returns: {'id': '...', 'title': '...', 'namespace': '...', 'tags': [...], 'relationships': [...], 'summary': '...', 'path': '...'}
 
-# Get formatted summary (title + first paragraph)
-summary = get_memory_summary(Path("memory.memory.md"), max_lines=3)
-# Returns: "Title: My Decision\n\nFirst paragraph of content..."
+# Get memory summary (title and first paragraph)
+summary_info = get_memory_summary("memory.memory.md", max_summary=300)
+# Returns: {"title": "My Decision", "summary": "First paragraph of content..."}
 ````
 
 **Parsing Strategy**:
@@ -126,27 +126,27 @@ summary = get_memory_summary(Path("memory.memory.md"), max_lines=3)
 
 **API Reference**:
 
-#### `get_memory_metadata(path: Path) -> dict`
+#### `get_memory_metadata(path: str, max_summary: int = 300) -> Optional[dict]`
 Extract frontmatter as dictionary.
 
 **Returns**:
 - `id` (str): UUID
 - `title` (str): Memory title
-- `type` (str): Memory type (semantic/episodic/procedural)
 - `namespace` (str): Namespace path
 - `tags` (list): Tag list
 - `relationships` (list): Relationship objects
+- `summary` (str): First paragraph summary
+- `path` (str): Absolute path to memory file
 
-#### `get_memory_summary(path: Path, max_lines: int = 5) -> str`
-Generate human-readable summary.
+Returns None if file doesn't exist or can't be read.
 
-**Format**:
-````
-Title: {title}
-Type: {type} | Namespace: {namespace}
+#### `get_memory_summary(path: str, max_summary: int = 300) -> dict`
+Extract title and summary from memory file.
 
-{first_paragraph}
-````
+**Returns**:
+Dictionary with keys:
+- `title` (str): Memory title from frontmatter or filename
+- `summary` (str): First paragraph after frontmatter (truncated to max_summary)
 
 **Design Notes**:
 - Graceful degradation (YAML → regex fallback)
@@ -330,9 +330,9 @@ from lib.relationships import add_bidirectional_relationship
 
 # Add bidirectional link
 add_bidirectional_relationship(
-    from_file=Path("decision-a.memory.md"),
-    to_file=Path("decision-b.memory.md"),
-    relationship_type="supersedes",  # snake_case or PascalCase
+    source_path="decision-a.memory.md",
+    target_path="decision-b.memory.md",
+    rel_type="supersedes",  # snake_case or PascalCase
     label="Replaced by new approach"
 )
 
@@ -343,13 +343,13 @@ add_bidirectional_relationship(
 
 **API Reference**:
 
-#### `add_relationship(path, target_id, rel_type, label=None)`
+#### `add_relationship(memory_path, rel_type, target_id, label=None)`
 Add single relationship to frontmatter.
 
 **Args**:
-- `path` (Path): Memory file to modify
-- `target_id` (str): Target memory UUID
+- `memory_path` (str): Memory file to modify
 - `rel_type` (str): Relationship type (snake_case or PascalCase)
+- `target_id` (str): Target memory UUID
 - `label` (str, optional): Human-readable description
 
 **Validation**:
@@ -359,8 +359,17 @@ Add single relationship to frontmatter.
 
 ---
 
-#### `add_bidirectional_relationship(from_file, to_file, relationship_type, label=None)`
+#### `add_bidirectional_relationship(source_path, target_path, rel_type, label=None) -> tuple[bool, bool]`
 Add bidirectional relationship pair.
+
+**Args**:
+- `source_path` (str): Source memory file path
+- `target_path` (str): Target memory file path
+- `rel_type` (str): Relationship type (snake_case or PascalCase)
+- `label` (str, optional): Human-readable description
+
+**Returns**:
+Tuple of (forward_success, inverse_success) booleans.
 
 **Automatic Inverse**:
 - `supersedes` → creates `superseded_by` back-reference
@@ -371,9 +380,9 @@ Add bidirectional relationship pair.
 ````python
 # Link new decision to old one
 add_bidirectional_relationship(
-    from_file=Path("new-approach.memory.md"),
-    to_file=Path("old-approach.memory.md"),
-    relationship_type="supersedes"
+    source_path="new-approach.memory.md",
+    target_path="old-approach.memory.md",
+    rel_type="supersedes"
 )
 
 # Frontmatter updates:
@@ -463,15 +472,21 @@ is_valid, errors = validate_memory_against_ontology(
     namespace="_semantic/decisions"
 )
 
-# Get ontology file path (precedence order)
+# Get ontology file path
 ontology_path = get_ontology_file()
-# Checks: project > user > fallback
+# Currently resolves to the built-in fallback ontology file:
+# skills/ontology/fallback/ontologies/mif-base.ontology.yaml
 ````
 
-**Ontology Resolution** (precedence order):
-1. Project: `.claude/mnemonic/ontology.yaml`
-2. User: `~/.claude/mnemonic/ontology.yaml`
-3. Fallback: `skills/ontology/fallback/ontologies/mif-base.ontology.yaml`
+**Ontology Resolution**:
+
+Currently, `get_ontology_file()` resolves only the built-in fallback ontology:
+
+1. Fallback: `skills/ontology/fallback/ontologies/mif-base.ontology.yaml`
+
+Project-level (`.claude/mnemonic/ontology.yaml`) and user-level
+(`~/.claude/mnemonic/ontology.yaml`) ontology files are not currently
+used in the resolution process and may be supported in a future version.
 
 **Example Ontology**:
 ````yaml
@@ -581,7 +596,7 @@ results = find_related_memories_scored(
 # Read summaries
 for path, score in results[:3]:
     summary = get_memory_summary(path)
-    print(f"[{score}] {summary}\n")
+    print(f"[{score}] {summary['title']}: {summary['summary']}\n")
 ````
 
 ### Testing Pattern
@@ -599,6 +614,7 @@ def test_resolver(tmp_path):
         project="testproject",
         home_dir=tmp_path / "home",
         project_dir=tmp_path / "project",
+        memory_root=tmp_path / "mnemonic",
         scheme=PathScheme.LEGACY
     )
     return PathResolver(context)
