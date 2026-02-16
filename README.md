@@ -20,6 +20,7 @@ A pure filesystem-based memory system for Claude Code. No external dependencies 
 - **Skill-First Architecture**: Skills work standalone without hooks or libraries
 - **Cognitive Memory Types**: Semantic, episodic, and procedural memories
 - **Custom Ontologies**: Extend with domain-specific entity types and relationships
+- **Semantic Search**: Optional vector search via qmd integration
 - **Bi-Temporal Tracking**: Valid time vs. recorded time
 - **Git Versioned**: All changes tracked with git
 - **Cross-Session Coordination**: Blackboard for session handoffs
@@ -239,12 +240,16 @@ Autonomous agents for specialized tasks:
 
 | Guide | Focus |
 |-------|-------|
+| [Getting Started](docs/tutorials/getting-started.md) | First project setup tutorial |
+| [Tutorials](docs/tutorials/) | Step-by-step learning guides |
+| [API Reference](docs/api-reference.md) | Python library documentation |
+| [CLI Usage](docs/cli-usage.md) | Command-line operations |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 | [Architecture](docs/architecture.md) | System architecture |
 | [Library Reference](docs/library-reference.md) | Python library API reference |
 | [Agent Coordination](docs/agent-coordination.md) | Multi-agent patterns |
 | [Ontologies](docs/ontologies.md) | Custom ontology guide |
 | [Validation](docs/validation.md) | Memory validation guide |
-| [CLI Usage](docs/cli-usage.md) | Command-line operations |
 | [ADRs](docs/adrs/) | Architecture decision records |
 | [Enterprise](docs/enterprise/) | Deployment and compliance |
 
@@ -256,7 +261,11 @@ After running `/mnemonic:setup`, Claude will:
 2. **Auto-Capture**: Automatically save decisions, learnings, and patterns
 3. **Silent Operation**: Memory operations happen in the background
 
-## Search Examples
+## Search
+
+Mnemonic provides both traditional keyword search and semantic vector search.
+
+### Keyword Search (ripgrep)
 
 ```bash
 # Full-text search
@@ -274,6 +283,37 @@ rg "^type: episodic" ${MNEMONIC_ROOT}/ --glob "*.memory.md" -l
 # Recent files (last 7 days)
 find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime -7
 ```
+
+### Semantic Search (qmd)
+
+For semantic/vector search capabilities, use the integrated `@tobilu/qmd` support:
+
+```bash
+# One-time setup
+/mnemonic:qmd-setup
+
+# Keyword search (BM25)
+qmd search "authentication patterns"
+
+# Semantic vector search
+qmd vsearch "how do we handle user sessions"
+
+# Hybrid search (BM25 + vector)
+qmd query "database migration strategy"
+
+# Scope to specific collections
+qmd search "auth" -c mnemonic-zircote    # org memories only
+qmd search "auth" -c mnemonic-project    # this repo only
+
+# Re-index after adding new memories
+/mnemonic:qmd-reindex
+```
+
+**Requirements:**
+- Node.js >= 22
+- `npm i -g @tobilu/qmd`
+
+See [skills/qmd-setup/SKILL.md](skills/qmd-setup/SKILL.md) for detailed setup instructions.
 
 ## Hooks
 
@@ -326,6 +366,7 @@ mnemonic/
 │   └── *.md                # Slash commands
 ├── docs/
 │   ├── architecture.md     # System architecture
+│   ├── semantic-search.md  # QMD semantic search guide
 │   ├── validation.md       # Memory validation guide
 │   ├── agent-coordination.md  # Multi-agent patterns
 │   ├── ontologies.md       # Custom ontology guide
@@ -359,11 +400,18 @@ mnemonic/
 
 ## Requirements
 
+### Core Dependencies
+
 - Claude Code CLI
 - Git
 - ripgrep (recommended for search)
 - yq (required for structured queries)
 - Python 3.8+ (for hooks and tools)
+
+### Optional: Semantic Search
+
+- Node.js >= 22
+- `@tobilu/qmd` (`npm i -g @tobilu/qmd`)
 
 ### Installing Dependencies
 
@@ -375,9 +423,23 @@ brew install ripgrep yq
 apt install ripgrep
 snap install yq
 
+# Optional: semantic search
+npm i -g @tobilu/qmd
+
 # Check installation
 make check-deps
 ```
+
+## Documentation
+
+- **[Semantic Search Guide](docs/semantic-search.md)** - Setup and use QMD for vector search
+- **[CLI Usage](docs/cli-usage.md)** - Command-line operations and search patterns
+- **[Architecture](docs/architecture.md)** - System design and components
+- **[Validation](docs/validation.md)** - Memory validation and MIF compliance
+- **[Custom Ontologies](docs/ontologies.md)** - Extend with domain-specific types
+- **[Agent Coordination](docs/agent-coordination.md)** - Multi-agent workflows
+- **[ADRs](docs/adrs/)** - Architecture decision records
+- **[Enterprise Guides](docs/enterprise/)** - Deployment and governance
 
 ## Related Projects
 
