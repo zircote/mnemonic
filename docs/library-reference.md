@@ -9,6 +9,7 @@ Comprehensive reference for the mnemonic Python library modules.
   - [paths](#paths) - Path resolution and filesystem layout
   - [config](#config) - Configuration management
   - [memory_reader](#memory_reader) - Memory file parsing
+  - [migrate_filenames](#migrate_filenames) - Memory file migration utilities
   - [search](#search) - Memory search and ranking
   - [relationships](#relationships) - Relationship types and linking
   - [ontology](#ontology) - Custom ontology support
@@ -153,6 +154,112 @@ Dictionary with keys:
 - No exceptions raised on parse errors
 - Returns empty dict/string on failure
 - Used by hooks for `additionalContext` injection
+
+---
+
+### migrate_filenames
+
+**File**: `lib/migrate_filenames.py`
+
+Migration utilities for transitioning memory files from `{uuid}-{slug}.memory.md` to `{slug}.memory.md` naming convention. Handles collision detection, content merging, and idempotent execution.
+
+**Key Functions**:
+
+````python
+from lib.migrate_filenames import migrate_all, is_migration_complete, migrate_file
+from pathlib import Path
+
+# Check if migration already completed
+memory_root = Path.home() / ".claude" / "mnemonic"
+if not is_migration_complete(memory_root):
+    # Perform dry run first
+    results = migrate_all(memory_root, dry_run=True)
+    print(f"Would migrate {len(results)} files")
+    
+    # Execute migration
+    results = migrate_all(memory_root, dry_run=False)
+    for result in results:
+        print(f"{result.action}: {result.original.name} → {result.target.name}")
+````
+
+**Migration Behavior**:
+- **Rename**: `{uuid}-decision.memory.md` → `decision.memory.md` (preserves git history)
+- **Merge**: If `decision.memory.md` already exists, merges content from UUID-prefixed file
+- **Idempotent**: Marks completion with `.migration_slug_only_complete` marker file
+
+**API Reference**:
+
+#### `migrate_all(mnemonic_root: Path, dry_run: bool = False) -> list[MigrationResult]`
+Migrate all UUID-prefixed memory files in directory tree.
+
+**Parameters**:
+- `mnemonic_root`: Root directory to scan recursively
+- `dry_run`: If True, return results without modifying files
+
+**Returns**: List of `MigrationResult` objects with fields:
+- `original` (Path): Source file path
+- `target` (Path): Destination file path
+- `action` (str): One of "renamed", "merged", "skipped"
+- `merged_with` (Optional[Path]): Target file if merged
+
+**Behavior**:
+- Skips if `.migration_slug_only_complete` marker exists
+- Uses `git mv` when possible to preserve history
+- Merges content on collision (appends under "Merged Content" heading)
+- Creates marker file on completion
+
+#### `migrate_file(file_path: Path, dry_run: bool = False) -> MigrationResult`
+Migrate a single memory file.
+
+**Parameters**:
+- `file_path`: Path to memory file
+- `dry_run`: If True, return result without modifying files
+
+**Returns**: `MigrationResult` object
+
+**Collision Handling**:
+When target file exists, merges content by:
+1. Keeping existing frontmatter (preserves original ID, dates)
+2. Appending incoming body under separator
+3. Adding provenance note with incoming UUID
+
+#### `is_migration_complete(mnemonic_root: Path) -> bool`
+Check if migration has been run.
+
+**Returns**: True if `.migration_slug_only_complete` marker exists
+
+#### `mark_migration_complete(mnemonic_root: Path) -> None`
+Create marker file to prevent re-running migration.
+
+**Use Cases**:
+- **Batch Migration**: Run once during setup to clean up legacy filenames
+- **Continuous Integration**: Check `is_migration_complete()` before operations
+- **Manual Recovery**: Use `migrate_file()` for selective migration after conflicts
+
+**Example - Bulk Migration**:
+
+````python
+from lib.migrate_filenames import migrate_all, migration_summary
+from pathlib import Path
+
+memory_root = Path("~/.claude/mnemonic").expanduser()
+
+# Execute with logging
+results = migrate_all(memory_root, dry_run=False)
+summary = migration_summary(results)
+
+print(f"Migration complete:")
+print(f"  Renamed: {summary['renamed']} files")
+print(f"  Merged: {summary['merged']} files")
+print(f"  Skipped: {summary['skipped']} files")
+````
+
+**Design Notes**:
+- Atomic writes via `.tmp` files to prevent corruption
+- Git-aware (uses `git mv` when possible)
+- Collision-safe (merges rather than overwrites)
+- Idempotent by default (marker file prevents re-runs)
+- CLI support: `python -m lib.migrate_filenames --dry-run`
 
 ---
 
@@ -633,6 +740,7 @@ def test_memory_operations(test_resolver):
 | `paths.py` | Path resolution | `get_memory_dir()`, `get_search_paths()` |
 | `config.py` | Configuration | `get_memory_root()`, `MnemonicConfig.load()` |
 | `memory_reader.py` | Parsing | `get_memory_metadata()`, `get_memory_summary()` |
+| `migrate_filenames.py` | File migration | `migrate_all()`, `migrate_file()`, `is_migration_complete()` |
 | `search.py` | Search/ranking | `search_memories()`, `find_related_memories_scored()` |
 | `relationships.py` | Linking | `add_bidirectional_relationship()`, `get_inverse()` |
 | `ontology.py` | Validation | `load_ontology_data()`, `validate_memory_against_ontology()` |
@@ -648,6 +756,9 @@ from lib.config import get_memory_root
 
 # Memory reading
 from lib.memory_reader import get_memory_metadata, get_memory_summary
+
+# Migration
+from lib.migrate_filenames import migrate_all, is_migration_complete
 
 # Search
 from lib.search import search_memories, find_related_memories_scored
