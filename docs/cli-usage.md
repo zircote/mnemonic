@@ -22,7 +22,51 @@ ${MNEMONIC_ROOT}/{namespace}/{scope}/*.memory.md
 
 ## Searching Memories
 
-### Full-Text Search with ripgrep
+Mnemonic provides multiple search methods optimized for different use cases.
+
+### Method 1: Semantic Vector Search (qmd)
+
+For natural language queries and semantic understanding:
+
+```bash
+# One-time setup
+/mnemonic:qmd-setup
+
+# BM25 keyword ranking
+qmd search "authentication middleware"
+
+# Vector semantic search
+qmd vsearch "how do we manage user permissions"
+
+# Hybrid search (combines both)
+qmd query "error handling best practices"
+
+# Scope to specific collections
+qmd search "api design" -c mnemonic-zircote     # org memories
+qmd search "api design" -c mnemonic-project     # project memories
+qmd search "api design"                         # all collections
+
+# Limit results
+qmd search "docker" -n 5
+
+# Re-index after adding memories
+/mnemonic:qmd-reindex
+# or manually:
+qmd update && qmd embed
+```
+
+**When to use:**
+- Natural language queries
+- Conceptual/semantic similarity
+- Finding related memories across namespaces
+- "What do we know about X" questions
+
+**Requirements:**
+- Node.js >= 22
+- `npm i -g @tobilu/qmd`
+- Initial setup with `/mnemonic:qmd-setup`
+
+### Method 2: Full-Text Search with ripgrep
 
 ```bash
 # Search all memories for a keyword
@@ -63,7 +107,13 @@ rg "confidence: 0.9" $MNEMONIC_ROOT --glob "*.memory.md" -l
 rg "^title:.*PostgreSQL" $MNEMONIC_ROOT --glob "*.memory.md" -l
 ```
 
-### Using find for File Operations
+**When to use:**
+- Exact phrase matching
+- Known keywords
+- Regular expressions
+- Precise control over matching
+
+### Method 3: Using find for File Operations
 
 ```bash
 # List all memories
@@ -78,6 +128,29 @@ find ${MNEMONIC_ROOT} -name "*.memory.md" -mtime +90
 # Count memories by namespace
 find ${MNEMONIC_ROOT} -name "*.memory.md" | grep -o '/[^/]*/project\|/[^/]*/user' | sort | uniq -c
 ```
+
+**When to use:**
+- Time-based filtering
+- File system operations
+- Batch processing
+- Directory traversal
+
+### Search Method Comparison
+
+| Feature | qmd (Semantic) | ripgrep | find |
+|---------|---------------|---------|------|
+| Natural language | ✅ Best | ❌ No | ❌ No |
+| Exact matching | ⚠️ Good | ✅ Best | ❌ No |
+| Speed | ⚠️ Moderate | ✅ Fast | ✅ Fast |
+| Ranking | ✅ Relevance | ❌ No | ❌ No |
+| Setup required | ⚠️ Yes | ✅ None | ✅ None |
+| Regex support | ❌ No | ✅ Yes | ⚠️ Limited |
+| Time filtering | ❌ No | ❌ No | ✅ Yes |
+
+**Recommendation:**
+- **Complex questions**: Use `qmd query`
+- **Known keywords**: Use `rg`
+- **Time-based**: Use `find` + `rg`
 
 ## Reading Memories
 
