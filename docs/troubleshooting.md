@@ -162,8 +162,8 @@ echo $MNEMONIC_ROOT
 # Check actual memory location
 find ~ -name "*.memory.md" -type f | head -5
 
-# Verify memory root in config
-cat ~/.claude/mnemonic/config.yaml
+# Verify memory root in config (XDG)
+cat ~/.config/mnemonic/config.json
 ````
 
 ### Case Sensitivity
@@ -241,8 +241,8 @@ git remote set-url origin https://github.com/correct-org/project.git
 # Validate YAML syntax
 python3 -c "import yaml; yaml.safe_load(open('.claude/mnemonic/ontology.yaml'))"
 
-# Use validation tool
-python3 tools/mnemonic-validate .claude/mnemonic/ontology.yaml
+# Validate ontology file
+/mnemonic:validate .claude/mnemonic/ontology.yaml
 ````
 
 ### Missing Required Fields
@@ -412,14 +412,14 @@ EOF
 Run garbage collection:
 
 ````bash
-# Remove expired memories
+# Preview which memories would be collected
 /mnemonic:gc --dry-run
 
-# Compress old memories
-/mnemonic:gc --compress --older-than 90d
+# Compress memories to save space
+/mnemonic:gc --compress
 
-# Archive by namespace
-/mnemonic:gc --archive --namespace episodic/sessions
+# Archive memories instead of deleting them
+/mnemonic:gc --archive
 ````
 
 ### Hook Timeout
@@ -448,10 +448,10 @@ export MNEMONIC_HOOK_QUIET=1
 
 ````bash
 # Validate all relationships
-/mnemonic:custodian --validate-links
+/mnemonic:custodian validate-links
 
 # Fix broken links automatically
-/mnemonic:custodian --validate-links --fix
+/mnemonic:custodian validate-links --fix
 ````
 
 ### Missing Inverse Relationships
@@ -460,11 +460,10 @@ export MNEMONIC_HOOK_QUIET=1
 
 **Solution:**
 
-````bash
-# Ensure bidirectional relationships
-/mnemonic:custodian --ensure-bidirectional
+Add bidirectional relationships using the library helper:
 
-# Or add manually with library
+````bash
+# Add a bidirectional relationship using the library helper
 python3 << 'EOF'
 from lib.relationships import add_bidirectional_relationship
 
@@ -493,26 +492,25 @@ print(valid_types)
 ````
 
 Valid default types:
-- `relates_to` / `related_to`
-- `depends_on` / `dependency_of`
-- `supersedes` / `superseded_by`
-- `implements` / `implemented_by`
-- `caused_by` / `causes`
-- `resolves` / `resolved_by`
+- `relates_to` / `RelatesTo`
+- `derived_from` / `DerivedFrom` (inverse: `Derives`)
+- `supersedes` / `Supersedes` (inverse: `SupersededBy`)
+- `conflicts_with` / `ConflictsWith`
+- `part_of` / `PartOf` (inverse: `Contains`)
+- `uses` / `Uses` (inverse: `UsedBy`)
+- `implements` / `Implements` (inverse: `ImplementedBy`)
+- `created` / `Created` (inverse: `CreatedBy`)
+- `mentioned_in` / `MentionedIn` (inverse: `Mentions`)
 
 ## Getting Help
 
-### Enable Debug Logging
+### Capture Command Output
+
+You can capture detailed output from Mnemonic commands and include it when reporting issues.
 
 ````bash
-# Set debug environment variable
-export MNEMONIC_DEBUG=1
-
-# Run command
-/mnemonic:status
-
-# Check logs
-tail -f ~/.claude/logs/mnemonic.log
+# Capture detailed output from a Mnemonic command
+/mnemonic:status 2>&1 | tee mnemonic-debug.log
 ````
 
 ### Test Hook in Isolation
@@ -531,9 +529,10 @@ echo $?
 # Run comprehensive validation
 make validate
 
-# Check specific components
-make test-hooks
-make test-lib
+# Run tests
+make test
+
+# Check linting
 make lint
 ````
 
@@ -550,7 +549,7 @@ When reporting issues, include:
 
 2. **Configuration:**
    ````bash
-   cat ~/.claude/mnemonic/config.yaml
+   cat ~/.config/mnemonic/config.json
    git remote -v
    ````
 

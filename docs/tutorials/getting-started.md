@@ -59,7 +59,7 @@ Plugins:
 
 ## Step 3: Initialize Mnemonic
 
-Run the setup command to configure proactive behavior:
+Run the setup command to configure Mnemonic:
 
 ````bash
 # Inside Claude Code session
@@ -68,41 +68,34 @@ Run the setup command to configure proactive behavior:
 
 This command will:
 
-1. Create `.claude/mnemonic/` directory structure
-2. Initialize git repository for memory versioning
-3. Configure CLAUDE.md for proactive memory operations
-4. Set up the default ontology
+1. Detect your current git remote to infer organization and project names
+2. Write global Mnemonic config to `~/.config/mnemonic/config.json`
+3. Create the unified memory store directory at the configured path (by default `~/.claude/mnemonic/{org}/{project}/`)
+4. Initialize the default ontology and index structures in that directory
 
 **What happens:**
-- Creates `~/.claude/mnemonic/` (user-level memories)
-- Creates `.claude/mnemonic/` (project-level config)
-- Copies default ontology to project
-- Updates `.claude/CLAUDE.md` with memory instructions
+- Creates or updates `~/.config/mnemonic/config.json` with organization, project, and memory store path
+- Creates `~/.claude/mnemonic/{org}/{project}/` if it does not already exist
+- Populates that project directory in the memory store with the default layout used by all Mnemonic commands
+- Initializes git repository for versioning at memory store root
 
 ## Step 4: Verify Directory Structure
 
 ````bash
-# Check user-level structure
-tree -L 3 ~/.claude/mnemonic/
-
-# Check project-level structure
-tree -L 2 .claude/mnemonic/
+# Check memory store structure for this project
+tree -L 3 ~/.claude/mnemonic/your-org/your-project/
 ````
 
 **Expected structure:**
 
 ````
 ~/.claude/mnemonic/
-├── your-org/
-│   ├── your-project/
-│   │   ├── _semantic/
-│   │   ├── _episodic/
-│   │   └── _procedural/
-│   └── .git/
-
-.claude/mnemonic/
-├── config.yaml
-└── ontology.yaml
+├── .git/
+└── your-org/
+    └── your-project/
+        ├── _semantic/
+        ├── _episodic/
+        └── _procedural/
 ````
 
 ## Step 5: Check System Status
@@ -111,13 +104,12 @@ tree -L 2 .claude/mnemonic/
 /mnemonic:status
 ````
 
-**Expected output:**
+**Example output (will vary by project):**
 
 ````
 ✓ Memory root: ~/.claude/mnemonic/
 ✓ Organization: your-org
 ✓ Project: your-project
-✓ Ontology: loaded (.claude/mnemonic/ontology.yaml)
 ✓ Git initialized
 ✓ Total memories: 0
 ````
@@ -222,11 +214,11 @@ See [Troubleshooting Guide](../troubleshooting.md) for more issues.
 
 ## Next Steps
 
-Now that you have Mnemonic set up:
+Now that you have Mnemonic set up, continue learning:
 
-1. **[Creating Your First Memory](creating-memories.md)** - Learn different capture methods
-2. **[Understanding Memory Types](memory-types.md)** - Explore semantic, episodic, and procedural memories
-3. **[Building a Knowledge Base](knowledge-base.md)** - Create a comprehensive project knowledge base
+1. **[CLI Usage](../cli-usage.md)** - Learn all Mnemonic commands
+2. **[Ontologies Guide](../ontologies.md)** - Explore memory types and namespaces
+3. **[Architecture](../architecture.md)** - Create a comprehensive project knowledge base
 
 ## What You Learned
 

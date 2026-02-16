@@ -7,24 +7,24 @@ Step-by-step guides for learning Mnemonic.
 New to Mnemonic? Start here:
 
 1. **[First Project Setup](getting-started.md)** - Set up Mnemonic in your first project (15 min)
-2. **[Creating Your First Memory](creating-memories.md)** - Capture and recall memories (10 min)
-3. **[Understanding Memory Types](memory-types.md)** - Learn semantic, episodic, and procedural memories (10 min)
 
 ## Intermediate
 
-Build your skills:
+Build your skills with additional tutorials (coming soon):
 
-4. **[Building a Knowledge Base](knowledge-base.md)** - Create a project knowledge base (30 min)
-5. **[Custom Ontologies](custom-ontologies.md)** - Define domain-specific entities and relationships (30 min)
-6. **[Multi-Project Workflows](multi-project.md)** - Share memories across projects (20 min)
+- Creating Your First Memory - Capture and recall memories
+- Understanding Memory Types - Learn semantic, episodic, and procedural memories
+- Building a Knowledge Base - Create a project knowledge base
+- Custom Ontologies - Define domain-specific entities and relationships
+- Multi-Project Workflows - Share memories across projects
 
 ## Advanced
 
-Master Mnemonic:
+Master Mnemonic with advanced tutorials (coming soon):
 
-7. **[Agent Coordination](agent-coordination.md)** - Use the blackboard for complex workflows (30 min)
-8. **[Memory Maintenance](maintenance.md)** - Curate and optimize your memory system (20 min)
-9. **[Custom Skills](custom-skills.md)** - Extend Mnemonic with custom skills (45 min)
+- Agent Coordination - Use the blackboard for complex workflows
+- Memory Maintenance - Curate and optimize your memory system
+- Custom Skills - Extend Mnemonic with custom skills
 
 ## Quick Reference
 
@@ -38,25 +38,28 @@ Master Mnemonic:
 
 **Goal:** Build project documentation memory system
 
-1. First Project Setup → Creating Memories → Building a Knowledge Base → Memory Maintenance
+1. First Project Setup
+2. Additional tutorials coming soon
 
-**Time:** ~1.5 hours
+**Time:** ~15 min (currently available)
 
 ### For Teams
 
 **Goal:** Shared organizational memory across projects
 
-1. First Project Setup → Multi-Project Workflows → Custom Ontologies → Agent Coordination
+1. First Project Setup
+2. Additional tutorials coming soon
 
-**Time:** ~2 hours
+**Time:** ~15 min (currently available)
 
 ### For Power Users
 
 **Goal:** Full system customization and extension
 
-Complete all tutorials + review architecture docs
+1. First Project Setup + review architecture docs
+2. Additional tutorials coming soon
 
-**Time:** ~4 hours
+**Time:** ~30 min (currently available)
 
 ## Tutorial Format
 
