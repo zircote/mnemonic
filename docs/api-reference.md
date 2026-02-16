@@ -108,7 +108,8 @@ resolver = PathResolver(context=custom_context)
 
 - **`get_ontology_paths() -> list[Path]`**
   
-  Get ontology files in precedence order (project > plugin fallback).
+  Get ordered list of ontology file paths to check (project > user/org levels).
+  Does not include the bundled MIF base ontology, which is resolved separately via `lib.ontology.get_ontology_file()`.
 
 - **`get_all_memory_roots() -> list[Path]`**
   
@@ -119,10 +120,9 @@ resolver = PathResolver(context=custom_context)
 ````python
 from lib.paths import (
     get_memory_dir,
-    get_memory_path,
     get_search_paths,
     get_blackboard_dir,
-    get_all_memory_roots,
+    get_all_memory_roots_with_legacy,
 )
 
 # Get memory directory (string scope)
@@ -156,7 +156,7 @@ from lib.config import MnemonicConfig
 config = MnemonicConfig.load()
 
 # Access fields
-config.memory_root  # Path to memory root directory
+config.memory_store_path  # Path to memory root directory
 ````
 
 ### Functions
@@ -281,7 +281,7 @@ Memory relationship management.
   ````python
   from lib.relationships import get_inverse
   
-  inverse = get_inverse("depends_on")  # Returns: "dependency_of"
+  inverse = get_inverse("supersedes")  # Returns: "SupersededBy"
   ````
 
 - **`is_valid_type(rel_type: str) -> bool`**
@@ -296,7 +296,7 @@ Memory relationship management.
   
   Get all valid relationship types.
 
-- **`add_relationship(source_path: str, target_id: str, rel_type: str, label: str = None) -> bool`**
+- **`add_relationship(memory_path: str, rel_type: str, target_id: str, label: str = None) -> bool`**
   
   Add a relationship to a memory file.
   
@@ -304,9 +304,9 @@ Memory relationship management.
   from lib.relationships import add_relationship
   
   success = add_relationship(
-      source_path="/path/to/source.memory.md",
-      target_id="550e8400-e29b-41d4-a716-446655440000",
+      memory_path="/path/to/source.memory.md",
       rel_type="relates_to",
+      target_id="550e8400-e29b-41d4-a716-446655440000",
       label="Related decision"
   )
   ````
@@ -317,29 +317,33 @@ Memory relationship management.
 
 ## lib.ontology
 
-Ontology loading and management.
+Ontology loading and management for the bundled MIF base ontology and any project/user ontologies.
 
 ### Functions
 
 - **`get_ontology_file() -> Optional[Path]`**
   
-  Get path to custom ontology file if it exists.
+  Get the path to the bundled MIF base ontology used as the fallback ontology.
+  This does not return project or user custom ontology paths; those are
+  discovered via `PathResolver.get_ontology_paths()`.
 
 - **`load_ontology_data() -> dict`**
   
-  Load ontology data from custom or fallback file.
+  Load ontology data starting from the bundled base ontology, and then apply
+  any project/user ontologies discovered via `PathResolver.get_ontology_paths()`.
 
 - **`load_file_patterns() -> list`**
   
-  Load file discovery patterns from ontology.
+  Load file discovery patterns from the effective ontology (base plus any
+  discovered custom ontologies).
 
 - **`load_content_patterns() -> dict`**
   
-  Load content discovery patterns from ontology.
+  Load content discovery patterns from the effective ontology.
 
 - **`load_ontology_namespaces() -> list`**
   
-  Load namespace hierarchy from ontology.
+  Load namespace hierarchy from the effective ontology.
 
 - **`get_fallback_file_patterns() -> list`**
   
