@@ -94,4 +94,4 @@ qmd search "auth" -c mnemonic-project
 qmd query "deployment process" --json -n 5
 ```
 
-Setup: `/mnemonic:qmd-setup` | Re-index: `/mnemonic:reindex` (or `qmd update && qmd embed`)
+Setup: `/mnemonic:qmd-setup` | Re-index: `/mnemonic:qmd-reindex` (or `qmd update && qmd embed`)

@@ -43,11 +43,14 @@ The script will:
 
 If you prefer to set up manually:
 
+`MNEMONIC_ROOT` is resolved from `~/.config/mnemonic/config.json` (defaults to
+`~/.local/share/mnemonic`). Adjust the paths below to match your config:
+
 ```bash
-# 1. Register collections
-qmd collection add ~/.local/share/mnemonic/zircote/ --name mnemonic-zircote
-qmd collection add ~/.local/share/mnemonic/default/ --name mnemonic-default
-qmd collection add .claude/mnemonic/ --name mnemonic-project  # if exists
+# 1. Register collections (replace paths with your MNEMONIC_ROOT)
+qmd collection add "${MNEMONIC_ROOT:-$HOME/.local/share/mnemonic}/zircote/" --name mnemonic-zircote
+qmd collection add "${MNEMONIC_ROOT:-$HOME/.local/share/mnemonic}/default/" --name mnemonic-default
+qmd collection add "$(git rev-parse --show-toplevel)/.claude/mnemonic/" --name mnemonic-project  # if exists
 
 # 2. Build index
 qmd update
@@ -80,7 +83,7 @@ qmd search "auth"                        # all collections
 
 ## Re-indexing
 
-After adding new memories, re-index with `/mnemonic:reindex` or:
+After adding new memories, re-index with `/mnemonic:qmd-reindex` or:
 
 ```bash
 qmd update && qmd embed

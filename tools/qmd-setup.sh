@@ -44,10 +44,12 @@ info "qmd $(qmd --version 2>/dev/null || echo '(version unknown)') ✓"
 
 CONFIG_FILE="$HOME/.config/mnemonic/config.json"
 if [[ -f "$CONFIG_FILE" ]]; then
-    RAW_PATH=$(python3 -c "
-import json, pathlib, os
-p = json.load(open('$CONFIG_FILE')).get('memory_store_path', '~/.local/share/mnemonic')
-print(os.path.expanduser(p))
+    RAW_PATH=$(node -e "
+const fs = require('fs');
+const os = require('os');
+const cfg = JSON.parse(fs.readFileSync('$CONFIG_FILE', 'utf8'));
+const p = cfg.memory_store_path || '~/.local/share/mnemonic';
+console.log(p.replace(/^~/, os.homedir()));
 ")
     MNEMONIC_ROOT="$RAW_PATH"
 else
@@ -90,10 +92,13 @@ if [[ -d "$MNEMONIC_ROOT/default" ]]; then
     register_collection "$MNEMONIC_ROOT/default" "mnemonic-default"
 fi
 
-# Project-level memories
-PROJECT_MNEMONIC=".claude/mnemonic"
-if [[ -d "$PROJECT_MNEMONIC" ]]; then
-    register_collection "$PROJECT_MNEMONIC" "mnemonic-project"
+# Project-level memories (resolve from git root if available)
+PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+if [[ -n "$PROJECT_ROOT" && -d "$PROJECT_ROOT/.claude/mnemonic" ]]; then
+    register_collection "$PROJECT_ROOT/.claude/mnemonic" "mnemonic-project"
+elif [[ -d ".claude/mnemonic" ]]; then
+    warn "Not in a git repo; checking .claude/mnemonic relative to cwd."
+    register_collection "$(pwd)/.claude/mnemonic" "mnemonic-project"
 fi
 
 if ((COLLECTIONS_ADDED == 0)); then
@@ -105,6 +110,10 @@ info "$COLLECTIONS_ADDED collection(s) registered."
 ###############################################################################
 # Index and embed
 ###############################################################################
+
+info "Indexing and embedding all configured qmd collections…"
+info "Note: if you have other qmd collections, they will also be updated."
+info "To limit scope, run: qmd update -c <name> && qmd embed -c <name>"
 
 info "Indexing files (qmd update)…"
 qmd update

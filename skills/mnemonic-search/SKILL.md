@@ -435,7 +435,7 @@ qmd vsearch "auth" --min-score 0.5
 
 ### Important
 
-Indexing is **not** automatic. After adding memories, run `/mnemonic:reindex` (or `qmd update && qmd embed`).
+Indexing is **not** automatic. After adding memories, run `/mnemonic:qmd-reindex` (or `qmd update && qmd embed`).
 
 ---
 

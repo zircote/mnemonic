@@ -202,7 +202,7 @@ When `@tobilu/qmd` is installed and indexed, prefer `qmd query` over iterative r
 qmd query "authentication patterns and session handling" -n 10 --json
 ```
 
-Use `/mnemonic:qmd-setup` to install and configure qmd. Use `/mnemonic:reindex` after adding memories.
+Use `/mnemonic:qmd-setup` to install and configure qmd. Use `/mnemonic:qmd-reindex` after adding memories.
 
 ### Step 5: Detect Convergence
 
