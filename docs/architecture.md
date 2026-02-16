@@ -349,5 +349,5 @@ See [Agent Coordination](agent-coordination.md) for patterns.
 - [Deployment Guide](enterprise/deployment-guide.md) - Installation and team sharing
 
 ### Community
-- [Migration from Memory Bank](community/migration-from-memory-bank.md) - For existing Memory Bank users
-- [Comparison](community/mnemonic-vs-memory-bank.md) - Mnemonic vs Memory Bank features
+- [Migration from Memory Bank](archive/community/migration-from-memory-bank.md) - For existing Memory Bank users
+- [Comparison](archive/community/mnemonic-vs-memory-bank.md) - Mnemonic vs Memory Bank features
