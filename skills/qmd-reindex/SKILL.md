@@ -1,9 +1,7 @@
 ---
 allowed-tools:
 - Bash
-description: >
-  Re-index mnemonic memories for qmd semantic search. Run after capturing
-  new memories or bulk imports.
+description: Re-index mnemonic memories for qmd semantic search. Run after capturing new memories or bulk imports.
 name: qmd-reindex
 user-invocable: true
 ---

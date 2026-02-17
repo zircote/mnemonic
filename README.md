@@ -201,31 +201,31 @@ See [docs/ontologies.md](docs/ontologies.md) for the full guide.
 | Command | Description |
 |---------|-------------|
 | `/mnemonic:setup` | Configure mnemonic with proactive behavior |
-| `/mnemonic:init` | Initialize directory structure |
 | `/mnemonic:capture` | Capture a new memory |
 | `/mnemonic:recall` | Search and recall memories |
-| `/mnemonic:search` | Full-text search |
-| `/mnemonic:search-enhanced` | Agent-driven iterative search with synthesis |
+| `/mnemonic:search` | Full-text search and enhanced iterative search |
 | `/mnemonic:query` | Structured frontmatter queries using yq |
 | `/mnemonic:status` | Show system status |
 | `/mnemonic:gc` | Garbage collect expired memories |
 | `/mnemonic:list` | List loaded ontologies and namespaces |
 | `/mnemonic:validate` | Validate ontology file |
-| `/mnemonic:discover` | Discover entities in files based on ontology patterns |
+| `/mnemonic:custodian` | Memory health checks and maintenance |
+| `/mnemonic:integrate` | Wire mnemonic into other plugins |
 
 ## Skills
 
 Skills are fully self-contained and work without hooks or libraries:
 
-- **mnemonic-setup**: Configure CLAUDE.md for proactive behavior
-- **mnemonic-core**: Complete memory operations
-- **mnemonic-search**: Advanced search patterns
-- **mnemonic-search-enhanced**: Agent-driven iterative search with synthesis
-- **mnemonic-format**: MIF Level 3 templates
-- **mnemonic-organization**: Namespaces and maintenance
-- **mnemonic-blackboard**: Cross-session coordination
-- **mnemonic-agent-coordination**: Multi-agent coordination patterns
+- **setup**: Configure CLAUDE.md for proactive behavior
+- **core**: Complete memory operations
+- **search**: Advanced search patterns and iterative synthesis
+- **format**: MIF Level 3 templates
+- **blackboard**: Cross-session coordination and agent patterns
 - **ontology**: Custom ontology support with entity types and discovery
+- **custodian**: Memory maintenance, deduplication, and health checks
+- **integrate**: CLAUDE.md integration for new projects
+- **qmd-setup**: Semantic search setup via qmd
+- **qmd-reindex**: Re-index memories for semantic search
 
 ## Agents
 
@@ -241,17 +241,14 @@ Autonomous agents for specialized tasks:
 | Guide | Focus |
 |-------|-------|
 | [Getting Started](docs/tutorials/getting-started.md) | First project setup tutorial |
-| [Tutorials](docs/tutorials/) | Step-by-step learning guides |
-| [API Reference](docs/api-reference.md) | Python library documentation |
 | [CLI Usage](docs/cli-usage.md) | Command-line operations |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 | [Architecture](docs/architecture.md) | System architecture |
+| [Semantic Search](docs/semantic-search.md) | QMD vector search setup |
 | [Library Reference](docs/library-reference.md) | Python library API reference |
-| [Agent Coordination](docs/agent-coordination.md) | Multi-agent patterns |
 | [Ontologies](docs/ontologies.md) | Custom ontology guide |
 | [Validation](docs/validation.md) | Memory validation guide |
 | [ADRs](docs/adrs/) | Architecture decision records |
-| [Enterprise](docs/enterprise/) | Deployment and compliance |
 
 ## Proactive Behavior
 
@@ -359,19 +356,21 @@ mnemonic/
 ├── .claude-plugin/
 │   └── plugin.json         # Plugin manifest
 ├── agents/
-│   ├── memory-curator.md   # Maintenance agent
+│   ├── memory-curator.md           # Maintenance agent
 │   ├── mnemonic-search-subcall.md  # Search iteration agent
-│   └── compression-worker.md       # Memory summarization agent
+│   ├── compression-worker.md       # Memory summarization agent
+│   └── ontology-discovery.md       # Entity discovery agent
 ├── commands/
 │   └── *.md                # Slash commands
 ├── docs/
 │   ├── architecture.md     # System architecture
 │   ├── semantic-search.md  # QMD semantic search guide
 │   ├── validation.md       # Memory validation guide
-│   ├── agent-coordination.md  # Multi-agent patterns
 │   ├── ontologies.md       # Custom ontology guide
-│   ├── adrs/               # Architecture decision records
-│   └── enterprise/         # Enterprise adoption guides
+│   ├── cli-usage.md        # Command-line operations
+│   ├── library-reference.md # Python library API
+│   ├── troubleshooting.md  # Common issues and solutions
+│   └── adrs/               # Architecture decision records
 ├── hooks/
 │   ├── hooks.json          # Hook configuration
 │   └── *.py                # Hook implementations
@@ -381,7 +380,8 @@ mnemonic/
 │   ├── ontology.py         # Ontology loading
 │   ├── search.py           # Memory search and scoring
 │   ├── memory_reader.py    # Memory metadata extraction
-│   └── relationships.py    # Relationship writing
+│   ├── relationships.py    # Relationship writing
+│   └── migrate_filenames.py # Filename migration utilities
 ├── skills/
 │   ├── */SKILL.md          # Self-contained skills
 │   └── ontology/           # Custom ontology support
@@ -429,17 +429,6 @@ npm i -g @tobilu/qmd
 # Check installation
 make check-deps
 ```
-
-## Documentation
-
-- **[Semantic Search Guide](docs/semantic-search.md)** - Setup and use QMD for vector search
-- **[CLI Usage](docs/cli-usage.md)** - Command-line operations and search patterns
-- **[Architecture](docs/architecture.md)** - System design and components
-- **[Validation](docs/validation.md)** - Memory validation and MIF compliance
-- **[Custom Ontologies](docs/ontologies.md)** - Extend with domain-specific types
-- **[Agent Coordination](docs/agent-coordination.md)** - Multi-agent workflows
-- **[ADRs](docs/adrs/)** - Architecture decision records
-- **[Enterprise Guides](docs/enterprise/)** - Deployment and governance
 
 ## Related Projects
 

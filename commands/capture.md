@@ -34,7 +34,7 @@ Capture a new memory to the mnemonic filesystem.
 - `--tags` - Comma-separated list of tags
 - `--scope` - project (default, current project) or org (shared across all projects in organization)
 - `--confidence` - Confidence score 0.0-1.0 (default: 0.95)
-- `--citations` - JSON array of citation objects (see mnemonic-format skill for schema)
+- `--citations` - JSON array of citation objects (see format skill for schema)
 - `--entity-type` - Entity type from ontology (e.g., technology, component, runbook)
 - `--entity-id` - Custom entity ID (auto-generated if not provided)
 

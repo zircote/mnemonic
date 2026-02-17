@@ -242,11 +242,11 @@ Mitigations for negative consequences:
 
 | Finding | Files | Lines | Assessment |
 |---------|-------|-------|------------|
-| MIF Level 3 frontmatter template | `skills/mnemonic-core/SKILL.md` | L346-L394 | compliant |
-| Cognitive type classification | `skills/mnemonic-core/SKILL.md` | L143-L149 | compliant |
+| MIF Level 3 frontmatter template | `skills/core/SKILL.md` | L346-L394 | compliant |
+| Cognitive type classification | `skills/core/SKILL.md` | L143-L149 | compliant |
 | Temporal fields in capture | `commands/capture.md` | L99-L116 | compliant |
 | Provenance tracking | `commands/capture.md` | L112-L115 | compliant |
-| Decay model support | `skills/mnemonic-format/SKILL.md` | L1-L50 | compliant |
+| Decay model support | `skills/format/SKILL.md` | L1-L50 | compliant |
 
 **Summary:** MIF Level 3 format implementation follows specification.
 

@@ -1,6 +1,6 @@
 ---
 title: "MIF Schema as Single Source of Truth for Validation"
-description: "Validation tool parses MIF schema from mnemonic-format SKILL.md directly"
+description: "Validation tool parses MIF schema from format SKILL.md directly"
 type: adr
 category: architecture
 tags:
@@ -38,7 +38,7 @@ The mnemonic system needs a validation tool to ensure memory files conform to th
 
 ### Current State
 
-The MIF Level 3 specification is documented in `skills/mnemonic-format/SKILL.md`, which includes:
+The MIF Level 3 specification is documented in `skills/format/SKILL.md`, which includes:
 - Required fields and their types
 - Valid enum values for type, source_type, etc.
 - Validation rules section with specific checks
@@ -109,7 +109,7 @@ The MIF Level 3 specification is documented in `skills/mnemonic-format/SKILL.md`
 
 ### Option 3: Parse Schema from SKILL.md (Selected)
 
-**Description**: Validation tool parses rules directly from `mnemonic-format/SKILL.md`.
+**Description**: Validation tool parses rules directly from `format/SKILL.md`.
 
 **Technical Characteristics**:
 - SKILL.md is authoritative source
@@ -133,7 +133,7 @@ The MIF Level 3 specification is documented in `skills/mnemonic-format/SKILL.md`
 
 ## Decision
 
-We will parse validation rules directly from `skills/mnemonic-format/SKILL.md`.
+We will parse validation rules directly from `skills/format/SKILL.md`.
 
 ### Parsing Strategy
 
@@ -149,7 +149,7 @@ The validation tool will extract:
 
 ```python
 def parse_mif_schema(skill_path: Path) -> MIFSchema:
-    """Parse MIF schema from mnemonic-format SKILL.md."""
+    """Parse MIF schema from format SKILL.md."""
     content = skill_path.read_text()
 
     schema = MIFSchema()

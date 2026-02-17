@@ -318,7 +318,7 @@ mnemonic/
 1. `hooks/session_start.py` - Load ontologies
 2. `commands/capture.md` - Ontology-aware capture
 3. `tools/mnemonic-validate` - Ontology validation
-4. `skills/mnemonic-format/SKILL.md` - Document ontology fields
+4. `skills/format/SKILL.md` - Document ontology fields
 5. `.claude-plugin/plugin.json` - Register new components
 
 ## Validation

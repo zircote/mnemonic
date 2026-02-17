@@ -2,7 +2,7 @@
 """
 mnemonic-validate: Validate mnemonic memory files against MIF Level 3 schema.
 
-This tool parses the MIF schema from skills/mnemonic-format/SKILL.md and validates
+This tool parses the MIF schema from skills/format/SKILL.md and validates
 all memory files against it.
 
 Usage:
@@ -114,7 +114,7 @@ def find_plugin_root() -> Path:
 
 
 def parse_mif_schema(skill_path: Path) -> MIFSchema:
-    """Parse MIF schema from mnemonic-format SKILL.md."""
+    """Parse MIF schema from format SKILL.md."""
     content = skill_path.read_text()
     schema = MIFSchema()
 
@@ -705,7 +705,7 @@ def main():
         plugin_root = Path(__file__).parent.parent
 
     # Load schema
-    skill_path = plugin_root / "skills" / "mnemonic-format" / "SKILL.md"
+    skill_path = plugin_root / "skills" / "format" / "SKILL.md"
     if not skill_path.exists():
         print(f"Error: Cannot find MIF schema at {skill_path}", file=sys.stderr)
         sys.exit(1)
