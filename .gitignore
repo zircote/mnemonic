@@ -1,4 +1,5 @@
 # Mnemonic local data
+refactor-result-*
 .claude/mnemonic/
 .claude/.mnemonic-integration-manifest.json
 .fastembed_cache/

@@ -64,24 +64,24 @@ Simple slash commands for direct user interaction:
 | `/mnemonic:setup` | Initialize and configure mnemonic |
 | `/mnemonic:capture` | Create a new memory |
 | `/mnemonic:recall` | Retrieve memories |
-| `/mnemonic:search` | Full-text search |
-| `/mnemonic:search-enhanced` | Agent-driven iterative search with synthesis |
+| `/mnemonic:search` | Full-text search and iterative synthesis |
 | `/mnemonic:status` | System status |
 | `/mnemonic:gc` | Garbage collection |
-| `/mnemonic:init` | Initialize directories |
 
 ### Skills
 
 Self-contained instruction sets that work without external dependencies:
 
-- **mnemonic-core**: Complete memory operations
-- **mnemonic-setup**: CLAUDE.md configuration
-- **mnemonic-search**: Advanced search patterns
-- **mnemonic-search-enhanced**: Agent-driven iterative search with synthesis
-- **mnemonic-format**: MIF Level 3 templates and schema
-- **mnemonic-organization**: Namespace management
-- **mnemonic-blackboard**: Cross-session coordination
-- **mnemonic-agent-coordination**: Multi-agent coordination patterns
+- **core**: Complete memory operations
+- **setup**: CLAUDE.md configuration
+- **search**: Advanced search patterns and iterative synthesis
+- **format**: MIF Level 3 templates and schema
+- **blackboard**: Cross-session coordination and agent patterns
+- **ontology**: Custom ontology support with entity types and discovery
+- **custodian**: Memory health checks and maintenance
+- **integrate**: Plugin integration via sentinel markers
+- **qmd-setup**: Semantic search bootstrap
+- **qmd-reindex**: Memory re-indexing for semantic search
 
 ### Hooks
 
@@ -114,7 +114,7 @@ Autonomous background operations:
 - **mnemonic-search-subcall**: Efficient search agent for iterative query refinement (Haiku model)
 - **compression-worker**: Memory summarization for gc --compress (Haiku model)
 
-Agents coordinate through the blackboard pattern. See [Agent Coordination](agent-coordination.md) for details.
+Agents coordinate through the blackboard pattern. See the [blackboard skill](../skills/blackboard/SKILL.md) for details.
 
 ### Tools
 
@@ -321,11 +321,11 @@ Agents coordinate using the blackboard pattern (ADR-003):
          ▲                 ▲                 ▲
          │                 │                 │
 ┌────────┴─────┐  ┌────────┴─────┐  ┌────────┴─────┐
-│memory-curator│  │search-subcall│  │search-enhanced│
+│memory-curator│  │search-subcall│  │compress-worker│
 └──────────────┘  └──────────────┘  └───────────────┘
 ```
 
-See [Agent Coordination](agent-coordination.md) for patterns.
+See the [blackboard skill](../skills/blackboard/SKILL.md) for patterns.
 
 ## Performance Considerations
 
@@ -338,16 +338,5 @@ See [Agent Coordination](agent-coordination.md) for patterns.
 
 ## Related Documentation
 
-### Technical
 - [Validation](validation.md) - MIF schema validation
-- [Agent Coordination](agent-coordination.md) - Multi-agent patterns
 - [ADRs](adrs/README.md) - Architectural decisions
-
-### Enterprise
-- [Research Validation](enterprise/research-validation.md) - Academic foundations (Letta LoCoMo benchmark, Unix philosophy)
-- [Compliance & Governance](enterprise/compliance-governance.md) - Audit trails, data sovereignty
-- [Deployment Guide](enterprise/deployment-guide.md) - Installation and team sharing
-
-### Community
-- [Migration from Memory Bank](archive/community/migration-from-memory-bank.md) - For existing Memory Bank users
-- [Comparison](archive/community/mnemonic-vs-memory-bank.md) - Mnemonic vs Memory Bank features

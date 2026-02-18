@@ -250,8 +250,8 @@ This decision is supported by independent research:
 
 | Finding | Files | Lines | Assessment |
 |---------|-------|-------|------------|
-| Memory files use .memory.md extension | `skills/mnemonic-core/SKILL.md` | L152-L176 | compliant |
-| YAML frontmatter structure defined | `skills/mnemonic-format/SKILL.md` | L1-L50 | compliant |
+| Memory files use .memory.md extension | `skills/core/SKILL.md` | L152-L176 | compliant |
+| YAML frontmatter structure defined | `skills/format/SKILL.md` | L1-L50 | compliant |
 | Git integration in capture workflow | `commands/capture.md` | L131-L138 | compliant |
 | Namespace directory structure | `commands/setup.md` | L47-L58 | compliant |
 

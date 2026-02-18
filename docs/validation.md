@@ -253,4 +253,4 @@ If frontmatter fails to parse:
 
 ## Schema Source
 
-The validation rules are parsed from `skills/mnemonic-format/SKILL.md`, ensuring a single source of truth between documentation and validation (see ADR-004).
+The validation rules are parsed from `skills/format/SKILL.md`, ensuring a single source of truth between documentation and validation (see ADR-004).

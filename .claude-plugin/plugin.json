@@ -14,43 +14,5 @@
     "knowledge-management",
     "persistent-memory",
     "ontology"
-  ],
-  "commands": [
-    "./commands/capture.md",
-    "./commands/discover.md",
-    "./commands/gc.md",
-    "./commands/init.md",
-    "./commands/integrate.md",
-    "./commands/list.md",
-    "./commands/query.md",
-    "./commands/recall.md",
-    "./commands/search.md",
-    "./commands/search-enhanced.md",
-    "./commands/setup.md",
-    "./commands/status.md",
-    "./commands/validate.md",
-    "./commands/custodian.md"
-  ],
-  "skills": [
-    "./skills/mnemonic-agent-coordination/SKILL.md",
-    "./skills/mnemonic-blackboard/SKILL.md",
-    "./skills/mnemonic-core/SKILL.md",
-    "./skills/mnemonic-format/SKILL.md",
-    "./skills/mnemonic-organization/SKILL.md",
-    "./skills/mnemonic-progressive-disclosure/SKILL.md",
-    "./skills/mnemonic-search/SKILL.md",
-    "./skills/mnemonic-search-enhanced/SKILL.md",
-    "./skills/mnemonic-setup/SKILL.md",
-    "./skills/integrate/SKILL.md",
-    "./skills/ontology/SKILL.md",
-    "./skills/custodian/SKILL.md",
-    "./skills/qmd-setup/SKILL.md",
-    "./skills/qmd-reindex/SKILL.md"
-  ],
-  "agents": [
-    "./agents/memory-curator.md",
-    "./agents/mnemonic-search-subcall.md",
-    "./agents/compression-worker.md",
-    "./agents/ontology-discovery.md"
   ]
 }

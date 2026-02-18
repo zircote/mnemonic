@@ -30,7 +30,7 @@ The `lib/` directory contains shared Python utilities used across mnemonic's hoo
 
 ### paths
 
-**File**: `lib/paths.py` | **Documentation**: [lib/README.md](../lib/README.md)
+**File**: `lib/paths.py`
 
 Centralized path resolution for all mnemonic memory operations. Provides single source of truth for memory directories, search paths, and blackboard locations.
 
@@ -644,7 +644,7 @@ Validate memory conforms to loaded ontology.
 
 ---
 
-**See Also**: 
+**See Also**:
 - [Ontologies Guide](ontologies.md)
 - [ADR-008: Custom Ontologies](adrs/adr-008-custom-ontologies.md)
 - [Ontology Skill](../skills/ontology/SKILL.md)

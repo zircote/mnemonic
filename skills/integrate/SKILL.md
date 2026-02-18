@@ -28,7 +28,7 @@ Use this skill when you want to:
 - **Migrate legacy integrations** - Convert old marker-less integrations to the new format
 
 **Don't use this skill if:**
-- You're building a new plugin from scratch (use mnemonic-core directly)
+- You're building a new plugin from scratch (use the core skill directly)
 - You only need to search/capture memories (use `/mnemonic:search` and `/mnemonic:capture`)
 
 ## Overview

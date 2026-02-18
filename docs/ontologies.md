@@ -465,7 +465,6 @@ entity:
 |---------|-------------|
 | `/mnemonic:list` | List loaded ontologies and namespaces |
 | `/mnemonic:validate <file>` | Validate ontology file |
-| `/mnemonic:discover <path>` | Discover entities in files |
 
 ### Library API
 

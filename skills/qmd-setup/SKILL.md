@@ -3,9 +3,7 @@ allowed-tools:
 - Bash
 - Read
 - Write
-description: >
-  Set up @tobilu/qmd semantic search for mnemonic memories. Registers collections,
-  builds indexes, and generates embeddings. Run this once per machine.
+description: Set up @tobilu/qmd semantic search for mnemonic memories. Registers collections, builds indexes, and generates embeddings. Run this once per machine.
 name: qmd-setup
 user-invocable: true
 ---

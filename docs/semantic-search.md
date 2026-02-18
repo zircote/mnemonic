@@ -255,12 +255,12 @@ qmd query "database schema patterns"
 /mnemonic:recall --id 550e8400-e29b-41d4-a716-446655440000
 ```
 
-### Enhanced Search Skill
+### Enhanced Search
 
-The `/mnemonic:search-enhanced` skill can optionally use qmd for initial search:
+The `/mnemonic:search` skill includes enhanced iterative search with synthesis, which can use qmd for initial search:
 
 ```bash
-/mnemonic:search-enhanced "comprehensive guide to our authentication system"
+/mnemonic:search "comprehensive guide to our authentication system"
 ```
 
 ## Troubleshooting
@@ -337,5 +337,4 @@ qmd search "term" -c mnemonic-project
 - [@tobilu/qmd Documentation](https://github.com/tobil4sk/qmd)
 - [BM25 Algorithm](https://en.wikipedia.org/wiki/Okapi_BM25)
 - [Vector Embeddings Explained](https://platform.openai.com/docs/guides/embeddings)
-- [Mnemonic Search Skill](../skills/mnemonic-search/SKILL.md)
-- [Enhanced Search Skill](../skills/mnemonic-search-enhanced/SKILL.md)
+- [Mnemonic Search Skill](../skills/search/SKILL.md)
