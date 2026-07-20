@@ -15,6 +15,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: modeled-information-format/.github/.github/workflows/reusable-label-sync.yml@05b13774259a17140419556a45a48ba6a3e36e0c
+    uses: modeled-information-format/.github/.github/workflows/reusable-label-sync.yml@667ee7b3bc93a8789c65cb9b4fedc6d827fcd36a
     with:
       local-labels: .github/labels.yml   # merged over the org set; absent file = org set only
